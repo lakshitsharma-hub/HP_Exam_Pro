@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HP Exam Pro | Professional Workspace</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <!-- Auth Overlay -->
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="auth-card">
+            <div class="brand-logo" style="margin: 0 auto 20px;">
+                <div class="mountain-peak"></div>
+                <div class="book-base"></div>
+            </div>
+            <h2>HP Exam Pro</h2>
+            <p>अपनी तैयारी ट्रैक करने के लिए लॉगिन करें</p>
+            <input type="email" id="auth-email" placeholder="ईमेल पता">
+
+            <!-- और इसकी जगह यह डालें: -->
+          <div class="password-field-container">
+           <input type="password" id="auth-pass" placeholder="पासवर्ड">
+             <i class="fa-solid fa-eye" id="togglePassword"></i>
+            </div>
+
+            <div class="auth-actions">
+                <button onclick="handleLogin()" id="login-btn">Login</button>
+                <button onclick="handleSignup()" id="signup-btn" class="secondary">Sign Up</button>
+            </div>
+            <p id="auth-error" style="color: #ef4444; font-size: 12px; margin-top: 15px;"></p>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="brand-container">
+                    <div class="brand-logo"><div class="mountain-peak"></div><div class="book-base"></div></div>
+                    <div class="brand-text">
+                        <span class="brand-name">HP EXAM</span>
+                        <span class="brand-tagline">PRO WORKSPACE</span>
+                    </div>
+                </div>
+                <nav class="nav-menu">
+                    <div class="nav-item active" data-page="dashboard"><i class="fa-solid fa-house"></i><span>Dashboard</span></div>
+                    <div class="nav-item" data-page="mock-tests"><i class="fa-solid fa-pen-to-square"></i><span>Mock Tests</span></div>
+                    <div class="nav-item" data-page="analytics"><i class="fa-solid fa-chart-line"></i><span>Analytics</span></div>
+                    <div class="nav-item pro-link" data-page="pro-access"><i class="fa-solid fa-crown"></i><span>Get Pro Access</span></div>
+                    <div class="nav-item" data-page="admin"><i class="fa-solid fa-user-shield"></i><span>Admin Panel</span></div>
+                </nav>
+            </div>
+            <div class="user-profile">
+                <div class="avatar-small" id="user-initial">?</div>
+                <div class="user-info">
+                    <span id="display-name">User</span>
+                    <small>Active Profile</small>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div id="dashboard-page" class="page-content active">
+                <header class="top-bar">
+                    <div class="exam-tag">HP State Exams 2026</div>
+                    <div class="status-indicator">● AI Engine Active</div>
+                </header>
+                <div id="messages" class="chat-viewport"></div>
+                <section class="input-section">
+                    <div class="input-wrapper">
+                        <input type="text" id="user-input" placeholder="सर्टिफिकेट या सिलेबस से जुड़ा सवाल पूछें...">
+                        <button id="send-btn" class="send-action"><i class="fa-solid fa-bolt"></i></button>
+                    </div>
+                </section>
+            </div>
+            <!-- Placeholders for other pages -->
+            <div id="mock-tests-page" class="page-content"><div class="placeholder-msg"><i class="fa-solid fa-pen-nib"></i><h2>Mock Tests</h2><p>जल्द आ रहा है...</p></div></div>
+            <div id="analytics-page" class="page-content"><div class="placeholder-msg"><i class="fa-solid fa-chart-pie"></i><h2>Analytics</h2><p>डेटा यहाँ दिखेगा।</p></div></div>
+        </main>
+
+        <!-- Insights -->
+        <aside class="insights-panel">
+            <div class="info-card">
+                <h3><i class="fa-solid fa-calendar-days"></i> Upcoming Exams</h3>
+                <div class="exam-entry">
+                    <div class="exam-info"><strong>HPRCA Patwari</strong><span id="patwari-countdown" class="exam-status urgent">...</span></div>
+                </div>
+            </div>
+            <div class="info-card">
+                <h3><i class="fa-solid fa-newspaper"></i> Current Affairs</h3>
+                <div class="news-card"><p id="current-affairs-text">न्यूज़ अपडेट हो रही है...</p></div>
+            </div>
+            <div class="info-card">
+                <h3><i class="fa-solid fa-bars-progress"></i> Progress</h3>
+                <div class="progress-section">
+                    <div class="prog-label"><span>Preparation</span><span>85%</span></div>
+                    <div class="prog-bar"><div class="fill" style="width: 85%;"></div></div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
