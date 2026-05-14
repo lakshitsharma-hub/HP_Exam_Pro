@@ -40,6 +40,13 @@ async function checkUserSession() {
 }
 
 async function setupUserProfile(user) {
+    // 1. सबसे पहले चेक करें कि यूजर मौजूद है या नहीं
+    if (!user) {
+        console.error("यूजर लॉगिन नहीं है!");
+        return;
+    }
+
+    // 2. अब डेटाबेस से प्रोफाइल मांगें
     let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', user.id).single();
     const today = new Date().toDateString();
 
@@ -50,13 +57,21 @@ async function setupUserProfile(user) {
         ]).select().single();
         profile = newProfile;
     } else if (profile.last_active !== today) {
-        // डेली रीसेट लॉजिक: अगर नया दिन है तो काउंट 0 करें
         const { data: updatedProfile } = await supabaseClient.from('profiles')
             .update({ daily_count: 0, last_active: today })
             .eq('id', user.id)
             .select().single();
         profile = updatedProfile;
     }
+
+    // 3. यह जादुई लाइन है जो स्क्रीन पर नाम दिखाएगी
+    if (profile) {
+        const welcomeText = document.getElementById('welcome-text'); // अपनी ID चेक कर लें
+        if (welcomeText) {
+            welcomeText.innerText = `नमस्ते, ${profile.display_name}`;
+        }
+    }
+}
 
     // UI अपडेट करें
     document.getElementById('display-name').innerText = profile.display_name;
