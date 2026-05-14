@@ -1,10 +1,3 @@
-# 1. सबसे पहले आते हैं 'Imports' (ज़रूरी लाइब्रेरीज़)
-from fastapi import FastAPI, Header, HTTPException
-from pydantic import BaseModel
-from .engine import AIEngine
-from .database import db  # <-- यह आपके डेटाबेस मैनेजर को जोड़ता है
-import os
-
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware # 1. इसे इम्पोर्ट करें
 from pydantic import BaseModel
@@ -12,6 +5,8 @@ from .engine import AIEngine
 from .database import db
 import os
 from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI(title="HP Exam Pro API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,8 +16,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-app = FastAPI(title="HP Exam Pro API")
 
 # 2. CORS सेटअप करें (यह ब्राउज़र को आपके बैकएंड से बात करने की इजाजत देगा)
 app.add_middleware(
