@@ -82,7 +82,6 @@ async function setupUserProfile(user) {
     if (messagesDiv.innerHTML === "") {
         appendMessage(`नमस्ते ${profile.display_name}! आज हम किस परीक्षा की तैयारी करें?`, 'ai');
     }
-}
 
 // --- 3. PAGE LOGIC & NEWS ---
 window.onload = () => {
