@@ -110,8 +110,8 @@ async function sendMessage() {
     const loaderId = addLoader();
 
     try {
-        // यहाँ हमने localhost की जगह आपकी IP (172.18.80.1) डाल दी है
-        const response = await fetch('http://10.230.77.155:8000/api/chat', { 
+        // यहाँ हमने localhost की जगह आपकी IP (https://hp-exam-pro.onrender.com) डाल दी है
+        const response = await fetch('https://hp-exam-pro.onrender.com/api/chat', { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: text })
