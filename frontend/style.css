@@ -250,4 +250,34 @@ body {
 .message strong {
     color: #2d3436; /* बोल्ड टेक्स्ट को थोड़ा गहरा रंग दें */
 }
+.bubble ul, .bubble ol {
+    margin-left: 20px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
 
+.bubble li {
+    margin-bottom: 4px;
+}
+/* जब स्क्रीन 768px से छोटी हो (Mobile/Tablet) */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column; /* साइडबार और चैट को ऊपर-नीचे कर देगा */
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        display: none; /* शुरुआत में साइडबार छुपा दें, बाद में 'Menu' बटन से दिखा सकते हैं */
+    }
+
+    .main-content {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .bubble {
+        max-width: 90%; /* मैसेज स्क्रीन से बाहर नहीं जाएगा */
+    }
+}
