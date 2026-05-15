@@ -7,7 +7,7 @@ const messagesDiv = document.getElementById('messages');
 const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 
-// --- 2. AUTHENTICATION (Login/Signup) ---
+// --- 2. AUTHENTICATION (Login/Signup ) ---
 async function handleSignup() {
     const email = document.getElementById('auth-email').value;
     const password = document.getElementById('auth-pass').value;
