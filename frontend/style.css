@@ -343,3 +343,48 @@ body {
         box-shadow: -5px 5px 15px rgba(0,0,0,0.2);
     }
 }
+.mobile-sidebar a {
+    color: white !important;
+    text-decoration: none;
+    padding: 12px 0;
+    border-bottom: 1px solid #3d4150; /* पतली लाइन */
+    font-size: 16px;
+    display: block;
+}
+
+.mobile-sidebar a:last-child {
+    border-bottom: none;
+}
+@media (max-width: 768px) {
+    /* पूरे मुख्य हिस्से को ऊपर-नीचे करें */
+    .dashboard-container { 
+        display: flex !important;
+        flex-direction: column !important;
+        height: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    /* AI Chat Area - इसे 'Order: 1' दें ताकि ये ऊपर (बीच में) रहे */
+    .main-content {
+        width: 100% !important;
+        order: 1 !important; 
+        padding: 15px !important;
+        min-height: 450px !important; /* चैट को पर्याप्त जगह दें */
+    }
+
+    /* Widgets (Exams, Progress) - इसे 'Order: 2' दें ताकि ये चैट के नीचे जाएँ */
+    .right-panel {
+        width: 100% !important;
+        order: 2 !important; 
+        padding: 15px !important;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* चैट बबल्स को पूरी चौड़ाई दें ताकि वे साइड में न दबें */
+    .bubble {
+        max-width: 85% !important;
+        word-wrap: break-word;
+    }
+}
