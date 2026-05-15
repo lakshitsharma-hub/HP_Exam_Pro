@@ -116,45 +116,28 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
 /* ========================================= */
 
 @media (max-width: 850px) {
+    /* 1. बेस रिसेट */
     body { overflow-y: auto; height: auto; }
-    
-    /* Change flex direction to stack elements */
     .app-container { flex-direction: column; height: auto; overflow: visible; }
-        .message-wrapper { max-width: 90%; }
-    .input-section { padding: 15px; }
-
-        /* Chat Box ko dabne se rokne ka fix */
-    .page-content.active { flex: 1 !important; }
-    .chat-viewport { flex: 1 1 auto !important; }
     
-    /* Show Mobile Nav, Hide Desktop Sidebar */
-    .mobile-nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #0f172a; color: white; position: sticky; top: 0; z-index: 1001; }
+    /* 2. नेवबार और साइडबार सेटिंग्स */
     .sidebar { display: none !important; }
+    .mobile-nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #0f172a; color: white; position: sticky; top: 0; z-index: 1001; }
     
-    /* Mobile Sidebar Styling */
     .mobile-sidebar { display: none; flex-direction: column; background: #0f172a; position: fixed; top: 60px; left: 0; width: 250px; height: calc(100vh - 60px); z-index: 1000; padding: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.2); }
     .mobile-sidebar a { color: white !important; text-decoration: none; padding: 15px 10px; border-bottom: 1px solid #1e293b; font-size: 16px; display: block; }
     .menu-icon span { display: block; width: 25px; height: 3px; background: white; margin: 5px 0; border-radius: 2px; }
 
-       /* Order Adjustments for Mobile */
+    /* 3. GEMINI STYLE CHAT (फुल स्क्रीन) */
     .main-content { 
         width: 100% !important; 
         order: 1 !important; 
-        height: calc(100vh - 60px) !important; /* height की जगह min-height */
+        height: calc(100vh - 60px) !important; /* स्क्रीन पर फिक्स */
         display: flex !important;
         flex-direction: column !important;
         margin: 0 !important; 
         border-radius: 0 !important; 
     }
-    
-    .insights-panel { 
-        order: 2; 
-        width: 100%; 
-        background: #f8fafc; 
-        border-top: 1px solid #e2e8f0; 
-    }
-        /* Chat Fixes & Gemini Style Spring */
-    .message-wrapper { max-width: 90%; }
     
     .page-content.active {
         display: flex !important;
@@ -164,18 +147,27 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
     }
 
     .chat-viewport {
-        flex: 1 !important; 
+        flex: 1 !important; /* यह स्प्रिंग की तरह फैलकर इनपुट को नीचे धकेलेगा */
         overflow-y: auto !important; 
         min-height: 0 !important; 
         padding-bottom: 15px !important;
     }
 
     .input-section {
-        flex-shrink: 0 !important; 
+        flex-shrink: 0 !important; /* नीचे टिका रहेगा */
         padding: 15px !important;
         background: white !important;
         border-top: 1px solid #e2e8f0 !important;
     }
 
-} /* <--- यह ब्रैकेट सबसे अंत में होना चाहिए, जो @media को बंद करेगा */
+    .message-wrapper { max-width: 90%; }
 
+    /* 4. EXAM CARDS (चैट के नीचे छुप जाएंगे) */
+    .insights-panel { 
+        order: 2 !important; 
+        width: 100% !important; 
+        background: #f8fafc !important; 
+        border-top: 1px solid #e2e8f0 !important; 
+        padding: 20px !important;
+    }
+}
