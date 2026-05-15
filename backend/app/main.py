@@ -5,8 +5,25 @@ from .engine import AIEngine
 from .database import db
 import os
 from fastapi.middleware.cors import CORSMiddleware
+import requests
 
 app = FastAPI(title="HP Exam Pro API")
+
+NEWS_API_KEY = "7e6409ea3892431a96b07039b6858500" # अपनी की यहाँ डालें
+
+@app.get("/api/news")
+async def get_hp_news():
+    # हिमाचल प्रदेश से जुड़ी ताज़ा खबरें ढूँढने के लिए क्वेरी
+    url = f"https://newsapi.org/v2/everything?q=Himachal+Pradesh&sortBy=publishedAt&language=hi&apiKey={NEWS_API_KEY}"
+    
+    try:
+        response = requests.get(url)
+        data = response.json()
+        # पहले 3-4 आर्टिकल्स के टाइटल निकालें
+        articles = [art['title'] for art in data.get('articles', [])[:5]]
+        return {"news": articles}
+    except Exception as e:
+        return {"news": ["न्यूज़ लोड करने में समस्या आ रही है।"]}
 
 app.add_middleware(
     CORSMiddleware,
