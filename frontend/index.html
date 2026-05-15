@@ -2,36 +2,32 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>HP Exam Pro | Professional Workspace</title>
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <!-- Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <nav class="mobile-nav">
-    <div class="logo">HP Exam Pro</div>
-    <div class="menu-icon" onclick="toggleMenu()">
-        <span></span>
-        <span></span>
-        <span></span>
+        <div class="logo">HP Exam Pro</div>
+        <div class="menu-icon" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <div id="mobile-sidebar" class="mobile-sidebar">
+        <a href="#">Profile</a>
+        <a href="#">Mock Tests</a>
+        <a href="#">Analytics</a>
+        <a href="#">Get Pro Access</a>
+        <a href="#" class="admin-link">Admin Panel</a>
     </div>
-</nav>
 
-<div id="mobile-sidebar" class="mobile-sidebar">
-    <a href="#">Profile</a>
-    <a href="#">Mock Tests</a>
-    <a href="#">Analytics</a>
-    <a href="#">Get Pro Access</a>
-    <a href="#" class="admin-link">Admin Panel</a>
-</div>
-
-
-    <!-- Auth Overlay -->
     <div id="auth-overlay" class="auth-overlay">
         <div class="auth-card">
             <div class="brand-logo" style="margin: 0 auto 20px;">
@@ -41,13 +37,10 @@
             <h2>HP Exam Pro</h2>
             <p>अपनी तैयारी ट्रैक करने के लिए लॉगिन करें</p>
             <input type="email" id="auth-email" placeholder="ईमेल पता">
-
-            <!-- और इसकी जगह यह डालें: -->
-          <div class="password-field-container">
-           <input type="password" id="auth-pass" placeholder="पासवर्ड">
-             <i class="fa-solid fa-eye" id="togglePassword"></i>
+            <div class="password-field-container">
+                <input type="password" id="auth-pass" placeholder="पासवर्ड">
+                <i class="fa-solid fa-eye" id="togglePassword"></i>
             </div>
-
             <div class="auth-actions">
                 <button onclick="handleLogin()" id="login-btn">Login</button>
                 <button onclick="handleSignup()" id="signup-btn" class="secondary">Sign Up</button>
@@ -57,8 +50,7 @@
     </div>
 
     <div class="app-container">
-        <!-- Sidebar -->
-        <div class="main-app-layout">
+        
         <aside class="sidebar">
             <div class="sidebar-top">
                 <div class="brand-container">
@@ -85,7 +77,6 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <div id="dashboard-page" class="page-content active">
                 <header class="top-bar">
@@ -100,12 +91,15 @@
                     </div>
                 </section>
             </div>
-            <!-- Placeholders for other pages -->
-            <div id="mock-tests-page" class="page-content"><div class="placeholder-msg"><i class="fa-solid fa-pen-nib"></i><h2>Mock Tests</h2><p>जल्द आ रहा है...</p></div></div>
-            <div id="analytics-page" class="page-content"><div class="placeholder-msg"><i class="fa-solid fa-chart-pie"></i><h2>Analytics</h2><p>डेटा यहाँ दिखेगा।</p></div></div>
+            
+            <div id="mock-tests-page" class="page-content">
+                <div class="placeholder-msg"><i class="fa-solid fa-pen-nib"></i><h2>Mock Tests</h2><p>जल्द आ रहा है...</p></div>
+            </div>
+            <div id="analytics-page" class="page-content">
+                <div class="placeholder-msg"><i class="fa-solid fa-chart-pie"></i><h2>Analytics</h2><p>डेटा यहाँ दिखेगा।</p></div>
+            </div>
         </main>
 
-        <!-- Insights -->
         <aside class="insights-panel">
             <div class="info-card">
                 <h3><i class="fa-solid fa-calendar-days"></i> Upcoming Exams</h3>
@@ -126,7 +120,6 @@
             </div>
         </aside>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
