@@ -10,9 +10,13 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); height: 100vh; overflow: hidden; }
 
-.app-container { display: flex; height: 100vh; width: 100vw; }
+/* Desktop Layout Base */
+.app-container { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
 
-/* Sidebar Flex Logic */
+/* Hide Mobile Elements on Desktop */
+.mobile-nav, .mobile-sidebar { display: none; }
+
+/* Sidebar Logic */
 .sidebar { 
     width: 250px; 
     background: var(--sidebar); 
@@ -23,7 +27,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
     color: white; 
     flex-shrink: 0; 
 }
-
 .sidebar-top { flex-grow: 1; }
 
 .brand-container { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
@@ -39,31 +42,24 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
 
 .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; color: #94a3b8; cursor: pointer; border-radius: 8px; margin-bottom: 5px; transition: 0.2s; }
 .nav-item:hover, .nav-item.active { background: #1e293b; color: white; }
-
 .pro-link { background: rgba(245, 158, 11, 0.1); color: var(--pro-gold); border: 1px dashed var(--pro-gold); margin-top: 20px; }
 .pro-link:hover { background: var(--pro-gold) !important; color: white !important; }
 
 /* Profile Pinned at Bottom */
-.user-profile { 
-    display: flex; align-items: center; gap: 12px; 
-    border-top: 1px solid #1e293b; padding-top: 20px; 
-}
-.avatar-small { 
-    width: 38px; height: 38px; background: var(--pro-gold); color: white; 
-    border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; 
-}
+.user-profile { display: flex; align-items: center; gap: 12px; border-top: 1px solid #1e293b; padding-top: 20px; }
+.avatar-small { width: 38px; height: 38px; background: var(--pro-gold); color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 .user-info { display: flex; flex-direction: column; }
 .user-info small { color: #64748b; font-size: 10px; }
 
 /* Main Content Area */
-.main-content { flex: 1; background: white; margin: 12px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden; }
-
+.main-content { flex: 1; background: white; margin: 12px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); display: flex; flex-direction: column; overflow: hidden; }
 .page-content { display: none; flex-direction: column; height: 100%; }
 .page-content.active { display: flex; }
 
 .top-bar { padding: 15px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 .exam-tag { background: #eff6ff; color: var(--accent); padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; }
 
+/* Chat Setup */
 .chat-viewport { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; background: #fafafa; }
 .message-wrapper { display: flex; gap: 12px; max-width: 82%; }
 .message-wrapper.user { align-self: flex-end; flex-direction: row-reverse; }
@@ -71,356 +67,74 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
 .ai .bubble { background: #ffffff; border: 1px solid #eee; border-top-left-radius: 4px; color: #334155; }
 .user .bubble { background: #0f172a; color: white; border-top-right-radius: 4px; }
 
+/* Markdown Styles in Chat */
+.bubble ul, .bubble ol { margin-left: 20px; padding-top: 5px; padding-bottom: 5px; }
+.bubble li { margin-bottom: 4px; }
+.message strong { color: #2d3436; }
+
+/* Input Section */
 .input-section { padding: 20px 30px; border-top: 1px solid #eee; }
 .input-wrapper { display: flex; background: #f1f5f9; padding: 8px 18px; border-radius: 16px; align-items: center; gap: 12px; }
 .input-wrapper input { flex: 1; border: none; background: transparent; padding: 10px; outline: none; font-size: 15px; }
 .send-action { background: var(--sidebar); color: white; border: none; width: 42px; height: 42px; border-radius: 12px; cursor: pointer; }
 
 /* Insights Panel */
-.insights-panel { width: 310px; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+.insights-panel { width: 310px; padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
 .info-card { background: white; padding: 18px; border-radius: 18px; border: 1px solid var(--border); }
 .info-card h3 { font-size: 14px; color: var(--accent); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-
 .exam-entry { padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; margin-bottom: 10px; }
 .exam-status { font-size: 11px; padding: 4px 10px; border-radius: 10px; font-weight: 600; }
 .exam-status.urgent { background: #fee2e2; color: #dc2626; }
-
 .progress-section { margin-bottom: 15px; }
 .prog-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; font-weight: 600; color: #475569; }
 .prog-bar { height: 7px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
 .prog-bar .fill { height: 100%; background: var(--accent); transition: 0.5s; }
+.news-card { background: #eff6ff; border-left: 4px solid var(--accent); padding: 15px; border-radius: 8px; }
+.news-card p { font-size: 13px; line-height: 1.5; color: #1e3a8a; font-weight: 500; margin-bottom: 8px; }
 
-.wisdom-card { background: #fffbeb; border-color: #fef3c7; }
-.wisdom-card p { font-size: 13.5px; line-height: 1.6; color: #92400e; font-style: italic; }
-
+/* Placeholders */
 .placeholder-msg { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #cbd5e1; }
 .placeholder-msg i { font-size: 60px; margin-bottom: 20px; opacity: 0.3; }
 
-.dots { display: flex; gap: 5px; padding: 5px; }
-.dot { width: 7px; height: 7px; background: #94a3b8; border-radius: 50%; animation: blink 1.4s infinite; }
-.dot:nth-child(2) { animation-delay: 0.2s; }
-.dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-/* Sidebar Fix: Profile at Bottom */
-.sidebar { 
-    width: 240px; background: var(--sidebar); display: flex; 
-    flex-direction: column; justify-content: space-between; 
-    padding: 25px; color: white; flex-shrink: 0; 
-}
-.sidebar-top { flex-grow: 1; }
+/* AUTH OVERLAY STYLING */
+.auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); display: flex; align-items: center; justify-content: center; z-index: 10000; }
+.auth-card { background: white; padding: 40px; border-radius: 28px; width: 380px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
+.auth-card h2 { margin-bottom: 8px; color: #0f172a; font-weight: 800; }
+.auth-card p { color: #64748b; font-size: 14px; margin-bottom: 25px; }
+.auth-card input { width: 100%; padding: 14px 18px; margin-bottom: 15px; border: 1px solid #e2e8f0; border-radius: 12px; outline: none; font-size: 15px; transition: 0.3s; }
+.auth-card input:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+.password-field-container { position: relative; width: 100%; margin-bottom: 15px; }
+.password-field-container input { margin-bottom: 0 !important; padding-right: 45px !important; }
+#togglePassword { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; font-size: 14px; }
+.auth-actions { display: flex; gap: 12px; }
+.auth-actions button { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; }
+#login-btn { background: #2563eb; color: white; }
+#signup-btn.secondary { background: #f1f5f9; color: #0f172a; }
 
-/* News Card Styling */
-.news-card { background: #eff6ff; border-left: 4px solid var(--accent); padding: 15px; border-radius: 8px; }
-.news-card p { font-size: 13px; line-height: 1.5; color: #1e3a8a; font-weight: 500; margin-bottom: 8px; }
-.news-meta { font-size: 11px; color: #60a5fa; text-align: right; font-style: italic; }
+/* ========================================= */
+/* --- MOBILE & TABLET RESPONSIVENESS --- */
+/* ========================================= */
 
-/* Placeholder and Page Switching */
-.page-content { display: none; flex-direction: column; height: 100%; }
-.page-content.active { display: flex; }
-/* --- AUTH OVERLAY STYLING --- */
-.auth-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(15, 23, 42, 0.95); /* गहरा बैकग्राउंड */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000; /* यह हर चीज़ के ऊपर रहेगा */
-}
-
-.auth-card {
-    background: white;
-    padding: 40px;
-    border-radius: 28px;
-    width: 380px;
-    text-align: center;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-}
-
-.auth-card h2 {
-    margin-bottom: 8px;
-    color: #0f172a;
-    font-weight: 800;
-}
-
-.auth-card p {
-    color: #64748b;
-    font-size: 14px;
-    margin-bottom: 25px;
-}
-
-.auth-card input {
-    width: 100%;
-    padding: 14px 18px;
-    margin-bottom: 15px;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    outline: none;
-    font-size: 15px;
-    transition: 0.3s;
-}
-
-.auth-card input:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-}
-
-.auth-actions {
-    display: flex;
-    gap: 12px;
-}
-
-.auth-actions button {
-    flex: 1;
-    padding: 14px;
-    border-radius: 12px;
-    border: none;
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-#login-btn {
-    background: #2563eb;
-    color: white;
-}
-
-#login-btn:hover {
-    background: #1d4ed8;
-}
-
-#signup-btn.secondary {
-    background: #f1f5f9;
-    color: #0f172a;
-}
-
-#signup-btn.secondary:hover {
-    background: #e2e8f0;
-}
-.password-field-container {
-    position: relative;
-    width: 100%;
-    margin-bottom: 15px;
-}
-
-.password-field-container input {
-    margin-bottom: 0 !important; /* एक्स्ट्रा मार्जिन हटाएं */
-    padding-right: 45px !important; /* आइकॉन के लिए जगह */
-}
-
-#togglePassword {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    color: #64748b;
-    font-size: 14px;
-    transition: 0.2s;
-}
-
-#togglePassword:hover {
-    color: #2563eb;
-}
-/* 1. बढ़िया फॉन्ट इम्पोर्ट करें */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-
-body {
-    font-family: 'Inter', sans-serif; /* पूरे पेज के लिए आधुनिक फॉन्ट */
-}
-
-/* 2. चैट बबल्स को सुंदर बनाएँ */
-.message {
-    line-height: 1.6;
-    font-size: 15px;
-    padding: 12px 16px;
-    border-radius: 12px;
-    margin-bottom: 10px;
-}
-
-/* लिस्ट और बोल्ड को सही स्पेस दें */
-.message ul, .message ol {
-    margin-left: 20px;
-    padding-bottom: 10px;
-}
-
-.message strong {
-    color: #2d3436; /* बोल्ड टेक्स्ट को थोड़ा गहरा रंग दें */
-}
-.bubble ul, .bubble ol {
-    margin-left: 20px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-}
-
-.bubble li {
-    margin-bottom: 4px;
-}
-/* जब स्क्रीन 768px से छोटी हो (Mobile/Tablet) */
-@media (max-width: 768px) {
-    .container {
-        flex-direction: column; /* साइडबार और चैट को ऊपर-नीचे कर देगा */
-    }
-
-    .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        display: none; /* शुरुआत में साइडबार छुपा दें, बाद में 'Menu' बटन से दिखा सकते हैं */
-    }
-
-    .main-content {
-        width: 100%;
-        padding: 10px;
-    }
-
-    .bubble {
-        max-width: 90%; /* मैसेज स्क्रीन से बाहर नहीं जाएगा */
-    }
-}
-@media (max-width: 768px) {
-    /* 1. कंप्यूटर वाला साइडबार छुपाएं */
-    .sidebar { display: none !important; }
-
-    /* 2. मोबाइल नेवबार दिखाएं */
-    .mobile-nav {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px 20px;
-        background: #1a1c23;
-        color: white;
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-    }
-
-    /* 3. लेआउट को एक लाइन में सेट करें */
-    .dashboard-container {
-        display: flex !important;
-        flex-direction: column !important;
-        height: auto !important;
-    }
-
-    /* 4. AI Chat को बीच में रखें (Order: 1) */
-    .main-content {
-        width: 100% !important;
-        order: 1 !important;
-        padding: 10px !important;
-        min-height: 500px;
-    }
-
-    /* 5. Exam Cards को सबसे नीचे ले जाएं (Order: 2) */
-    .right-panel {
-        width: 100% !important;
-        order: 2 !important;
-        background: #f8f9fa;
-        padding: 20px !important;
-    }
-
-    /* 6. Hamburger Menu स्टाइल */
-    .menu-icon span {
-        display: block;
-        width: 25px;
-        height: 3px;
-        background: white;
-        margin: 5px 0;
-        transition: 0.3s;
-    }
-
-    .mobile-sidebar {
-        display: none; /* डिफ़ॉल्ट में छुपा रहेगा */
-        flex-direction: column;
-        background: #252833;
-        position: absolute;
-        top: 60px;
-        right: 0;
-        width: 200px;
-        padding: 20px;
-        box-shadow: -5px 5px 15px rgba(0,0,0,0.2);
-    }
-}
-.mobile-sidebar a {
-    color: white !important;
-    text-decoration: none;
-    padding: 12px 0;
-    border-bottom: 1px solid #3d4150; /* पतली लाइन */
-    font-size: 16px;
-    display: block;
-}
-
-.mobile-sidebar a:last-child {
-    border-bottom: none;
-}
-@media (max-width: 768px) {
-    /* पूरे मुख्य हिस्से को ऊपर-नीचे करें */
-    .dashboard-container { 
-        display: flex !important;
-        flex-direction: column !important;
-        height: auto !important;
-        overflow-x: hidden !important;
-    }
-
-    /* AI Chat Area - इसे 'Order: 1' दें ताकि ये ऊपर (बीच में) रहे */
-    .main-content {
-        width: 100% !important;
-        order: 1 !important; 
-        padding: 15px !important;
-        min-height: 450px !important; /* चैट को पर्याप्त जगह दें */
-    }
-
-    /* Widgets (Exams, Progress) - इसे 'Order: 2' दें ताकि ये चैट के नीचे जाएँ */
-    .right-panel {
-        width: 100% !important;
-        order: 2 !important; 
-        padding: 15px !important;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    /* चैट बबल्स को पूरी चौड़ाई दें ताकि वे साइड में न दबें */
-    .bubble {
-        max-width: 85% !important;
-        word-wrap: break-word;
-    }
-}
 @media (max-width: 850px) {
-    /* 1. पूरे लेआउट को ऊपर-नीचे करने के लिए */
-    .app-container {
-        display: flex !important;
-        flex-direction: column !important;
-        height: auto !important;
-    }
-
-    /* 2. कंप्यूटर वाला साइडबार छुपाएं */
+    body { overflow-y: auto; height: auto; }
+    
+    /* Change flex direction to stack elements */
+    .app-container { flex-direction: column; height: auto; overflow: visible; }
+    
+    /* Show Mobile Nav, Hide Desktop Sidebar */
+    .mobile-nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #0f172a; color: white; position: sticky; top: 0; z-index: 1001; }
     .sidebar { display: none !important; }
+    
+    /* Mobile Sidebar Styling */
+    .mobile-sidebar { display: none; flex-direction: column; background: #0f172a; position: fixed; top: 60px; right: 0; width: 250px; height: calc(100vh - 60px); z-index: 1000; padding: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.2); }
+    .mobile-sidebar a { color: white !important; text-decoration: none; padding: 15px 10px; border-bottom: 1px solid #1e293b; font-size: 16px; display: block; }
+    .menu-icon span { display: block; width: 25px; height: 3px; background: white; margin: 5px 0; border-radius: 2px; }
 
-    /* 3. AI CHAT - नंबर 1 पर (सबसे ऊपर) */
-    .main-content {
-        width: 100% !important;
-        order: 1 !important;
-        padding: 10px !important;
-    }
+    /* Order Adjustments for Mobile */
+    .main-content { order: 1; width: 100%; margin: 0; border-radius: 0; height: 75vh; }
+    .insights-panel { order: 2; width: 100%; background: #f8fafc; border-top: 1px solid #e2e8f0; }
 
-    /* 4. EXAM CARDS (Insights) - नंबर 2 पर (नीचे) */
-    .insights-panel {
-        width: 100% !important;
-        order: 2 !important;
-        padding: 20px !important;
-        border-left: none !important;
-        border-top: 1px solid #eee;
-    }
-
-    /* 5. मेन्यू के नीले लिंक्स को सफ़ेद करें */
-    .mobile-sidebar a {
-        color: white !important;
-        text-decoration: none;
-        padding: 15px;
-        display: block;
-        border-bottom: 1px solid #3d4150;
-    }
+    /* Chat Fixes */
+    .message-wrapper { max-width: 90%; }
+    .input-section { padding: 15px; }
 }
