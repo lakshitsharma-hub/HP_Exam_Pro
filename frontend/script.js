@@ -30,11 +30,31 @@ async function handleLogin() {
     }
 }
 
-async function checkUserSession() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session) {
-        document.getElementById('auth-overlay').style.display = 'none';
-        setupUserProfile(session.user);
+async function setupUserProfile(user) {
+    // 1. डेटाबेस से प्रोफाइल मंगवाएं
+    const { data: profile, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+    if (error) {
+        console.error("Profile Load Error:", error);
+        return;
+    }
+
+    if (profile) {
+        // --- 2. एडमिन चेक यहाँ डालें ---
+        if (profile.is_admin === true) {
+            const adminBtn = document.getElementById('admin-link');
+            if (adminBtn) {
+                adminBtn.style.display = 'block'; // एडमिन है तो बटन दिखा दो
+                console.log("Admin access granted! 👑");
+            }
+        }
+        
+        // आपका पुराना क्राउन (Crown) और नाम दिखाने वाला कोड इसके नीचे चलता रहेगा
+        // updateUI(profile); 
     }
 }
 
