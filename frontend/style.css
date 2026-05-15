@@ -281,3 +281,52 @@ body {
         max-width: 90%; /* मैसेज स्क्रीन से बाहर नहीं जाएगा */
     }
 }
+/* मोबाइल और टैबलेट के लिए (768px से छोटी स्क्रीन) */
+@media (max-width: 768px) {
+    
+    /* 1. मुख्य कंटेनर को वर्टिकल करें */
+    .dashboard-container { 
+        flex-direction: column !important;
+        height: auto !important;
+    }
+
+    /* 2. साइडबार को छुपा दें (बाद में इसे 'Hamburger Menu' से दिखाएंगे) */
+    .sidebar {
+        width: 100% !important;
+        height: auto;
+        padding: 10px;
+        position: static;
+        display: none; /* अभी के लिए इसे छुपाना ही बेहतर है */
+    }
+
+    /* 3. चैट एरिया को पूरी चौड़ाई दें */
+    .main-content {
+        width: 100% !important;
+        padding: 15px !important;
+        order: 1; /* इसे सबसे ऊपर रखें */
+    }
+
+    /* 4. राइट पैनल (Exams, Progress) को चैट के नीचे लाएँ */
+    .info-panel {
+        width: 100% !important;
+        padding: 15px !important;
+        order: 2;
+    }
+
+    /* 5. चैट बबल्स की चौड़ाई सेट करें */
+    .bubble {
+        max-width: 90% !important;
+    }
+
+    /* 6. इनपुट बॉक्स को नीचे फिक्स रखें */
+    .chat-input-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 10px;
+        background: white;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    }
+}
+
