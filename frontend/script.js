@@ -167,6 +167,15 @@ function appendMessage(text, sender) {
     messagesDiv.appendChild(wrap);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
+function toggleMenu() {
+    const menu = document.getElementById('mobile-sidebar');
+    if (menu.style.display === 'flex') {
+        menu.style.display = 'none';
+    } else {
+        menu.style.display = 'flex';
+    }
+}
+
 
 function addLoader() {
     const id = 'l-' + Date.now();
