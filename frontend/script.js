@@ -40,23 +40,26 @@ async function checkUserSession() {
 }
 
 async function setupUserProfile(user) {
-    // 1. सबसे पहले चेक करें कि यूजर मौजूद है या नहीं
+    // 1. सुरक्षा जाँच
     if (!user) {
         console.error("यूजर लॉगिन नहीं है!");
         return;
     }
 
-    // 2. अब डेटाबेस से प्रोफाइल मांगें
-    let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', user.id).single();
+    // 2. डेटाबेस से प्रोफाइल मांगें (maybeSingle() इस्तेमाल करें ताकि एरर न आए)
+    let { data: profile, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle();
     const today = new Date().toDateString();
 
+    // 3. अगर प्रोफाइल नहीं है, तो नया बनाएँ
     if (!profile) {
         const userName = user.email.split('@')[0];
         const { data: newProfile } = await supabaseClient.from('profiles').insert([
             { id: user.id, display_name: userName, daily_count: 0, last_active: today }
         ]).select().single();
         profile = newProfile;
-    } else if (profile.last_active !== today) {
+    } 
+    // 4. अगर नया दिन है, तो डेली काउंट रीसेट करें
+    else if (profile.last_active !== today) {
         const { data: updatedProfile } = await supabaseClient.from('profiles')
             .update({ daily_count: 0, last_active: today })
             .eq('id', user.id)
@@ -64,24 +67,30 @@ async function setupUserProfile(user) {
         profile = updatedProfile;
     }
 
-    // 3. यह जादुई लाइन है जो स्क्रीन पर नाम दिखाएगी
+    // 5. ✨ सारा UI अपडेट अब यहाँ फंक्शन के अंदर होगा ✨
     if (profile) {
-        const welcomeText = document.getElementById('welcome-text'); // अपनी ID चेक कर लें
+        // 'नमस्ते' वाला टेक्स्ट अपडेट करें
+        const welcomeText = document.getElementById('welcome-text');
         if (welcomeText) {
             welcomeText.innerText = `नमस्ते, ${profile.display_name}`;
         }
+
+        // साइडबार या हेडर में नाम और पहला अक्षर (Initial) दिखाएँ
+        const displayNameEl = document.getElementById('display-name');
+        const userInitialEl = document.getElementById('user-initial');
+        
+        if (displayNameEl) displayNameEl.innerText = profile.display_name;
+        if (userInitialEl) userInitialEl.innerText = profile.display_name[0].toUpperCase();
+
+        // इसे ग्लोबल वेरिएबल में रखें ताकि बाद में काम आए
+        window.CURRENT_USER_PROFILE = profile;
+
+        // 6. एआई का स्वागत संदेश (अगर चैट खाली है)
+        if (typeof messagesDiv !== 'undefined' && messagesDiv.innerHTML.trim() === "") {
+            appendMessage(`नमस्ते ${profile.display_name}! आज हम हिमाचल की किस परीक्षा (Patwari, HPAS या Allied) की तैयारी करें?`, 'ai');
+        }
     }
 }
-
-    // UI अपडेट करें
-    document.getElementById('display-name').innerText = profile.display_name;
-    document.getElementById('user-initial').innerText = profile.display_name[0].toUpperCase();
-    window.CURRENT_USER_PROFILE = profile;
-    
-    // वेलकम मैसेज
-    if (messagesDiv.innerHTML === "") {
-        appendMessage(`नमस्ते ${profile.display_name}! आज हम किस परीक्षा की तैयारी करें?`, 'ai');
-    }
 
 // --- 3. PAGE LOGIC & NEWS ---
 window.onload = () => {
