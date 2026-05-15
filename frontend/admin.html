@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HP Exam Pro | Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css"> </head>
+<body style="background-color: #f4f7f9;">
+
+    <div class="admin-container" style="max-width: 1000px; margin: 20px auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        
+        <header style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
+            <h2 style="color: #1a73e8; margin: 0;">🏔️ Admin Control Room</h2>
+            <span id="admin-name" style="font-weight: bold; color: #5f6368;">Admin: You</span>
+        </header>
+
+        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            <div class="stat-card" style="background: #e8f0fe; padding: 20px; border-radius: 12px; border-left: 5px solid #1a73e8;">
+                <h4 style="margin-top: 0;">Mathematics</h4>
+                <p style="font-size: 24px; font-weight: bold; margin: 10px 0;">600</p>
+                <small style="color: #34a853;">Status: Ready ✅</small>
+            </div>
+            <div class="stat-card" style="background: #fef7e0; padding: 20px; border-radius: 12px; border-left: 5px solid #fbbc04;">
+                <h4 style="margin-top: 0;">Hindi / English</h4>
+                <p style="font-size: 24px; font-weight: bold; margin: 10px 0;">0</p>
+                <small style="color: #d93025;">Status: Needs AI Gen ❌</small>
+            </div>
+            <div class="stat-card" style="background: #e6ffed; padding: 20px; border-radius: 12px; border-left: 5px solid #34a853;">
+                <h4 style="margin-top: 0;">Pro Users</h4>
+                <p style="font-size: 24px; font-weight: bold; margin: 10px 0;">5</p>
+                <small>Conversion: 12% 📈</small>
+            </div>
+        </div>
+
+        <div class="admin-actions" style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 12px;">
+            <h3>Quick Actions</h3>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <button onclick="document.getElementById('csvUpload').click()" style="padding: 12px 25px; background: #34a853; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                    📤 Upload CSV (Maths/GK)
+                </button>
+                <input type="file" id="csvUpload" style="display: none;" accept=".csv">
+                
+                <button onclick="generateAIQuestions()" style="padding: 12px 25px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                    🤖 AI Generate (Hindi/Comp)
+                </button>
+            </div>
+        </div>
+
+        <div id="admin-log" style="margin-top: 30px; padding: 15px; background: #202124; color: #00ff00; font-family: monospace; border-radius: 8px; font-size: 13px; height: 150px; overflow-y: auto;">
+            > System Ready...<br>
+            > Waiting for data upload...
+        </div>
+
+    </div>
+
+    <script src="admin-script.js"></script> </body>
+</html>
