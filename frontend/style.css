@@ -225,3 +225,29 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
 #togglePassword:hover {
     color: #2563eb;
 }
+/* 1. बढ़िया फॉन्ट इम्पोर्ट करें */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif; /* पूरे पेज के लिए आधुनिक फॉन्ट */
+}
+
+/* 2. चैट बबल्स को सुंदर बनाएँ */
+.message {
+    line-height: 1.6;
+    font-size: 15px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+}
+
+/* लिस्ट और बोल्ड को सही स्पेस दें */
+.message ul, .message ol {
+    margin-left: 20px;
+    padding-bottom: 10px;
+}
+
+.message strong {
+    color: #2d3436; /* बोल्ड टेक्स्ट को थोड़ा गहरा रंग दें */
+}
+
