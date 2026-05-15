@@ -19,14 +19,18 @@ async function handleSignup() {
     }
 }
 
+// 1. लॉगिन हैंडलर
 async function handleLogin() {
     const email = document.getElementById('auth-email').value;
     const password = document.getElementById('auth-pass').value;
+    
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    
     if (error) {
         document.getElementById('auth-error').innerText = "Login Error: " + error.message;
     } else {
-        checkUserSession(); 
+        // लॉगिन सफल होने पर सेशन चेक करें
+        checkUserSession();
     }
 }
 
