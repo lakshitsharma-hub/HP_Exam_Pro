@@ -125,7 +125,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
 
         /* Chat Box ko dabne se rokne ka fix */
     .page-content.active { flex: 1 !important; }
-    .chat-viewport { flex: 1 1 auto !important; min-height: 40vh !important; }
+    .chat-viewport { flex: 1 1 auto !important; }
     
     /* Show Mobile Nav, Hide Desktop Sidebar */
     .mobile-nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #0f172a; color: white; position: sticky; top: 0; z-index: 1001; }
@@ -140,7 +140,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
     .main-content { 
         width: 100% !important; 
         order: 1 !important; 
-        min-height: calc(100vh - 60px) !important; /* height की जगह min-height */
+        height: calc(100vh - 60px) !important; /* height की जगह min-height */
+        display: flex !important;
+        flex-direction: column !important;
         margin: 0 !important; 
         border-radius: 0 !important; 
     }
