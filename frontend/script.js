@@ -121,32 +121,42 @@ function checkProStatus(profile) {
 window.onload = () => {
     checkUserSession();
     
-    // Countdown
+    // Countdown Logic (वही रहेगा)
     const examDate = new Date("2026-06-07");
     const diff = Math.ceil((examDate - new Date()) / (1000 * 60 * 60 * 24));
     document.getElementById('patwari-countdown').innerText = diff > 0 ? diff + " Days Left" : "Exam Today!";
 
-    // Current Affairs Mock Data
-    const news = [
-        "हिमाचल की 'कांगड़ा चाय' को यूरोपीय संघ (EU) का PGI टैग मिला है।",
-        "अटल टनल दुनिया की सबसे लंबी राजमार्ग सुरंग है (10,000 फीट)।",
-        "सतलुज नदी शिपकी ला दर्रे से हिमाचल में प्रवेश करती है।"
-    ];
-    document.getElementById('current-affairs-text').innerText = news[Math.floor(Math.random() * news.length)];
+    // असली न्यूज़ लोड करने का फंक्शन
+    loadRealNews();
 };
 
-// Sidebar Navigation
-document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => {
-        const pageId = item.getAttribute('data-page');
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
-        document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
-        document.getElementById(`${pageId}-page`)?.classList.add('active');
-    });
-});
+async function loadRealNews() {
+    const newsTextEl = document.getElementById('current-affairs-text');
+    try {
+        const response = await fetch('https://hp-exam-pro.onrender.com/api/news');
+        const data = await response.json();
+        
+        if (data.news && data.news.length > 0) {
+            // न्यूज़ को कार्ड में दिखाएँ (हर कुछ सेकंड में बदलती रहेगी)
+            let i = 0;
+            newsTextEl.innerText = data.news[0];
+            
+            setInterval(() => {
+                i = (i + 1) % data.news.length;
+                newsTextEl.style.opacity = 0; // स्मूथ ट्रांज़िशन
+                setTimeout(() => {
+                    newsTextEl.innerText = data.news[i];
+                    newsTextEl.style.opacity = 1;
+                }, 500);
+            }, 8000); // हर 8 सेकंड में न्यूज़ बदलेगी
+        }
+    } catch (e) {
+        console.error("News Load Error:", e);
+        newsTextEl.innerText = "फिलहाल न्यूज़ अपडेट नहीं हो पा रही है।";
+    }
+}
 
-// --- 4. CHAT SYSTEM ---
+//--CHAT
 async function sendMessage() {
     const text = userInput.value.trim();
     if (!text || !window.CURRENT_USER_PROFILE) return;
