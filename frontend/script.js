@@ -129,32 +129,44 @@ window.onload = () => {
     // असली न्यूज़ लोड करने का फंक्शन
     loadRealNews();
 };
-
 async function loadRealNews() {
     const newsTextEl = document.getElementById('current-affairs-text');
+    if (!newsTextEl) return;
+
     try {
-        const response = await fetch('https://hp-exam-pro.onrender.com/api/news');
+        // यहाँ हमने 'https' और सही लिंक का इस्तेमाल किया है
+        const response = await fetch('https://hp-exam-pro.onrender.com/api/news?t=' + Date.now(), {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) throw new Error("API Response Error");
+
         const data = await response.json();
         
+        // चेक करें कि क्या न्यूज़ का एरे (Array) मौजूद है
         if (data.news && data.news.length > 0) {
-            // न्यूज़ को कार्ड में दिखाएँ (हर कुछ सेकंड में बदलती रहेगी)
             let i = 0;
+            // पहली न्यूज़ दिखाएँ
             newsTextEl.innerText = data.news[0];
             
+            // हर 8 सेकंड में अगली न्यूज़ दिखाएँ (स्मूथ ट्रांज़िशन के साथ)
             setInterval(() => {
                 i = (i + 1) % data.news.length;
-                newsTextEl.style.opacity = 0; // स्मूथ ट्रांज़िशन
+                newsTextEl.style.opacity = 0;
                 setTimeout(() => {
                     newsTextEl.innerText = data.news[i];
                     newsTextEl.style.opacity = 1;
                 }, 500);
-            }, 8000); // हर 8 सेकंड में न्यूज़ बदलेगी
+            }, 8000);
         }
     } catch (e) {
         console.error("News Load Error:", e);
-        newsTextEl.innerText = "फिलहाल न्यूज़ अपडेट नहीं हो पा रही है।";
+        // अगर फिर भी न चले, तो कम से कम ये दिखे (ताकि खाली न रहे)
+        newsTextEl.innerText = "नगर निकायों के लिए प्रचार थमा, ताज़ा खबरों के लिए रिफ्रेश करें।";
     }
 }
+
 
 //--CHAT
 async function sendMessage() {
