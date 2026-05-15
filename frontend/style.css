@@ -388,3 +388,39 @@ body {
         word-wrap: break-word;
     }
 }
+@media (max-width: 850px) {
+    /* 1. पूरे लेआउट को ऊपर-नीचे करने के लिए */
+    .app-container {
+        display: flex !important;
+        flex-direction: column !important;
+        height: auto !important;
+    }
+
+    /* 2. कंप्यूटर वाला साइडबार छुपाएं */
+    .sidebar { display: none !important; }
+
+    /* 3. AI CHAT - नंबर 1 पर (सबसे ऊपर) */
+    .main-content {
+        width: 100% !important;
+        order: 1 !important;
+        padding: 10px !important;
+    }
+
+    /* 4. EXAM CARDS (Insights) - नंबर 2 पर (नीचे) */
+    .insights-panel {
+        width: 100% !important;
+        order: 2 !important;
+        padding: 20px !important;
+        border-left: none !important;
+        border-top: 1px solid #eee;
+    }
+
+    /* 5. मेन्यू के नीले लिंक्स को सफ़ेद करें */
+    .mobile-sidebar a {
+        color: white !important;
+        text-decoration: none;
+        padding: 15px;
+        display: block;
+        border-bottom: 1px solid #3d4150;
+    }
+}
