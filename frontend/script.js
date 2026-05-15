@@ -161,7 +161,9 @@ function appendMessage(text, sender) {
     const wrap = document.createElement('div');
     wrap.className = `message-wrapper ${sender}`;
     const avatar = sender === 'user' ? `<div class="avatar" style="background:#2563eb; color:white; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">${window.CURRENT_USER_PROFILE.display_name[0].toUpperCase()}</div>` : '🤖';
-    wrap.innerHTML = `${avatar}<div class="bubble">${text.replace(/\n/g, '<br>')}</div>`;
+    // अगर भेजने वाला 'ai' है, तो 'marked' का इस्तेमाल करें
+    const content = sender === 'ai' ? marked.parse(text) : text.replace(/\n/g, '<br>');
+    wrap.innerHTML = `${avatar}<div class="bubble">${content}</div>`;
     messagesDiv.appendChild(wrap);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
