@@ -6,3 +6,4 @@ groq
 cohere
 pydantic
 supabase
+feedparser
