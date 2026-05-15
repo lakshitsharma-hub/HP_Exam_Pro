@@ -153,9 +153,29 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
         background: #f8fafc; 
         border-top: 1px solid #e2e8f0; 
     }
-
-    /* Chat Fixes */
+        /* Chat Fixes & Gemini Style Spring */
     .message-wrapper { max-width: 90%; }
-    .input-section { padding: 15px; }
+    
+    .page-content.active {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        flex: 1 !important;
+    }
+
+    .chat-viewport {
+        flex: 1 !important; 
+        overflow-y: auto !important; 
+        min-height: 0 !important; 
+        padding-bottom: 15px !important;
+    }
+
+    .input-section {
+        flex-shrink: 0 !important; 
+        padding: 15px !important;
+        background: white !important;
+        border-top: 1px solid #e2e8f0 !important;
+    }
+
 } /* <--- यह ब्रैकेट सबसे अंत में होना चाहिए, जो @media को बंद करेगा */
 
