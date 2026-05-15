@@ -65,11 +65,32 @@ async function setupUserProfile(user) {
         window.CURRENT_USER_PROFILE = profile;
 
         // 👑 Admin Check
-        if (profile.is_admin === true) {
-            const adminBtn = document.getElementById('admin-link');
-            if (adminBtn) adminBtn.style.display = 'block';
-            console.log("Admin Panel Unlocked! 👑");
+        // setupUserProfile के अंदर एडमिन वाला हिस्सा ऐसे बदलें:
+
+if (profile.is_admin === true) {
+    // 1. डेस्कटॉप वाला DIV पकड़ें (data-page से)
+    const desktopAdminItem = document.querySelector('.nav-item[data-page="admin"]');
+    
+    // 2. मोबाइल वाला लिंक पकड़ें (href से)
+    const mobileAdminLink = document.querySelector('#mobile-sidebar a[href="admin.html"]');
+
+    // दोनों को एक एरे (Array) में डालकर लूप चलाएं
+    [desktopAdminItem, mobileAdminLink].forEach(element => {
+        if (element) {
+            element.style.display = 'flex'; // साइडबार आइटम आमतौर पर flex होते हैं
+            
+            // क्लिक करने पर admin.html पर भेजें
+            element.onclick = (e) => {
+                e.preventDefault();
+                console.log("Navigating to Admin Panel...");
+                window.location.href = 'admin.html';
+            };
         }
+    });
+
+    console.log("Admin Panel Unlocked! 👑");
+}
+
 
         // 💎 Pro Status Check
         checkProStatus(profile);
