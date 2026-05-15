@@ -138,3 +138,13 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
     .message-wrapper { max-width: 90%; }
     .input-section { padding: 15px; }
 }
+    .main-content {
+        width: 100% !important;
+        order: 1 !important; 
+        
+        /* सिर्फ़ यह लाइन बदलनी है */
+        height: calc(100vh - 60px) !important; 
+        
+        margin: 0 !important;
+        border-radius: 0 !important; 
+    }
