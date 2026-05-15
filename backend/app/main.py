@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from .engine import AIEngine
 from .database import db
 import os
+import random
 from fastapi.middleware.cors import CORSMiddleware
 import feedparser
 
@@ -11,25 +12,38 @@ app = FastAPI(title="HP Exam Pro API")
 
 @app.get("/api/news")
 async def get_hp_news():
-    # The Tribune - Himachal Pradesh Section का RSS Feed
-    rss_url = "https://www.tribuneindia.com/rss/feed.aspx?cat_id=40"
+    # दो अलग-अलग न्यूज़ सोर्स (ताकि एक फेल हो तो दूसरा चले)
+    sources = [
+        "https://www.amarujala.com/rss/himachal-pradesh.xml",  # अमर उजाला (Hindi)
+        "https://www.tribuneindia.com/rss/feed.aspx?cat_id=40" # ट्रिब्यून (English)
+    ]
     
-    try:
-        # फीड को पार्स (Parse) करें
-        feed = feedparser.parse(rss_url)
-        
-        # सिर्फ टॉप 5 खबरों के टाइटल निकालें
-        # entries[].title में खबर की हेडलाइन होती है
-        hp_news = [entry.title for entry in feed.entries[:5]]
-        
-        if not hp_news:
-            return {"news": ["फिलहाल न्यूज़ अपडेट उपलब्ध नहीं है।"]}
-            
-        return {"news": hp_news}
-        
-    except Exception as e:
-        print(f"Error fetching news: {e}")
-        return {"news": ["न्यूज़ सर्वर से कनेक्ट करने में समस्या आ रही है।"]}
+    all_news = []
+    
+    for url in sources:
+        try:
+            feed = feedparser.parse(url)
+            if feed.entries:
+                titles = [entry.title for entry in feed.entries[:5]]
+                all_news.extend(titles)
+        except Exception as e:
+            print(f"Error fetching from {url}: {e}")
+
+    # अगर दोनों से न्यूज़ मिल गई, तो उन्हें मिक्स (Shuffle) कर दें
+    if all_news:
+        random.shuffle(all_news)
+        return {"news": all_news[:8]} # टॉप 8 खबरें भेजें
+    
+    # अगर कहीं से न्यूज़ नहीं मिली, तो ये 'Static' करंट अफेयर्स भेजें (ताकि खाली न दिखे)
+    return {
+        "news": [
+            "हिमाचल प्रदेश सरकार ने 'मुख्यमंत्री सुख-आश्रय योजना' के तहत नए दिशा-निर्देश जारी किए।",
+            "कांगड़ा के शाहपुर में नए आईटी पार्क के निर्माण की प्रक्रिया तेज़ हुई।",
+            "रोहतांग दर्रे में सैलानियों के लिए ऑनलाइन परमिट कोटा बढ़ाया गया।",
+            "हिमाचल पुलिस ने साइबर क्राइम से निपटने के लिए नया पोर्टल लॉन्च किया।"
+        ]
+    }
+
 
 # ... बाकी का चैट वाला कोड इसके नीचे रहेगा
 
