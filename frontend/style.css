@@ -126,25 +126,28 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
     .sidebar { display: none !important; }
     
     /* Mobile Sidebar Styling */
-    .mobile-sidebar { display: none; flex-direction: column; background: #0f172a; position: fixed; top: 60px; right: 0; width: 250px; height: calc(100vh - 60px); z-index: 1000; padding: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.2); }
+    .mobile-sidebar { display: none; flex-direction: column; background: #0f172a; position: fixed; top: 60px; left: 0; width: 250px; height: calc(100vh - 60px); z-index: 1000; padding: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.2); }
     .mobile-sidebar a { color: white !important; text-decoration: none; padding: 15px 10px; border-bottom: 1px solid #1e293b; font-size: 16px; display: block; }
     .menu-icon span { display: block; width: 25px; height: 3px; background: white; margin: 5px 0; border-radius: 2px; }
 
-    /* Order Adjustments for Mobile */
-    .main-content { order: 1; width: 100%; margin: 0; border-radius: 0; height: 75vh; }
-    .insights-panel { order: 2; width: 100%; background: #f8fafc; border-top: 1px solid #e2e8f0; }
+       /* Order Adjustments for Mobile */
+    .main-content { 
+        width: 100% !important; 
+        order: 1 !important; 
+        min-height: calc(100vh - 60px) !important; /* height की जगह min-height */
+        margin: 0 !important; 
+        border-radius: 0 !important; 
+    }
+    
+    .insights-panel { 
+        order: 2; 
+        width: 100%; 
+        background: #f8fafc; 
+        border-top: 1px solid #e2e8f0; 
+    }
 
     /* Chat Fixes */
     .message-wrapper { max-width: 90%; }
     .input-section { padding: 15px; }
-}
-    .main-content {
-        width: 100% !important;
-        order: 1 !important; 
-        
-        /* सिर्फ़ यह लाइन बदलनी है */
-        height: calc(100vh - 60px) !important; 
-        
-        margin: 0 !important;
-        border-radius: 0 !important; 
-    }
+} /* <--- यह ब्रैकेट सबसे अंत में होना चाहिए, जो @media को बंद करेगा */
+
