@@ -281,97 +281,65 @@ body {
         max-width: 90%; /* मैसेज स्क्रीन से बाहर नहीं जाएगा */
     }
 }
-/* मोबाइल और टैबलेट के लिए (768px से छोटी स्क्रीन) */
 @media (max-width: 768px) {
-    
-    /* 1. मुख्य कंटेनर को वर्टिकल करें */
-    .dashboard-container { 
-        flex-direction: column !important;
-        height: auto !important;
+    /* 1. कंप्यूटर वाला साइडबार छुपाएं */
+    .sidebar { display: none !important; }
+
+    /* 2. मोबाइल नेवबार दिखाएं */
+    .mobile-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background: #1a1c23;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
     }
 
-    /* 2. साइडबार को छुपा दें (बाद में इसे 'Hamburger Menu' से दिखाएंगे) */
-    .sidebar {
-        width: 100% !important;
-        height: auto;
-        padding: 10px;
-        position: static;
-        display: none; /* अभी के लिए इसे छुपाना ही बेहतर है */
-    }
-
-    /* 3. चैट एरिया को पूरी चौड़ाई दें */
-    .main-content {
-        width: 100% !important;
-        padding: 15px !important;
-        order: 1; /* इसे सबसे ऊपर रखें */
-    }
-
-    /* 4. राइट पैनल (Exams, Progress) को चैट के नीचे लाएँ */
-    .info-panel {
-        width: 100% !important;
-        padding: 15px !important;
-        order: 2;
-    }
-
-    /* 5. चैट बबल्स की चौड़ाई सेट करें */
-    .bubble {
-        max-width: 90% !important;
-    }
-
-    /* 6. इनपुट बॉक्स को नीचे फिक्स रखें */
-    .chat-input-container {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        padding: 10px;
-        background: white;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-    }
-}
-/* मोबाइल के लिए पक्का इलाज (Max-width: 850px) */
-@media (max-width: 850px) {
-    
-    /* 1. पूरे लेआउट को ऊपर-नीचे (Stack) करें */
-    .dashboard-container, .main-layout, .container { 
+    /* 3. लेआउट को एक लाइन में सेट करें */
+    .dashboard-container {
         display: flex !important;
         flex-direction: column !important;
         height: auto !important;
-        overflow-x: hidden !important;
     }
 
-    /* 2. साइडबार को मोबाइल पर पूरी तरह छुपा दें */
-    .sidebar {
-        display: none !important;
-    }
-
-    /* 3. विजेट्स वाले पैनल (Exams, Progress) को पूरी चौड़ाई दें */
-    /* अगर आपकी क्लास का नाम अलग है तो उसे यहाँ बदल लें */
-    .info-panel, .right-panel, .widgets-container {
+    /* 4. AI Chat को बीच में रखें (Order: 1) */
+    .main-content {
         width: 100% !important;
-        order: 2 !important; /* इसे चैट के नीचे लाएगा */
+        order: 1 !important;
         padding: 10px !important;
-        box-sizing: border-box !important;
+        min-height: 500px;
     }
 
-    /* 4. चैट एरिया को आज़ाद करें */
-    .main-content, .chat-section {
+    /* 5. Exam Cards को सबसे नीचे ले जाएं (Order: 2) */
+    .right-panel {
         width: 100% !important;
-        min-width: 100% !important;
-        order: 1 !important; /* चैट सबसे ऊपर दिखेगी */
-        padding: 10px !important;
-        height: 500px !important; /* मोबाइल पर एक फिक्स हाइट दें */
+        order: 2 !important;
+        background: #f8f9fa;
+        padding: 20px !important;
     }
 
-    /* 5. चैट बबल्स को फैलने दें */
-    .bubble {
-        max-width: 85% !important;
-        width: auto !important;
+    /* 6. Hamburger Menu स्टाइल */
+    .menu-icon span {
+        display: block;
+        width: 25px;
+        height: 3px;
+        background: white;
+        margin: 5px 0;
+        transition: 0.3s;
     }
 
-    /* 6. इमेज में जो सफेदी दिख रही है उसे ठीक करने के लिए */
-    body, html {
-        overflow-x: hidden !important;
-        width: 100% !important;
+    .mobile-sidebar {
+        display: none; /* डिफ़ॉल्ट में छुपा रहेगा */
+        flex-direction: column;
+        background: #252833;
+        position: absolute;
+        top: 60px;
+        right: 0;
+        width: 200px;
+        padding: 20px;
+        box-shadow: -5px 5px 15px rgba(0,0,0,0.2);
     }
 }
