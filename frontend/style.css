@@ -128,6 +128,36 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
     .mobile-sidebar a { color: white !important; text-decoration: none; padding: 15px 10px; border-bottom: 1px solid #1e293b; font-size: 16px; display: block; }
     .menu-icon span { display: block; width: 25px; height: 3px; background: white; margin: 5px 0; border-radius: 2px; }
 
+        /* मोबाइल नेवबार के लोगो को टेक्स्ट के साथ सेट करना */
+    .nav-brand-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .brand-logo.mini {
+        transform: scale(0.65); /* लोगो को थोड़ा छोटा करने के लिए */
+        margin-right: -8px;
+    }
+
+    /* चैट में रोबोट की जगह लोगो वाला अवतार */
+    .bot-avatar-logo {
+        width: 35px;
+        height: 35px;
+        background: #1e293b;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+    
+    /* चैट के अंदर वाले लोगो के पहाड़ और बेस को छोटा करना */
+    .bot-avatar-logo .mountain-peak { border-bottom-width: 8px; border-left-width: 7px; border-right-width: 7px; }
+    .bot-avatar-logo .book-base { width: 12px; height: 2px; }
+
        /* 3. GEMINI STYLE CHAT (फुल स्क्रीन) */
         /* 3. GEMINI STYLE CHAT (फुल स्क्रीन) */
     .main-content { 
