@@ -703,7 +703,7 @@ async function initiateProPayment() {
 
         // 2. रेज़रपे चेकआउट पॉपअप (Modal) की कॉन्फ़िगरेशन सेट करना
         const options = {
-            "key": "rzp_test_Sq35OFh2B2", // 🔥 तुम्हारी स्क्रीनशॉट वाली Key ID यहाँ फिट कर दी है
+            "key": "rzp_test_Sq35OFh2B20luk", // 🔥 तुम्हारी स्क्रीनशॉट वाली Key ID यहाँ फिट कर दी है
             "amount": orderData.amount,
             "currency": orderData.currency,
             "name": "HP EXAM PRO",
