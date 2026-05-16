@@ -457,12 +457,15 @@ function switchTab(pageId) {
         }
     }
 }
-// ==================== 6. MOBILE HAMBURGER MENU TOGGLE ====================
-function toggleMenu() {
-    // लाइन नंबर 27 वाली आईडी को ढूंढना
+// ==================== 6. MOBILE HAMBURGER MENU TOGGLE (BULLETPROOF) ====================
+window.toggleMenu = function() {
+    console.log("🍔 Hamburger Menu clicked successfully!"); // Isse pata chalega click kaam kar rha hai
+    
     const mobileSidebar = document.getElementById('mobile-sidebar');
     if (mobileSidebar) {
-        // यह 'open' क्लास को जोड़ेगा या हटाएगा
         mobileSidebar.classList.toggle('open');
+        console.log("Sidebar status toggle ho gya hai.");
+    } else {
+        console.error("Error: 'mobile-sidebar' ID wala dabba HTML mein nahi mila!");
     }
 }
