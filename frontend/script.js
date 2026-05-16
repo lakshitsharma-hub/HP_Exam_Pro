@@ -457,3 +457,11 @@ function switchTab(pageId) {
         }
     }
 }
+// ==================== 6. MOBILE HAMBURGER MENU TOGGLE ====================
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        // यह 'open' क्लास को जोड़ेगा या हटाएगा
+        sidebar.classList.toggle('open');
+    }
+}
