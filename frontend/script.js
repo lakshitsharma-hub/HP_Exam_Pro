@@ -805,3 +805,44 @@ function toggleMobilePalette() {
         palette.style.display = 'none';
     }
 }
+
+// ==================== ⚠️ QUERY RAISE SYSTEM FRONTEND LOGIC ====================
+function toggleQueryBox() {
+    const box = document.getElementById('query-input-box');
+    if(box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+async function submitQuestionQuery() {
+    const issueText = document.getElementById('query-issue-text').value.trim();
+    if (!issueText) {
+        alert("कृपया आपत्ति दर्ज करने से पहले कुछ विवरण लिखें!");
+        return;
+    }
+
+    const currentQ = currentQuestions[currentQuestionIndex];
+    const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
+
+    try {
+        const response = await fetch('https://hp-exam-pro.onrender.com/api/query/raise', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: userId,
+                question_id: String(currentQ.id || currentQuestionIndex + 1),
+                issue_text: issueText
+            })
+        });
+
+        const data = await response.json();
+        if (data.status === "success") {
+            alert(`✅ ${data.message}`);
+            document.getElementById('query-input-box').style.display = 'none';
+            document.getElementById('query-issue-text').value = '';
+        } else {
+            alert("आपत्ति दर्ज करने में कुछ तकनीकी खराबी आई।");
+        }
+    } catch (error) {
+        console.error("Query Raise Error:", error);
+        alert("सर्वर से कनेक्ट नहीं हो पाया!");
+    }
+}
