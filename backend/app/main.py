@@ -97,7 +97,7 @@ async def admin_dashboard(x_admin_password: str = Header(None)):
     return {"admin_status": "Authenticated", "server_health": "Optimal"}
 
 
-# --- 3. DYNAMIC QUIZ ENGINE & FREEMIUM GATEKEEPER ---
+# --- 3. DYNAMIC QUIZ ENGINE & FREEMIUM GATEKEEPER (EXACT WEIGHTAGE & Q_TYPE FIX) ---
 @app.get("/api/questions/{exam_type}")
 async def get_exam_questions(exam_type: str, user_id: str = None):
     try:
@@ -108,30 +108,75 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
             
             is_pro = profile_data[0].get("is_pro", False) if profile_data else False
             
-            # अगर यूजर PRO नहीं है, तो चेक करो उसने पहले कितने टेस्ट सबमिट किए हैं
             if not is_pro:
                 tests_resp = supabase.table("test_results").select("id").eq("user_id", user_id).execute()
                 total_past_tests = len(tests_resp.data) if tests_resp.data else 0
                 
-                # 🛑 अगर रिकॉर्ड्स की संख्या 1 या उससे ज़्यादा है, तो ब्लॉक करें (403 Forbidden)
                 if total_past_tests >= 1:
                     raise HTTPException(
                         status_code=403, 
                         detail="आप अपना 1 फ्री मॉक टेस्ट दे चुके हैं! असीमित टेस्ट अनलॉक करने के लिए प्रो एक्सेस लें। 👑"
                     )
 
-        # 📚 B. Supabase से असली सवाल खींचना
-        response = supabase.table("questions").select("*").eq("exam_type", exam_type).execute()
-        questions = response.data
-        
-        if not questions:
-            raise HTTPException(status_code=444, detail="इस परीक्षा के सवाल अभी डेटाबेस में उपलब्ध नहीं हैं।")
-        
-        # अगर डेटाबेस में 120 से ज़्यादा सवाल हैं, तो उनमें से 120 रैंडम सेट करें
-        if len(questions) > 120:
-            questions = random.sample(questions, 120)
+        final_questions = []
+
+        # 🎯 1. स्मार्ट हेल्पर फंक्शन: जो Subject और q_type दोनों के आधार पर सवाल छांटेगा
+        def fetch_filtered_qs(subject_name: str = None, q_type_value: str = "direct", count: int = 0):
+            query = supabase.table("questions").select("*")
             
-        return questions
+            # अगर विषय दिया है तो विषय से फ़िल्टर करें
+            if subject_name:
+                query = query.eq("subject", subject_name)
+            
+            # q_type कॉलम के आधार पर फ़िल्टर करें (direct या statement)
+            if q_type_value:
+                query = query.eq("q_type", q_type_value)
+                
+            res = query.execute()
+            data = res.data if res.data else []
+            
+            if len(data) >= count:
+                return random.sample(data, count)
+            return data
+
+        # 🎯 B. HP PATWARI EXACT WEIGHTAGE BREAKDOWN (Total: 120 Questions)
+        if exam_type == "patwari":
+            final_questions.extend(fetch_filtered_qs(subject_name="maths", q_type_value="direct", count=20))
+            final_questions.extend(fetch_filtered_qs(subject_name=None, q_type_value="statement", count=10)) # किसी भी विषय के 10 स्टेटमेंट सवाल
+            final_questions.extend(fetch_filtered_qs(subject_name="hindi", q_type_value="direct", count=15))
+            final_questions.extend(fetch_filtered_qs(subject_name="english", q_type_value="direct", count=15))
+            final_questions.extend(fetch_filtered_qs(subject_name="science", q_type_value="direct", count=15))
+            final_questions.extend(fetch_filtered_qs(subject_name="geography", q_type_value="direct", count=5))
+            final_questions.extend(fetch_filtered_qs(subject_name="polity", q_type_value="direct", count=5))
+            final_questions.extend(fetch_filtered_qs(subject_name="history", q_type_value="direct", count=5))
+            final_questions.extend(fetch_filtered_qs(subject_name="reasoning", q_type_value="direct", count=7))
+            final_questions.extend(fetch_filtered_qs(subject_name="hp_gk", q_type_value="direct", count=5))
+            final_questions.extend(fetch_filtered_qs(subject_name="current_affairs", q_type_value="direct", count=8))
+            final_questions.extend(fetch_filtered_qs(subject_name="computer", q_type_value="direct", count=10))
+
+            # पूरे पेपर को मिक्स (Shuffle) करें
+            random.shuffle(final_questions)
+
+        # 💻 C. HP JOA IT EXACT WEIGHTAGE BREAKDOWN (Total: 120 Questions)
+        elif exam_type == "joa_it":
+            final_questions.extend(fetch_filtered_qs(subject_name="computer", q_type_value="direct", count=80))
+            final_questions.extend(fetch_filtered_qs(subject_name="science", q_type_value="direct", count=10))
+            final_questions.extend(fetch_filtered_qs(subject_name="maths", q_type_value="direct", count=10))
+            final_questions.extend(fetch_filtered_qs(subject_name="hp_gk", q_type_value="direct", count=5))
+            final_questions.extend(fetch_filtered_qs(subject_name="reasoning", q_type_value="direct", count=5))
+            final_questions.extend(fetch_filtered_qs(subject_name=None, q_type_value="statement", count=5)) # 5 स्टेटमेंट सवाल
+            final_questions.extend(fetch_filtered_qs(subject_name="current_affairs", q_type_value="direct", count=5))
+
+            # पूरे पेपर को मिक्स (Shuffle) करें
+            random.shuffle(final_questions)
+            
+        else:
+            raise HTTPException(status_code=400, detail="Invalid exam type!")
+
+        if not final_questions:
+            raise HTTPException(status_code=444, detail="इस परीक्षा के सवाल डेटाबेस में उपलब्ध नहीं हैं।")
+
+        return final_questions
 
     except HTTPException as he:
         raise he
