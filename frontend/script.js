@@ -447,6 +447,7 @@ function resetToSelection() {
     document.getElementById('quiz-result-view').style.display = 'none';
     document.getElementById('exam-selection-view').style.display = 'block';
 }
+
 // ==================== 5. NAVIGATION SWITCH CONTROLLER ====================
 function switchTab(pageId) {
     
