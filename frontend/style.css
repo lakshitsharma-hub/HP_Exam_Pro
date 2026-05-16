@@ -303,3 +303,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
         margin-bottom: 190px !important;
     }
 }
+/* 🎨 पेज हेडिंग्स विजिबिलिटी फिक्स (व्हाइट बैकग्राउंड पर डार्क टेक्स्ट) */
+.page-content > h1,
+.page-content > h2,
+.page-content > h3 {
+    color: #0f172a !important; /* इससे हेडिंग गहरे काले/स्लेट रंग की हो जाएगी */
+    font-weight: 800 !important;
+    margin-top: 15px !important;
+    margin-bottom: 15px !important;
+}
