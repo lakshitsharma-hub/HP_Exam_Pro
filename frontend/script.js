@@ -16,29 +16,29 @@ let totalQuizTimeSeconds = 5400;
 let selectedExamType = "";      
 let currentUserId = ""; // लॉगिन के बाद यहाँ Supabase से ID आएगी
 
-// आपका पुराना वेरिएबल्स का कोड (अगर कोई है) तो इसके नीचे रहेगा...
-
-// handleSignup फंक्शन के अंदर सबसे ऊपर ये चेक जोड़ो:
-const email = document.getElementById('auth-email').value.trim();
-const password = document.getElementById('auth-pass').value.trim();
-
-if (!email || !password) {
-    document.getElementById('auth-error').innerText = "कृपया ईमेल और पासवर्ड दोनों भरें!";
-    return; // कोड को आगे बढ़ने से रोकें
-}
-
 // --- 2. AUTHENTICATION (Login/Signup) ---
 
 async function handleSignup() {
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-pass').value;
+    // 1. पहले इनपुट से ईमेल और पासवर्ड की वैल्यू उठाएं
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-pass').value.trim();
+
+    // 2. अब फंक्शन के अंदर यह सुरक्षा कवच (Check) काम करेगा
+    if (!email || !password) {
+        document.getElementById('auth-error').innerText = "कृपया ईमेल और पासवर्ड दोनों भरें!";
+        return; // अब यह फंक्शन के अंदर है, इसलिए बिल्कुल सही है!
+    }
+
+    // 3. अगर दोनों बॉक्स भरे हैं, तो सुपाबेस में अकाउंट बनेगा
     const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    
     if (error) {
         document.getElementById('auth-error').innerText = "Signup Error: " + error.message;
     } else {
-        alert("Registration Successful! Please Check Your Email।");
+        alert("Registration Successful! Aapka account ban gya hai.");
     }
 }
+
 
 async function handleLogin() {
     const email = document.getElementById('auth-email').value;
