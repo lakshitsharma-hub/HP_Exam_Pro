@@ -435,3 +435,25 @@ function resetToSelection() {
     document.getElementById('quiz-result-view').style.display = 'none';
     document.getElementById('exam-selection-view').style.display = 'block';
 }
+// ==================== 5. NAVIGATION SWITCH CONTROLLER ====================
+function switchTab(pageId) {
+    // 1. स्क्रीन पर जितने भी पेजेस हैं, उन सबको छुपा दो
+    document.querySelectorAll('.page-content').forEach(page => {
+        page.classList.remove('active');
+        page.style.display = 'none';
+    });
+
+    // 2. जिस पेज की ID हमने भेजी है, सिर्फ उसे सामने लाओ
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) {
+        targetPage.classList.add('active');
+        targetPage.style.display = 'block';
+        
+        // 3. अगर मॉक टेस्ट वाला पेज खुला है, तो उसके अंदर एग्जाम सिलेक्शन (कार्ड्स) दिखें
+        if (pageId === 'mock-tests-page') {
+            if (document.getElementById('exam-selection-view')) document.getElementById('exam-selection-view').style.display = 'block';
+            if (document.getElementById('active-quiz-view')) document.getElementById('active-quiz-view').style.display = 'none';
+            if (document.getElementById('quiz-result-view')) document.getElementById('quiz-result-view').style.display = 'none';
+        }
+    }
+}
