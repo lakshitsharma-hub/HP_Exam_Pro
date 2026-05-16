@@ -7,6 +7,18 @@ const messagesDiv = document.getElementById('messages');
 const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 
+// --- 1. GLOBAL VARIABLES ---
+let currentQuestions = [];      
+let currentQuestionIndex = 0;   
+let userAnswers = {};           
+let quizTimerInterval = null;   
+let totalQuizTimeSeconds = 5400; 
+let selectedExamType = "";      
+let currentUserId = ""; // लॉगिन के बाद यहाँ Supabase से ID आएगी
+
+// आपका पुराना वेरिएबल्स का कोड (अगर कोई है) तो इसके नीचे रहेगा...
+
+
 // --- 2. AUTHENTICATION (Login/Signup) ---
 
 async function handleSignup() {
@@ -230,3 +242,188 @@ document.getElementById('togglePassword').addEventListener('click', function () 
     passwordInput.setAttribute('type', type);
     this.classList.toggle('fa-eye-slash');
 });
+
+
+// ==================== 3. LIVE QUIZ ENGINE & TIMED TEST ====================
+
+// A. बैकएंड से 120 सवाल लेकर टेस्ट शुरू करना
+async function startMockTest(examType) {
+    selectedExamType = examType;
+    
+    if (!currentUserId) {
+        currentUserId = "test-user-123"; // डमी आईडी टेस्टिंग के लिए
+    }
+    
+    const titleEl = document.getElementById('quiz-exam-title');
+    if (titleEl) {
+        titleEl.innerText = examType === 'patwari' ? 'Patwari Exam Mode' : 'JOA IT Exam Mode';
+    }
+    
+    try {
+        const response = await fetch(`http://127.0.0.1:8000/api/mock-test/generate?user_id=${currentUserId}&exam_type=${examType}`);
+        
+        // Freemium Lock Checking (Status 403)
+        if (response.status === 403) {
+            const errorData = await response.json();
+            alert(`👑 Pro Feature: ${errorData.detail}`);
+            
+            // सीधे प्रो-एक्सेस वाले पेज पर रीडायरेक्ट करना
+            const proPage = document.getElementById('pro-access-page');
+            if (proPage) {
+                document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+                proPage.classList.add('active');
+            }
+            return;
+        }
+
+        const data = await response.json();
+        if (data.status === "success" && data.questions.length > 0) {
+            currentQuestions = data.questions;
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            totalQuizTimeSeconds = 5400; // 90 मिनट रिसेट
+
+            document.getElementById('exam-selection-view').style.display = 'none';
+            document.getElementById('active-quiz-view').style.display = 'block';
+
+            startQuizTimer();
+            displayQuestion();
+        } else {
+            alert("Sawal load nahi ho paye. Kripya check karein!");
+        }
+
+    } catch (error) {
+        console.error("Test start karne mein error:", error);
+        alert("Server se connect nahi ho pa rha hai! Pehle uvicorn server start karein.");
+    }
+}
+
+// B. Live 90-Minute Countdown Timer
+function startQuizTimer() {
+    if (quizTimerInterval) clearInterval(quizTimerInterval);
+
+    quizTimerInterval = setInterval(() => {
+        totalQuizTimeSeconds--;
+
+        let minutes = Math.floor(totalQuizTimeSeconds / 60);
+        let seconds = totalQuizTimeSeconds % 60;
+
+        let displayMins = minutes < 10 ? "0" + minutes : minutes;
+        let displaySecs = seconds < 10 ? "0" + seconds : seconds;
+
+        document.getElementById('quiz-timer').innerText = `${displayMins}:${displaySecs}`;
+
+        if (totalQuizTimeSeconds <= 0) {
+            clearInterval(quizTimerInterval);
+            alert("⏰ Samay Samapt! Aapka test auto-submit kiya ja rha hai.");
+            submitMockTest(); 
+        }
+    }, 1000);
+}
+
+// C. ब्लैकबोर्ड पर करंट सवाल और ऑप्शंस रेंडर करना
+function displayQuestion() {
+    if (currentQuestions.length === 0) return;
+
+    const currentQ = currentQuestions[currentQuestionIndex];
+    
+    document.getElementById('current-q-num').innerText = currentQuestionIndex + 1;
+    document.getElementById('quiz-question-text').innerText = currentQ.question_text;
+
+    const progressPercent = ((currentQuestionIndex + 1) / currentQuestions.length) * 100;
+    document.getElementById('quiz-progress-fill').style.width = `${progressPercent}%`;
+
+    const optionsWrapper = document.getElementById('quiz-options-wrapper');
+    optionsWrapper.innerHTML = ""; 
+
+    for (let i = 1; i <= 4; i++) {
+        const optionText = currentQ[`opt${i}`];
+        if (!optionText) continue;
+
+        const optionKey = `opt${i}`;
+        const isSelected = userAnswers[currentQ.id] === optionKey;
+
+        const optionButton = document.createElement('button');
+        optionButton.className = `option-btn ${isSelected ? 'selected' : ''}`;
+        optionButton.innerHTML = `<span class="opt-prefix">${i}</span> <span class="opt-text">${optionText}</span>`;
+        
+        optionButton.onclick = () => {
+            userAnswers[currentQ.id] = optionKey;
+            displayQuestion(); 
+        };
+        
+        optionsWrapper.appendChild(optionButton);
+    }
+
+    document.getElementById('prev-q-btn').disabled = currentQuestionIndex === 0;
+    
+    const nextBtn = document.getElementById('next-q-btn');
+    if (currentQuestionIndex === currentQuestions.length - 1) {
+        nextBtn.innerHTML = `Submit Test <i class="fa-solid fa-check-double"></i>`;
+        nextBtn.onclick = submitMockTest; 
+    } else {
+        nextBtn.innerHTML = `Next <i class="fa-solid fa-arrow-right"></i>`;
+        nextBtn.onclick = () => navigateQuestion(1);
+    }
+}
+
+// D. Next / Previous बटन नेविगेशन
+function navigateQuestion(direction) {
+    currentQuestionIndex += direction;
+    if (currentQuestionIndex < 0) currentQuestionIndex = 0;
+    if (currentQuestionIndex >= currentQuestions.length) currentQuestionIndex = currentQuestions.length - 1;
+    
+    displayQuestion();
+}
+
+// E. टेस्ट सबमिट करना और स्कोर कैलकुलेट करना
+async function submitMockTest() {
+    if (quizTimerInterval) clearInterval(quizTimerInterval);
+    
+    let correctCount = 0;
+    let wrongCount = 0;
+    
+    currentQuestions.forEach(q => {
+        const chosen = userAnswers[q.id];
+        const correct = q.correct_option || q.answer; // CSV कॉलम के आधार पर
+        
+        if (chosen === correct) {
+            correctCount++;
+        } else if (chosen) {
+            wrongCount++;
+        }
+    });
+    
+    // रिजल्ट स्कोरकार्ड UI को अपडेट करना
+    document.getElementById('final-score').innerText = correctCount;
+    document.getElementById('stat-correct').innerText = correctCount;
+    document.getElementById('stat-wrong').innerText = wrongCount;
+    
+    // क्विज़ रूम छुपाएं और रिजल्ट दिखाएं
+    document.getElementById('active-quiz-view').style.display = 'none';
+    document.getElementById('quiz-result-view').style.display = 'block';
+    
+    // बैकएंड में स्कोर और एटेम्पट डेटा सेव करना
+    try {
+        await fetch('http://127.0.0.1:8000/api/mock-test/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: currentUserId,
+                exam_type: selectedExamType,
+                score: correctCount,
+                total_qs: currentQuestions.length,
+                correct_answers: correctCount,
+                wrong_answers: wrongCount
+            })
+        });
+    } catch (error) {
+        console.error("Data save karne mein error aaya:", error);
+    }
+}
+
+// F. रिजल्ट पेज से वापस मुख्य परीक्षा चयन पेज पर जाना
+function resetToSelection() {
+    document.getElementById('quiz-result-view').style.display = 'none';
+    document.getElementById('exam-selection-view').style.display = 'block';
+}
