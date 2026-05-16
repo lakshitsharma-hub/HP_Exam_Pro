@@ -472,17 +472,18 @@ window.toggleMenu = function() {
 
 // ==================== 7. LIVE QUIZ ENGINE CONFIGURATION ====================
 
-let quizQuestions = [];       // बैकएंड से आने वाले सवाल यहाँ जमा होंगे
-let currentQuestionIndex = 0; // छात्र अभी किस सवाल पर है
-let userAnswers = {};         // छात्र ने किस सवाल का क्या जवाब दिया
-let quizTimerInterval = null; 
-let totalQuizTimeSeconds = 5400; // 90 मिनट्स (पटवारी के लिए)
+//let quizQuestions = [];       // बैकएंड से आने वाले सवाल यहाँ जमा होंगे
+//let currentQuestionIndex = 0; // छात्र अभी किस सवाल पर है
+//let userAnswers = {};         // छात्र ने किस सवाल का क्या जवाब दिया
+//let quizTimerInterval = null; 
+//let totalQuizTimeSeconds = 5400; // 90 मिनट्स (पटवारी के लिए)
 
 // A. टेस्ट शुरू करने का फंक्शन
 async function startMockTest(examType) {
     try {
         // 1. बैकएंड से सवाल खींचना
-        const response = await fetch(`http://127.0.0.1:8000/api/questions/${examType}`);
+        // 🔍 लाइन नंबर 484 को ढूँढकर इस तरह बदलें:
+        const response = await fetch(`https://hp-exam-pro.onrender.com/api/questions/${examType}`);
         quizQuestions = await response.json();
 
         if (!quizQuestions || quizQuestions.detail) {
