@@ -138,3 +138,38 @@ async def generate_mock_test(user_id: str, exam_type: str):
         raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# --- 1. टेस्ट सबमिशन के लिए डेटा का ढांचा (Schema) ---
+class TestSubmitRequest(BaseModel):
+    user_id: str
+    exam_type: str
+    score: int
+    total_qs: int
+    correct_answers: int
+    wrong_answers: int
+
+# --- 2. टेस्ट स्कोर को डेटाबेस में सेव करने का एंडपॉइंट ---
+@app.post("/api/mock-test/submit")
+async def submit_mock_test(request: TestSubmitRequest):
+    try:
+        # फ्रंटएंड से आया डेटा तैयार करना
+        attempt_data = {
+            "user_id": request.user_id,
+            "exam_type": request.exam_type,
+            "score": request.score,
+            "total_qs": request.total_qs,
+            "correct_answers": request.correct_answers,
+            "wrong_answers": request.wrong_answers
+        }
+        
+        # Supabase की 'test_attempts' टेबल (डायरी) में एंट्री दर्ज करना
+        res = db.supabase.table("test_attempts").insert(attempt_data).execute()
+        
+        return {
+            "status": "success", 
+            "message": "Badhai ho! Aapka score database mein save ho gya hai.",
+            "data": res.data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
