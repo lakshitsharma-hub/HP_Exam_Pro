@@ -673,3 +673,84 @@ async function submitQuestionQuery() {
         alert("सर्वर से कनेक्ट नहीं हो पाया!");
     }
 }
+
+// ==================== 💳 PREMIUM RAZORPAY CHECKOUT SYSTEM ====================
+
+async function initiateProPayment() {
+    const userProfile = window.CURRENT_USER_PROFILE;
+    const userId = currentUserId || userProfile?.id;
+
+    if (!userId) {
+        alert("⚠️ कृपया पेमेंट करने से पहले लॉगिन करें!");
+        return;
+    }
+
+    try {
+        // 1. बैकएंड से रेज़रपे का ऑर्डर आईडी (Order ID) जनरेट करवाना
+        const orderResponse = await fetch('https://hp-exam-pro.onrender.com/api/payment/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId })
+        });
+
+        if (!orderResponse.ok) throw new Error("ऑर्डर जनरेट करने में विफलता!");
+        const orderData = await orderResponse.json();
+
+        if (orderData.status !== "success") {
+            alert("सर्वर से ऑर्डर आईडी नहीं मिल पाई।");
+            return;
+        }
+
+        // 2. रेज़रपे चेकआउट पॉपअप (Modal) की कॉन्फ़िगरेशन सेट करना
+        const options = {
+            "key": "rzp_test_Sq35OFh2B2", // 🔥 तुम्हारी स्क्रीनशॉट वाली Key ID यहाँ फिट कर दी है
+            "amount": orderData.amount,
+            "currency": orderData.currency,
+            "name": "HP EXAM PRO",
+            "description": "Premium Pro Access (15 Tests/Month)",
+            "image": "https://hp-exam-pro.vercel.app/favicon.ico", // आपके ऐप का लोगो (ऑप्शनल)
+            "order_id": orderData.order_id,
+            
+            // पेमेंट सक्सेस होने पर यह हैंडलर खुद-ब-खुद ट्रिगर होगा
+            "handler": async function (response) {
+                // स्क्रीन पर छोटा सा लोडिंग संकेत दिखाएं
+                alert("🔒 पेमेंट सफल! सर्वर पर आपका प्रो स्टेटस वेरीफाई किया जा रहा है...");
+
+                // 3. बैकएंड पर सिग्नेचर वेरिफिकेशन के लिए डेटा भेजना
+                const verifyResponse = await fetch('https://hp-exam-pro.onrender.com/api/payment/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature
+                    })
+                });
+
+                const verifyData = await verifyResponse.json();
+                if (verifyData.status === "success") {
+                    alert("👑 बधाई हो भाई! " + verifyData.message);
+                    // तुरंत पेज को रीलोड कर देंगे ताकि यूजर को क्राउन आइकन लाइव दिख जाए
+                    window.location.reload();
+                } else {
+                    alert("❌ वेरिफिकेशन फेल: " + verifyData.detail);
+                }
+            },
+            "prefill": {
+                "email": userProfile?.email || ""
+            },
+            "theme": {
+                "color": "#2563eb" // आपके ऐप की सुंदर ब्लू थीम का मैचिंग कलर
+            }
+        };
+
+        // 3. रेज़रपे का गेटवे स्क्रीन पर खोलना
+        const rzp1 = new Razorpay(options);
+        rzp1.open();
+
+    } catch (error) {
+        console.error("Payment Gateway Error:", error);
+        alert("पेमेंट सिस्टम से कनेक्ट करने में दिक्कत आई! कृपया बैकएंड लॉग्स चेक करें।");
+    }
+}
