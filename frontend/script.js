@@ -458,10 +458,11 @@ function switchTab(pageId) {
     }
 }
 // ==================== 6. MOBILE HAMBURGER MENU TOGGLE ====================
-function toggleSidebar() {
-    const sidebar = document.querySelector('.sidebar');
-    if (sidebar) {
+function toggleMenu() {
+    // लाइन नंबर 27 वाली आईडी को ढूंढना
+    const mobileSidebar = document.getElementById('mobile-sidebar');
+    if (mobileSidebar) {
         // यह 'open' क्लास को जोड़ेगा या हटाएगा
-        sidebar.classList.toggle('open');
+        mobileSidebar.classList.toggle('open');
     }
 }
