@@ -15,7 +15,7 @@ app = FastAPI(title="HP Exam Pro API")
 # --- SUPABASE DATABASE CONFIGURATION ---
 SUPABASE_URL = "https://jitkmfxojfppnpoxeff.supabase.co"
 # 💡 अपनी असली Anon/Public Key यहाँ पेस्ट करना जो तुम्हारी script.js में ऊपर लगी है
-SUPABASE_KEY = "sb_publishable_6H4ld2wexzzNexqTfOtvIw_xLkWKsi..." 
+SUPABASE_KEY = "sb_publishable_6H4ld2wexzzNexqTfOtvIw_xLkWKsif" 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # स्कोर डेटा वैलिडेशन के लिए मॉडल
