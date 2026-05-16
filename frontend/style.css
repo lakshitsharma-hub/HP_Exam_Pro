@@ -242,3 +242,10 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
         display: inline-block !important; /* Mobile par button show hoga */
     }
 }
+/* 🔥 मोबाइल मेनू बटन को साइडबार के ऊपर दिखाने के लिए */
+.menu-icon, .mobile-nav .menu-icon {
+    z-index: 1100 !important; /* साइडबार से ऊपर रखने के लिए */
+    position: relative;
+}
+
+/* अगर आपका साइडबार खुलने पर उसके पीछे ब्लैक शेड (Overlay) आता है, तो उसे बंद करने के लिए बाहर क्लिक करने का लॉजिक भी काम करेगा */
