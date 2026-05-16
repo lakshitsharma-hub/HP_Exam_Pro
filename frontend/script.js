@@ -599,7 +599,8 @@ function startQuizTimer() {
 }
 
 // E. टेस्ट सबमिट करना और स्कोर कैलकुलेट करना
-function submitFinalQuiz() {
+// E. टेस्ट सबमिट करना और स्कोर कैलकुलेट करना + LIVE DATABASE SAVING
+async function submitFinalQuiz() {
     clearInterval(quizTimerInterval); // टाइमर रोकें
 
     let correctCount = 0;
@@ -613,7 +614,6 @@ function submitFinalQuiz() {
         }
     });
 
-    // पटवारी परीक्षा के मार्क्स कैलकुलेशन (मान लेते हैं हर सवाल 1 नंबर का है)
     const finalScore = correctCount; 
 
     // रिजल्ट स्क्रीन पर डेटा सेट करना
@@ -624,7 +624,32 @@ function submitFinalQuiz() {
     // पर्दे बदलना
     document.getElementById('active-quiz-view').style.display = 'none';
     document.getElementById('quiz-result-view').style.display = 'block';
+
+    // 🔥 LIVE DATABASE SAVING LOGIC 🔥
+    // Agar chhatr login hai toh uski asli Id (currentUserId) lenges, nahi toh test-user-123
+    const userId = currentUserId || "test-user-123"; 
+    const examType = document.getElementById('quiz-exam-title').innerText.includes("Patwari") ? "patwari" : "joa_it";
+
+    try {
+        console.log("Saving score to Cloud Database via Render...");
+        const saveResponse = await fetch(`https://hp-exam-pro.onrender.com/api/submit-score`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: userId,
+                exam_type: examType,
+                score: finalScore,
+                correct_answers: correctCount,
+                wrong_answers: wrongCount
+            })
+        });
+        const saveResult = await saveResponse.json();
+        console.log("Score successfully saved in Supabase!", saveResult);
+    } catch (error) {
+        console.error("Database mein score save karne mein dikkat aayi:", error);
+    }
 }
+
 
 // F. वापस डैशबोर्ड पर जाने का फंक्शन
 function resetToSelection() {
