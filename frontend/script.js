@@ -330,12 +330,13 @@ function startQuizTimer() {
 
 // C. ब्लैकबोर्ड पर करंट सवाल और ऑप्शंस रेंडर करना
 function displayQuestion() {
-    if (currentQuestions.length === 0) return;
+    if (!currentQuestions || currentQuestions.length === 0) return;
 
     const currentQ = currentQuestions[currentQuestionIndex];
     
     document.getElementById('current-q-num').innerText = currentQuestionIndex + 1;
-    document.getElementById('quiz-question-text').innerText = currentQ.question_text;
+    // डेटाबेस से आने वाले सवाल का टेक्स्ट
+    document.getElementById('quiz-question-text').innerText = currentQ.question_text || currentQ.question;
 
     const progressPercent = ((currentQuestionIndex + 1) / currentQuestions.length) * 100;
     document.getElementById('quiz-progress-fill').style.width = `${progressPercent}%`;
@@ -343,6 +344,7 @@ function displayQuestion() {
     const optionsWrapper = document.getElementById('quiz-options-wrapper');
     optionsWrapper.innerHTML = ""; 
 
+    // 4 ऑप्शंस को लूप से रेंडर करना
     for (let i = 1; i <= 4; i++) {
         const optionText = currentQ[`opt${i}`];
         if (!optionText) continue;
@@ -372,8 +374,16 @@ function displayQuestion() {
         nextBtn.innerHTML = `Next <i class="fa-solid fa-arrow-right"></i>`;
         nextBtn.onclick = () => navigateQuestion(1);
     }
+
+    // 🔥 नया सवाल आते ही पुराना आपत्ति बॉक्स छुप जाएगा
+    const queryBox = document.getElementById('query-input-box');
+    if(queryBox) queryBox.style.display = 'none';
+    const queryText = document.getElementById('query-issue-text');
+    if(queryText) queryText.value = '';
+
     renderQuestionPalette();
 }
+
 
 // D. Next / Previous बटन नेविगेशन
 function navigateQuestion(direction) {
