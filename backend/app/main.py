@@ -8,8 +8,16 @@ import random
 import feedparser
 from supabase import create_client, Client
 from datetime import datetime
+import razorpay
 
 app = FastAPI(title="HP Exam Pro API")
+
+# 💳 Razorpay Test Keys (तुम्हारी स्क्रीनशॉट वाली Key ID)
+RAZORPAY_KEY_ID = "rzp_test_Sq35OFh2B20luk"
+RAZORPAY_KEY_SECRET = "BqWJNRU2T7ONPQMCSBrp7g33" # (यहाँ अपनी असली Test Secret Key डालना जो तुमने सेव की थी)
+
+razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+
 
 # --- SUPABASE DATABASE CONFIGURATION ----
 SUPABASE_URL = "https://jitkmfqxojfppnpoxeff.supabase.co"
