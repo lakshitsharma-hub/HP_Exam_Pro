@@ -7,8 +7,25 @@ import os
 import random
 from fastapi.middleware.cors import CORSMiddleware
 import feedparser
+from supabase import create_client, Client # 👈 सुपाबेस के लिए नया इम्पोर्ट
+from datetime import datetime # 👈 तारीख के लिए नया इम्पोर्ट
 
 app = FastAPI(title="HP Exam Pro API")
+
+# --- SUPABASE DATABASE CONFIGURATION ---
+SUPABASE_URL = "https://jitkmfxojfppnpoxeff.supabase.co"
+# 💡 अपनी असली Anon/Public Key यहाँ पेस्ट करना जो तुम्हारी script.js में ऊपर लगी है
+SUPABASE_KEY = "sb_publishable_6H4ld2wexzzNexqTfOtvIw_xLkWKsi..." 
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# स्कोर डेटा वैलिडेशन के लिए मॉडल
+class ScoreSubmission(BaseModel):
+    user_id: str
+    exam_type: str
+    score: int
+    correct_answers: int
+    wrong_answers: int
+
 
 @app.get("/api/news")
 async def get_hp_news():
@@ -219,3 +236,55 @@ async def get_exam_questions(exam_type: str):
     
     else:
         return {"detail": "Exam type not found"}
+
+# --- A. स्कोर सेव करने का एंडपॉइंट ---
+@app.post("/api/submit-score")
+async def submit_score(data: ScoreSubmission):
+    try:
+        response = supabase.table("test_results").insert({
+            "user_id": data.user_id,
+            "exam_type": data.exam_type,
+            "score": data.score,
+            "correct_answers": data.correct_answers,
+            "wrong_answers": data.wrong_answers
+        }).execute()
+        return {"status": "success", "data": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# --- B. लाइव एनालिटिक्स डेटा भेजने का एंडपॉइंट ---
+@app.get("/api/analytics/{user_id}")
+async def get_analytics(user_id: str):
+    try:
+        response = supabase.table("test_results").select("*").eq("user_id", user_id).order("created_at", desc=False).execute()
+        records = response.data
+
+        if not records:
+            return {"total_tests": 0, "avg_score": 0, "highest_score": 0, "accuracy": 0, "graph_data": []}
+
+        total_tests = len(records)
+        highest_score = max(r["score"] for r in records)
+        avg_score = round(sum(r["score"] for r in records) / total_tests, 1)
+
+        total_correct = sum(r["correct_answers"] for r in records)
+        total_wrong = sum(r["wrong_answers"] for r in records)
+        total_attempted = total_correct + total_wrong
+        accuracy = round((total_correct / total_attempted) * 100, 1) if total_attempted > 0 else 0
+
+        # लास्ट 7 टेस्ट्स का डेटा ग्राफ के लिए सेट करना
+        graph_data = []
+        for r in records[-7:]:
+            dt = datetime.fromisoformat(r["created_at"].split(".")[0].replace("Z", ""))
+            date_str = dt.strftime("%d %b")
+            graph_data.append({"date": date_str, "score": r["score"]})
+
+        return {
+            "total_tests": total_tests,
+            "avg_score": avg_score,
+            "highest_score": highest_score,
+            "accuracy": accuracy,
+            "graph_data": graph_data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
