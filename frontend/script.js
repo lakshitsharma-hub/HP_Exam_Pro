@@ -449,6 +449,11 @@ function switchTab(pageId) {
         targetPage.classList.add('active');
         targetPage.style.display = 'block';
         
+        // 🔥 यहाँ जुड़ेगा आपका लाइव एनालिटिक्स लोड करने का जादुई चेक:
+        if (pageId === 'analytics-page') {
+            loadAnalyticsData();
+        }
+        
         // 3. अगर मॉक टेस्ट वाला पेज खुला है, तो उसके अंदर एग्जाम सिलेक्शन (कार्ड्स) दिखें
         if (pageId === 'mock-tests-page') {
             if (document.getElementById('exam-selection-view')) document.getElementById('exam-selection-view').style.display = 'block';
@@ -457,6 +462,7 @@ function switchTab(pageId) {
         }
     }
 }
+
 // ==================== 6. MOBILE HAMBURGER MENU TOGGLE (BULLETPROOF) ====================
 window.toggleMenu = function() {
     console.log("🍔 Hamburger Menu clicked successfully!"); // Isse pata chalega click kaam kar rha hai
