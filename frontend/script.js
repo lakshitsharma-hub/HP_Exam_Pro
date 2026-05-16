@@ -266,6 +266,10 @@ async function startMockTest(examType) {
             document.getElementById('exam-selection-view').style.display = 'none';
             document.getElementById('active-quiz-view').style.display = 'block';
 
+            // 🎯 यहाँ पैलेट ऑन करने और पुराने साइडबार को छुपाने का कोड फिक्स कर दिया है
+            if(document.getElementById('standard-sidebar-content')) document.getElementById('standard-sidebar-content').style.display = 'none';
+            if(document.getElementById('quiz-navigation-palette')) document.getElementById('quiz-navigation-palette').style.display = 'block';
+
             startQuizTimer();
             displayQuestion();
         } else {
