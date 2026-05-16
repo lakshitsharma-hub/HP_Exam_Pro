@@ -744,50 +744,45 @@ async function loadAnalyticsData() {
     }
 }
 // ==================== 🎯 QUESTION PALETTE & MOBILE TOGGLE LOGIC ====================
-
-// A. पैलेट के सर्कल्स लाइव बनाने और उनपर क्लिक कराने का फंक्शन
+// ==================== QUESTION PALETTE LOGIC ====================
 function renderQuestionPalette() {
     const grid = document.getElementById('palette-grid');
-    if (!grid || !quizQuestions) return;
-    grid.innerHTML = ''; // Purana content saaf karein
+    if (!grid || !currentQuestions) return;
+    grid.innerHTML = ''; 
 
-    quizQuestions.forEach((_, index) => {
+    currentQuestions.forEach((q, index) => {
         const circle = document.createElement('div');
         circle.innerText = index + 1;
 
-        // Gol buttons ki sunder dark styling
-        circle.style.width = '38px';
-        circle.style.height = '38px';
+        circle.style.width = '35px';
+        circle.style.height = '35px';
         circle.style.borderRadius = '50%';
         circle.style.display = 'flex';
         circle.style.alignItems = 'center';
         circle.style.justifyContent = 'center';
         circle.style.cursor = 'pointer';
-        circle.style.fontSize = '14px';
+        circle.style.fontSize = '13px';
         circle.style.fontWeight = 'bold';
         circle.style.transition = 'all 0.2s ease';
 
-        // 🎨 Live Color Coding Conditions
         if (index === currentQuestionIndex) {
-            circle.style.background = '#3b82f6'; // Jo sawal khula hai uske liye Blue
+            circle.style.background = '#3b82f6'; 
             circle.style.color = 'white';
             circle.style.boxShadow = '0 0 8px #3b82f6';
             circle.style.border = '2px solid #93c5fd';
-        } else if (userAnswers[index] !== undefined) {
-            circle.style.background = '#10b981'; // Jo sawal hal ho gya uske liye Green
+        } else if (userAnswers[q.id] !== undefined) {
+            circle.style.background = '#10b981'; 
             circle.style.color = 'white';
         } else {
-            circle.style.background = '#475569'; // Bache hue sawalon ke liye Gray
+            circle.style.background = '#475569'; 
             circle.style.color = '#cbd5e1';
         }
 
-        // 🚀 Click karte hi seedhe us sawal par jump karein!
-        // ✅ इसकी जगह सिर्फ इतना छोटा और साफ कोड पेस्ट कर दो:
-circle.onclick = () => {
-    currentQuestionIndex = index;
-    displayCurrentQuestion(); 
-    renderQuestionPalette();  
-};
+        circle.onclick = () => {
+            currentQuestionIndex = index;
+            displayQuestion();
+        };
+
         grid.appendChild(circle);
     });
 }
