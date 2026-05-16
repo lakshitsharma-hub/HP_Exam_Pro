@@ -432,7 +432,12 @@ async function submitMockTest() {
 function resetToSelection() {
     document.getElementById('quiz-result-view').style.display = 'none';
     document.getElementById('exam-selection-view').style.display = 'block';
+    
+    // 🎯 पुराना साइडबार वापस दिखाएं और पैलेट छुपाएं
+    if(document.getElementById('standard-sidebar-content')) document.getElementById('standard-sidebar-content').style.display = 'block';
+    if(document.getElementById('quiz-navigation-palette')) document.getElementById('quiz-navigation-palette').style.display = 'none';
 }
+
 
 function renderQuestionPalette() {
     const grid = document.getElementById('palette-grid');
