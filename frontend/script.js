@@ -8,7 +8,7 @@ const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 
 // --- 1. GLOBAL VARIABLES ---
-let currentQuestions = [];      
+let quizQuestions = [];      
 let currentQuestionIndex = 0;   
 let userAnswers = {};           
 let quizTimerInterval = null;   
