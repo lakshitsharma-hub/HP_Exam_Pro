@@ -325,8 +325,26 @@ function displayQuestion() {
         const isSelected = userAnswers[currentQ.id] === optionKey;
 
         const optionButton = document.createElement('button');
-        optionButton.className = `option-btn ${isSelected ? 'selected' : ''}`;
-        optionButton.innerHTML = `<span class="opt-prefix">${i}</span> <span class="opt-text">${optionText}</span>`;
+        
+        // 🎨 बटन्स की फॉर्मेटिंग को सीधा जावास्क्रिप्ट से कड़क डार्क मोड लुक दे दिया है
+        optionButton.style.cssText = `
+            padding: 14px; 
+            border: 1px solid ${isSelected ? '#60a5fa' : '#334155'}; 
+            border-radius: 8px; 
+            background: ${isSelected ? '#2563eb' : '#0f172a'}; 
+            color: white; 
+            text-align: left; 
+            cursor: pointer; 
+            transition: all 0.2s;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        `;
+        
+        // नंबर काउंट के लिए सुंदर ब्लू स्क्वायर बैज
+        optionButton.innerHTML = `<span style="background: #1e293b; padding: 2px 8px; border-radius: 4px; font-weight: bold; color: #38bdf8;">${i}</span> <span class="opt-text">${optionText}</span>`;
         
         optionButton.onclick = () => {
             userAnswers[currentQ.id] = optionKey;
@@ -341,9 +359,11 @@ function displayQuestion() {
     const nextBtn = document.getElementById('next-q-btn');
     if (currentQuestionIndex === currentQuestions.length - 1) {
         nextBtn.innerHTML = `Submit Test <i class="fa-solid fa-check-double"></i>`;
+        nextBtn.style.background = "#10b981";
         nextBtn.onclick = submitMockTest; 
     } else {
         nextBtn.innerHTML = `Next <i class="fa-solid fa-arrow-right"></i>`;
+        nextBtn.style.background = "#2563eb";
         nextBtn.onclick = () => navigateQuestion(1);
     }
 
