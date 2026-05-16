@@ -625,3 +625,57 @@ function resetToSelection() {
     document.getElementById('quiz-result-view').style.display = 'none';
     document.getElementById('exam-selection-view').style.display = 'block';
 }
+
+// ==================== 8. ANALYTICS ENGINE (FETCH FROM RENDER) ====================
+let performanceChartInstance = null; 
+
+async function loadAnalyticsData() {
+    // अगर छात्र लॉगइन है तो उसकी असली ID लेंगे, नहीं तो टेस्टिंग के लिए डमी ID
+    const userId = currentUserId || "test-user-123";
+    console.log("Fetching analytics for:", userId);
+    
+    try {
+        // 🔥 सीधे आपके Render लाइव सर्वर से डेटा खींचना
+        const response = await fetch(`https://hp-exam-pro.onrender.com/api/analytics/${userId}`);
+        const data = await response.json();
+
+        // डिब्बों में डेटा सेट करना
+        if(document.getElementById('analytics-total-tests')) document.getElementById('analytics-total-tests').innerText = data.total_tests;
+        if(document.getElementById('analytics-avg-score')) document.getElementById('analytics-avg-score').innerText = data.avg_score;
+        if(document.getElementById('analytics-highest-score')) document.getElementById('analytics-highest-score').innerText = data.highest_score;
+        if(document.getElementById('analytics-accuracy')) document.getElementById('analytics-accuracy').innerText = data.accuracy + "%";
+
+        // --- GRAPH GENERATOR ---
+        const chartCanvas = document.getElementById('performanceChart');
+        if (!chartCanvas) return; 
+
+        const ctx = chartCanvas.getContext('2d');
+        if (performanceChartInstance) { performanceChartInstance.destroy(); }
+
+        const labels = data.graph_data.map(item => item.date);
+        const scores = data.graph_data.map(item => item.score);
+
+        performanceChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels.length ? labels : ['No Data Yet'],
+                datasets: [{
+                    label: 'Mock Test Score',
+                    data: scores.length ? scores : [0],
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { min: 0, max: 120 } } // पटवारी के 120 मार्क्स का स्केल
+            }
+        });
+
+    } catch (error) {
+        console.error("Analytics लोड करने में गड़बड़ हुई:", error);
+    }
+}
