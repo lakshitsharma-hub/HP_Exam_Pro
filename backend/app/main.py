@@ -133,6 +133,8 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
                     raise HTTPException(status_code=403, detail="आप अपना 1 फ्री मॉक टेस्ट दे चुके हैं! असीमित टेस्ट और महीने के 15 प्रीमियम टेस्ट अनलॉक करने के लिए प्रो एक्सेस लें। 👑")
 
         final_questions = []
+        # 🚨 FIX 1: रिपीटेड सवालों को रोकने के लिए एक Set बनाया जो चुने हुए IDs को ट्रैक करेगा
+        selected_ids = set()
 
         def fetch_filtered_qs(subject_name: str = None, q_type_value: str = "direct", count: int = 0):
             query = supabase.table("questions").select("*")
@@ -140,14 +142,27 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
             if q_type_value: query = query.eq("q_type", q_type_value)
             res = query.execute()
             data = res.data if res.data else []
-            return random.sample(data, count) if len(data) >= count else data
+            
+            # सिर्फ वही सवाल लो जो इस टेस्ट में अब तक सिलेक्ट नहीं हुए हैं
+            available_data = [q for q in data if q['id'] not in selected_ids]
+            
+            # रैंडम सैंपल निकालो (सुरक्षा के साथ कि अगर सवाल कम हों तो क्रैश न हो)
+            take_count = min(len(available_data), count)
+            sampled = random.sample(available_data, take_count)
+            
+            # चुने गए सवालों की ID को लॉक कर दो ताकि दोबारा न आएं
+            for q in sampled:
+                selected_ids.add(q['id'])
+                
+            return sampled
 
+        # 🎯 FIX 2: सवाल अब सब्जेक्ट-वाइज ग्रुप में ही रहेंगे (जैसे पटवारी का असली ब्लूप्रिंट)
         if exam_type == "patwari":
-            final_questions.extend(fetch_filtered_qs("maths", "direct", 20))
-            final_questions.extend(fetch_filtered_qs(None, "statement", 10)) 
-            final_questions.extend(fetch_filtered_qs("hindi", "direct", 15))
-            final_questions.extend(fetch_filtered_qs("english", "direct", 15))
-            final_questions.extend(fetch_filtered_qs("science", "direct", 15))
+            final_questions.extend(fetch_filtered_qs("maths", "direct", 20))         # पहले मैथ्स के 20 सवाल साथ आएंगे
+            final_questions.extend(fetch_filtered_qs(None, "statement", 10))         # फिर स्टेटमेंट वाले 10 सवाल
+            final_questions.extend(fetch_filtered_qs("hindi", "direct", 15))         # फिर हिंदी के 15 सवाल साथ
+            final_questions.extend(fetch_filtered_qs("english", "direct", 15))       # इंग्लिश के 15
+            final_questions.extend(fetch_filtered_qs("science", "direct", 15))       # साइंस के 15
             final_questions.extend(fetch_filtered_qs("geography", "direct", 5))
             final_questions.extend(fetch_filtered_qs("polity", "direct", 5))
             final_questions.extend(fetch_filtered_qs("history", "direct", 5))
@@ -155,17 +170,18 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
             final_questions.extend(fetch_filtered_qs("hp_gk", "direct", 5))
             final_questions.extend(fetch_filtered_qs("current_affairs", "direct", 8))
             final_questions.extend(fetch_filtered_qs("computer", "direct", 10))
-            random.shuffle(final_questions)
+            # 🚨 पुराना random.shuffle(final_questions) यहाँ से हटा दिया गया है!
 
         elif exam_type == "joa_it":
-            final_questions.extend(fetch_filtered_qs("computer", "direct", 80))
+            final_questions.extend(fetch_filtered_qs("computer", "direct", 80))      # कंप्यूटर के 80 सवाल एक साथ
             final_questions.extend(fetch_filtered_qs("science", "direct", 10))
             final_questions.extend(fetch_filtered_qs("maths", "direct", 10))
             final_questions.extend(fetch_filtered_qs("hp_gk", "direct", 5))
             final_questions.extend(fetch_filtered_qs("reasoning", "direct", 5))
             final_questions.extend(fetch_filtered_qs(None, "statement", 5)) 
             final_questions.extend(fetch_filtered_qs("current_affairs", "direct", 5))
-            random.shuffle(final_questions)
+            # 🚨 पुराना random.shuffle(final_questions) यहाँ से भी हटा दिया गया है!
+            
         else:
             raise HTTPException(status_code=400, detail="Invalid exam type!")
 
@@ -177,7 +193,6 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
         raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 # 💰 RAZORPAY ORDER CREATION ENDPOINT
 @app.post("/api/payment/create-order")
