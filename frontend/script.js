@@ -599,16 +599,15 @@ function displayCurrentQuestion() {
     }
 }
 
-// C. आगे-पीछे (Next/Previous) जाने का लॉजिक
+// D. Next / Previous बटन नेविगेशन
 function navigateQuestion(direction) {
     currentQuestionIndex += direction;
-    
-    // बाउंड्री चेक (पहला या आखिरी सवाल)
     if (currentQuestionIndex < 0) currentQuestionIndex = 0;
-    if (currentQuestionIndex >= quizQuestions.length) currentQuestionIndex = quizQuestions.length - 1;
-
-    displayCurrentQuestion();
+    if (currentQuestionIndex >= currentQuestions.length) currentQuestionIndex = currentQuestions.length - 1;
+    
+    displayQuestion();
 }
+
 
 // D. लाइव उल्टी गिनती (Timer) चलाना
 function startQuizTimer() {
