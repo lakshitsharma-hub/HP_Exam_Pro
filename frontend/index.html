@@ -172,9 +172,34 @@
 
 </div>
 
-            <div id="analytics-page" class="page-content">
-                <div class="placeholder-msg"><i class="fa-solid fa-chart-pie"></i><h2>Analytics</h2><p>डेटा यहाँ दिखेगा।</p></div>
-            </div>
+           <div id="analytics-page" class="page-content" style="display: none; padding: 20px; color: white;">
+    <h2 style="margin-bottom: 20px;">Aapki Tayaari Ka Analytics 📊</h2>
+    
+    <div class="analytics-grid" style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 30px;">
+        <div style="background: #1e293b; padding: 15px; border-radius: 10px; flex: 1; min-width: 120px; border: 1px solid #334155; text-align: center;">
+            <h4 style="color: #94a3b8; font-size: 13px;">Total Tests</h4>
+            <p id="analytics-total-tests" style="font-size: 24px; font-weight: bold; color: #38bdf8; margin-top: 5px;">0</p>
+        </div>
+        <div style="background: #1e293b; padding: 15px; border-radius: 10px; flex: 1; min-width: 120px; border: 1px solid #334155; text-align: center;">
+            <h4 style="color: #94a3b8; font-size: 13px;">Avg Score</h4>
+            <p id="analytics-avg-score" style="font-size: 24px; font-weight: bold; color: #4ade80; margin-top: 5px;">0</p>
+        </div>
+        <div style="background: #1e293b; padding: 15px; border-radius: 10px; flex: 1; min-width: 120px; border: 1px solid #334155; text-align: center;">
+            <h4 style="color: #94a3b8; font-size: 13px;">Highest Score</h4>
+            <p id="analytics-highest-score" style="font-size: 24px; font-weight: bold; color: #f59e0b; margin-top: 5px;">0</p>
+        </div>
+        <div style="background: #1e293b; padding: 15px; border-radius: 10px; flex: 1; min-width: 120px; border: 1px solid #334155; text-align: center;">
+            <h4 style="color: #94a3b8; font-size: 13px;">Accuracy</h4>
+            <p id="analytics-accuracy" style="font-size: 24px; font-weight: bold; color: #a855f7; margin-top: 5px;">0%</p>
+        </div>
+    </div>
+
+    <div style="background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
+        <h3 style="font-size: 16px; margin-bottom: 15px; color: #94a3b8;">Performance Trend (Last 7 Tests)</h3>
+        <canvas id="performanceChart" style="max-height: 300px; width: 100%;"></canvas>
+    </div>
+</div>
+
         </main>
 
         <aside class="insights-panel">
