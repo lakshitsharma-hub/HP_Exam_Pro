@@ -100,10 +100,78 @@
                     </div>
                 </section>
             </div>
+            <div id="mock-tests-page" class="page-content" style="display: none; padding: 20px;">
+
+    <div id="exam-selection-view">
+        <h2 style="margin-bottom: 20px; color: #fff;">Himachal Pradesh State Mock Tests 2026</h2>
+        <div class="exam-cards-container" style="display: flex; gap: 20px; flex-wrap: wrap;">
             
-            <div id="mock-tests-page" class="page-content">
-                <div class="placeholder-msg"><i class="fa-solid fa-pen-nib"></i><h2>Mock Tests</h2><p>जल्द आ रहा है...</p></div>
+            <div class="exam-card" style="background: #1e293b; padding: 20px; border-radius: 12px; width: 280px; border: 1px solid #334155; color: white;">
+                <h3>HP Patwari Exam</h3>
+                <p style="font-size: 13px; color: #94a3b8; margin: 10px 0;">Total: 120 Questions | Time: 90 Mins</p>
+                <button onclick="startMockTest('patwari')" style="background: #2563eb; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 100%;">Start Free Test</button>
             </div>
+
+            <div class="exam-card" style="background: #1e293b; padding: 20px; border-radius: 12px; width: 280px; border: 1px solid #334155; color: white;">
+                <h3>HP JOA (IT) Exam</h3>
+                <p style="font-size: 13px; color: #94a3b8; margin: 10px 0;">Total: 120 Questions | Time: 90 Mins</p>
+                <button onclick="startMockTest('joa_it')" style="background: #2563eb; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 100%;">Start Free Test</button>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="active-quiz-view" style="display: none; background: #1e293b; padding: 25px; border-radius: 12px; color: white; max-width: 700px; margin: 0 auto;">
+        <div class="quiz-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 15px;">
+            <h3 id="quiz-exam-title">Exam Mode</h3>
+            <div style="background: #ef4444; padding: 5px 12px; border-radius: 20px; font-weight: bold;">
+                ⏰ <span id="quiz-timer">90:00</span>
+            </div>
+        </div>
+
+        <div class="progress-container" style="background: #334155; height: 8px; border-radius: 4px; margin: 20px 0; overflow: hidden;">
+            <div id="quiz-progress-fill" style="background: #10b981; height: 100%; width: 0%; transition: width 0.3s;"></div>
+        </div>
+
+        <div class="question-box" style="margin-bottom: 25px;">
+            <h4 style="color: #94a3b8; margin-bottom: 5px;">Question <span id="current-q-num">1</span>:</h4>
+            <p id="quiz-question-text" style="font-size: 18px; font-weight: 500; line-height: 1.5;">Loading question...</p>
+        </div>
+
+        <div id="quiz-options-wrapper" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;">
+            </div>
+
+        <div class="quiz-footer" style="display: flex; justify-content: space-between; border-top: 1px solid #334155; padding-top: 15px;">
+            <button id="prev-q-btn" onclick="navigateQuestion(-1)" style="background: #475569; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Previous</button>
+            <button id="next-q-btn" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Next</button>
+        </div>
+    </div>
+
+    <div id="quiz-result-view" style="display: none; background: #1e293b; padding: 30px; border-radius: 12px; color: white; max-width: 500px; margin: 0 auto; text-align: center;">
+        <h2 style="color: #10b981; margin-bottom: 10px;">🎉 Test Completed!</h2>
+        <p style="color: #94a3b8;">Aapka result neeche diya gya hai:</p>
+        
+        <div class="score-circle" style="width: 120px; height: 120px; border-radius: 50%; background: #2563eb; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 25px auto;">
+            <span id="final-score" style="font-size: 32px; font-weight: bold;">0</span>
+            <span style="font-size: 12px; color: #bfdbfe;">Total Score</span>
+        </div>
+
+        <div class="stats-grid" style="display: flex; justify-content: space-around; margin-bottom: 25px; background: #0f172a; padding: 15px; border-radius: 8px;">
+            <div>
+                <div id="stat-correct" style="color: #10b981; font-size: 20px; font-weight: bold;">0</div>
+                <div style="font-size: 12px; color: #64748b;">Correct</div>
+            </div>
+            <div>
+                <div id="stat-wrong" style="color: #ef4444; font-size: 20px; font-weight: bold;">0</div>
+                <div style="font-size: 12px; color: #64748b;">Wrong</div>
+            </div>
+        </div>
+
+        <button onclick="resetToSelection()" style="background: #475569; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; width: 100%;">Back to Dashboard</button>
+    </div>
+
+</div>
+
             <div id="analytics-page" class="page-content">
                 <div class="placeholder-msg"><i class="fa-solid fa-chart-pie"></i><h2>Analytics</h2><p>डेटा यहाँ दिखेगा।</p></div>
             </div>
