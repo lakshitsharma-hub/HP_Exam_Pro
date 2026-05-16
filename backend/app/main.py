@@ -99,3 +99,42 @@ async def admin_dashboard(x_admin_password: str = Header(None)):
     if x_admin_password != os.getenv("ADMIN_PASSWORD"):
         raise HTTPException(status_code=401, detail="Invalid Admin Password!")
     return {"admin_status": "Authenticated", "server_health": "Optimal"}
+    
+# --- NAYA ENDPOINT: MOCK TEST GENERATE + FREEMIUM GATEKEEPER ---
+@app.get("/api/mock-test/generate")
+async def generate_mock_test(user_id: str, exam_type: str):
+    try:
+        # 1. Pahle check karein ki kya user premium member hai
+        user_res = db.supabase.table("profiles").select("is_premium").eq("id", user_id).execute()
+        
+        # Agar profile table mein user milta hai toh uska status check karein
+        is_premium = False
+        if user_res.data:
+            is_premium = user_res.data[0].get("is_premium", False)
+        
+        # 2. Agar user premium nahi hai, toh check karein usne pahle kitne test diye hain
+        if not is_premium:
+            attempts_res = db.supabase.table("test_attempts").select("id").eq("user_id", user_id).execute()
+            total_attempts = len(attempts_res.data) if attempts_res.data else 0
+            
+            # Agar wo pahle hi 1 free test de chuka hai, toh block karein (Status 403 Forbidden)
+            if total_attempts >= 1:
+                raise HTTPException(
+                    status_code=403, 
+                    detail="Aapka 1 Free Mock Test poora ho chuka hai. Baaki ke tests unlock karne ke liye Pro Access lein! 👑"
+                )
+        
+        # 3. Agar user premium hai ya uska pehla free test hai, toh sawal nikalna shuru karein
+        if exam_type == "patwari":
+            questions = db.get_patwari_test()
+        elif exam_type == "joa_it":
+            questions = db.get_joa_it_test()
+        else:
+            raise HTTPException(status_code=400, detail="Invalid exam type!")
+            
+        return {"status": "success", "questions": questions}
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
