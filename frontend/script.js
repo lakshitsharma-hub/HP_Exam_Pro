@@ -373,6 +373,7 @@ function displayQuestion() {
         nextBtn.innerHTML = `Next <i class="fa-solid fa-arrow-right"></i>`;
         nextBtn.onclick = () => navigateQuestion(1);
     }
+    renderQuestionPalette();
 }
 
 // D. Next / Previous बटन नेविगेशन
