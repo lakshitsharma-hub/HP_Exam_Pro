@@ -186,8 +186,13 @@ async def create_payment_order(payload: dict):
         user_id = payload.get("user_id")
         if not user_id: raise HTTPException(status_code=400, detail="User ID required!")
 
-        config_resp = supabase.table("app_config").select("value").eq("key", "pro_price").single().execute()
-        price_amount = int(config_resp.data.get("value", 149)) if config_resp.data else 149
+        # 🛠️ FIX: .single() हटा दिया गया है!
+        config_resp = supabase.table("app_config").select("value").eq("key", "pro_price").execute()
+        
+        # अगर डेटाबेस में प्राइस मिलता है तो वो लो, वर्ना डिफ़ॉल्ट 149 सेट कर दो
+        price_amount = 149
+        if config_resp.data and len(config_resp.data) > 0:
+            price_amount = int(config_resp.data[0].get("value", 149))
 
         options = {
             "amount": price_amount * 100, 
@@ -199,6 +204,7 @@ async def create_payment_order(payload: dict):
         return {"status": "success", "order_id": order["id"], "amount": options["amount"], "currency": "INR"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 # 🔐 RAZORPAY PAYMENT VERIFICATION ENDPOINT
