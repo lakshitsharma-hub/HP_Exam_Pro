@@ -232,9 +232,37 @@ document.getElementById('togglePassword').addEventListener('click', function () 
 
 // ==================== 5. LIVE QUIZ ENGINE & TIMED TEST ====================
 
+// A. बैकएंड से असली सवाल लेकर टेस्ट शुरू करना (प्रीमियम लोडिंग एनीमेशन के साथ)
 async function startMockTest(examType) {
     selectedExamType = examType;
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
+    
+    // ⏳ 1. डबल क्लिक को रोकने के लिए एग्जाम कार्ड के बटन्स को तुरंत डिसेबल करें
+    const examButtons = document.querySelectorAll('.exam-card button');
+    examButtons.forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+    });
+    
+    // ⏳ 2. स्क्रीन पर एक खूबसूरत प्रीमियम ब्लर लोडिंग स्क्रीन इंजेक्ट करें
+    const loaderOverlay = document.createElement('div');
+    loaderOverlay.id = 'quiz-cloud-loader';
+    loaderOverlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.85); display: flex; flex-direction: column;
+        align-items: center; justify-content: center; z-index: 9999; color: white;
+        font-family: 'Plus Jakarta Sans', sans-serif; backdrop-filter: blur(5px);
+        transition: all 0.3s ease;
+    `;
+    loaderOverlay.innerHTML = `
+        <div style="border: 4px solid #1e293b; border-top: 4px solid #38bdf8; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+        <h3 style="margin: 0; font-size: 18px; font-weight: 600; letter-spacing: 0.5px;">HP Cloud Server से सवाल निकाले जा रहे हैं...</h3>
+        <p style="color: #94a3b8; font-size: 13px; margin-top: 8px; margin-bottom: 0;">कृपया प्रतीक्षा करें, 120 सवालों का सटीक वेटेज सेट किया जा रहा है ⏳</p>
+        <style>
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        </style>
+    `;
+    document.body.appendChild(loaderOverlay);
     
     const titleEl = document.getElementById('quiz-exam-title');
     if (titleEl) {
@@ -243,6 +271,15 @@ async function startMockTest(examType) {
     
     try {
         const response = await fetch(`https://hp-exam-pro.onrender.com/api/questions/${examType}?user_id=${userId}`);
+        
+        // 🧼 डेटा आते ही लोडिंग ओवरले को स्क्रीन से तुरंत हटा दें
+        if (document.getElementById('quiz-cloud-loader')) document.getElementById('quiz-cloud-loader').remove();
+        
+        // बटन्स को वापस नॉर्मल स्टेट में लाएं
+        examButtons.forEach(btn => {
+            btn.disabled = false;
+            btn.style.opacity = "1";
+        });
         
         if (response.status === 403) {
             const errorData = await response.json();
@@ -266,7 +303,6 @@ async function startMockTest(examType) {
             document.getElementById('exam-selection-view').style.display = 'none';
             document.getElementById('active-quiz-view').style.display = 'block';
 
-            // 🎯 यहाँ पैलेट ऑन करने और पुराने साइडबार को छुपाने का कोड फिक्स कर दिया है
             if(document.getElementById('standard-sidebar-content')) document.getElementById('standard-sidebar-content').style.display = 'none';
             if(document.getElementById('quiz-navigation-palette')) document.getElementById('quiz-navigation-palette').style.display = 'block';
 
@@ -276,6 +312,12 @@ async function startMockTest(examType) {
             alert("Sawal load nahi ho paye. Kripya check karein!");
         }
     } catch (error) {
+        // 🧼 एरर आने की सूरत में भी लोडिंग स्क्रीन को साफ़ करें और बटन्स रीसेट करें
+        if (document.getElementById('quiz-cloud-loader')) document.getElementById('quiz-cloud-loader').remove();
+        examButtons.forEach(btn => {
+            btn.disabled = false;
+            btn.style.opacity = "1";
+        });
         console.error("Test start karne mein error:", error);
         alert("Server se connect nahi ho pa rha hai! Kripya internet check karein.");
     }
