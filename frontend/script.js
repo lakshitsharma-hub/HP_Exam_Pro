@@ -438,7 +438,20 @@ function resetToSelection() {
 }
 // ==================== 5. NAVIGATION SWITCH CONTROLLER ====================
 function switchTab(pageId) {
-    // 1. स्क्रीन पर जितने भी पेजेस हैं, उन सबको छुपा दो
+    
+    // 🛡️ 🔥 MOCK TEST EXIT GUARD SECURITY LOGIC (बिल्कुल सबसे ऊपर) 🔥
+    const activeQuizView = document.getElementById('active-quiz-view');
+    if (activeQuizView && activeQuizView.style.display === 'block') {
+        const confirmExit = confirm("⚠️ आपका मॉक टेस्ट अभी चल रहा है!\n\nक्या आप इस टेस्ट को SUBMIT करके दूसरे पेज पर जाना चाहते हैं?\n\n'OK' दबाने पर आपका टेस्ट करंट प्रोग्रेस के साथ सबमिट हो जाएगा, 'Cancel' दबाने पर टेस्ट वैसे ही चलता रहेगा।");
+        
+        if (confirmExit) {
+            submitMockTest(); // ध्यान दें: इस कोड में आपके सबमिट फंक्शन का नाम 'submitMockTest' है
+        } else {
+            return; // 🛑 नेविगेशन को यहीं रोक देगा! यूजर उसी टेस्ट पेज पर रुका रहेगा और टाइमर चलता रहेगा।
+        }
+    }
+
+    // 1. स्क्रीन पर जितने भी पेजेस हैं, उन सबको छुपा दो (आपका पुराना कोड)
     document.querySelectorAll('.page-content').forEach(page => {
         page.classList.remove('active');
         page.style.display = 'none';
@@ -463,6 +476,8 @@ function switchTab(pageId) {
         }
     }
 }
+
+
 
 // ==================== 6. MOBILE HAMBURGER MENU TOGGLE (BULLETPROOF) ====================
 window.toggleMenu = function() {
