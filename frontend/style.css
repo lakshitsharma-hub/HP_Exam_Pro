@@ -249,3 +249,57 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
 }
 
 /* अगर आपका साइडबार खुलने पर उसके पीछे ब्लैक शेड (Overlay) आता है, तो उसे बंद करने के लिए बाहर क्लिक करने का लॉजिक भी काम करेगा */
+
+/* ==================== 📱 MOBILE RESPONSIVE SUPER PATCH ==================== */
+@media (max-width: 768px) {
+    
+    /* 1. हैमबर्गर (3-Lines) आइकॉन को साइडबार के ऊपर चमकाने के लिए */
+    .mobile-nav {
+        z-index: 1200 !important; /* साइडबार की परत से ऊपर रखें */
+    }
+    
+    .menu-icon {
+        z-index: 1300 !important;
+        position: relative !important;
+    }
+
+    #mobile-sidebar {
+        z-index: 1100 !important; /* साइडबार की परत को नीचे लॉक करें */
+    }
+
+    /* 2. मोबाइल पैलेट को दूर जाने से रोकने के लिए (इसे स्क्रीन के नीचे सुंदर बॉटम-शीट बनाएं) */
+    #quiz-navigation-palette {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        background: #1e293b !important; /* कड़क डार्क बैकग्राउंड */
+        z-index: 1000 !important;
+        border-radius: 20px 20px 0 0 !important; /* ऊपर से सुंदर गोल कोने */
+        box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.6) !important;
+        border-top: 2px solid #334155 !important;
+        padding: 12px 20px !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* मोबाइल स्क्रीन पर सर्कल्स की ग्रिड को सुगठित (Compact) रखना */
+    #palette-grid {
+        grid-template-columns: repeat(6, 1fr) !important; /* मोबाइल पर एक लाइन में 6 गोले */
+        gap: 8px !important;
+        max-height: 110px !important; /* ज़्यादा सवाल होने पर इसी डिब्बे में स्क्रॉल आ जाए */
+        overflow-y: auto !important;
+        padding-bottom: 5px;
+    }
+
+    /* मोबाइल अंगूठे के हिसाब से गोलों का साइज थोड़ा सा छोटा करना */
+    #palette-grid div {
+        width: 35px !important;
+        height: 35px !important;
+        font-size: 13px !important;
+    }
+
+    /* एक्टिव क्विज़ कार्ड के नीचे खाली जगह बनाना ताकि नीचे वाले बटन पैलेट के पीछे न छुपें */
+    #active-quiz-view {
+        margin-bottom: 190px !important;
+    }
+}
