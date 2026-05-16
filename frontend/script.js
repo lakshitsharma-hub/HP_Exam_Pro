@@ -403,7 +403,7 @@ async function submitMockTest() {
     
     currentQuestions.forEach(q => {
         const chosen = userAnswers[q.id];
-        const correct = q.correct_option || q.answer; // CSV कॉलम के आधार पर
+        const correct = q.correct_option || q.answer || q.correct; 
         
         if (chosen === correct) {
             correctCount++;
@@ -421,16 +421,17 @@ async function submitMockTest() {
     document.getElementById('active-quiz-view').style.display = 'none';
     document.getElementById('quiz-result-view').style.display = 'block';
     
-    // बैकएंड में स्कोर और एटेम्पट डेटा सेव करना
+    const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
+
+    // बैकएंड में स्कोर सेव करना (लाइव सर्वर)
     try {
-        await fetch('http://127.0.0.1:8000/api/mock-test/submit', {
+        await fetch('https://hp-exam-pro.onrender.com/api/submit-score', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                user_id: currentUserId,
+                user_id: userId,
                 exam_type: selectedExamType,
                 score: correctCount,
-                total_qs: currentQuestions.length,
                 correct_answers: correctCount,
                 wrong_answers: wrongCount
             })
@@ -439,6 +440,7 @@ async function submitMockTest() {
         console.error("Data save karne mein error aaya:", error);
     }
 }
+
 
 // F. रिजल्ट पेज से वापस मुख्य परीक्षा चयन पेज पर जाना
 function resetToSelection() {
