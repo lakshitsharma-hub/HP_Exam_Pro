@@ -214,19 +214,25 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
         padding: 20px !important;
     }
 }
-/* मोबाइल साइडबार को स्क्रीन पर लाने का जादू */
-.mobile-sidebar {
-    position: fixed;
-    top: 0;
-    left: -280px; /* शुरू में स्क्रीन से बाहर बाईं तरफ छुपा रहेगा */
-    width: 260px;
-    height: 100vh;
-    background-color: #1e293b; /* डार्क बैकग्राउंड */
-    z-index: 9999;
-    transition: left 0.3s ease; /* स्मूथ स्लाइडिंग इफ़ेक्ट के लिए */
+/* --- 🚨 ID SELECTOR का इस्तेमाल (ताकि पुरानी CSS हार मान जाए) --- */
+#mobile-sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: -280px !important; /* शुरू में स्क्रीन से बाहर बाईं तरफ */
+    width: 260px !important;
+    height: 100vh !important;
+    background-color: #1e293b !important; /* आपका डार्क थीम कलर */
+    z-index: 99999 !important; /* सबसे ऊपर तैरने के लिए */
+    transition: left 0.3s ease-in-out !important;
+    display: block !important;
+    visibility: visible !important;
 }
 
-/* जैसे ही जावास्क्रिप्ट 'open' क्लास लगाएगी, यह स्क्रीन के अंदर आ जाएगा */
-.mobile-sidebar.open {
+/* 🚀 जैसे ही JS इस पर 'open' क्लास लगाएगी, यह दौड़कर स्क्रीन पर आ जाएगा */
+#mobile-sidebar.open {
     left: 0 !important;
+    transform: translateX(0) !important;
+    display: block !important;
+    visibility: visible !important;
 }
+
