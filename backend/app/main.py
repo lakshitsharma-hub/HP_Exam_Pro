@@ -11,7 +11,7 @@ from datetime import datetime
 
 app = FastAPI(title="HP Exam Pro API")
 
-# --- SUPABASE DATABASE CONFIGURATION ---
+# --- SUPABASE DATABASE CONFIGURATION ----
 SUPABASE_URL = "https://jitkmfqxojfppnpoxeff.supabase.co"
 SUPABASE_KEY = "sb_publishable_6H4ld2wexzzNexqTfOtvIw_xLkWKsif" 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
