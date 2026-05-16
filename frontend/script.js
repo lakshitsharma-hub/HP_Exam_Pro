@@ -504,7 +504,7 @@ async function startMockTest(examType) {
         
         // 3. स्क्रीन्स को आपस में बदलना
         document.getElementById('exam-selection-view').style.display = 'none';
-        document.getElementById('active-quiz-view').style.style.display = 'block';
+        document.getElementById('active-quiz-view').style.display = 'block';
         document.getElementById('quiz-exam-title').innerText = examType === 'patwari' ? "HP Patwari Mock Test" : "HP JOA (IT) Mock Test";
 
         // 4. पहला सवाल दिखाना और टाइमर चालू करना
