@@ -7,38 +7,32 @@ const messagesDiv = document.getElementById('messages');
 const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 
-// --- 1. GLOBAL VARIABLES ---
-let quizQuestions = [];      
+// --- 2. GLOBAL VARIABLES ---
+let currentQuestions = [];  // 🔥 इसे ठीक कर दिया गया है    
 let currentQuestionIndex = 0;   
 let userAnswers = {};           
 let quizTimerInterval = null;   
 let totalQuizTimeSeconds = 5400; 
 let selectedExamType = "";      
-let currentUserId = ""; // लॉगिन के बाद यहाँ Supabase से ID आएगी
+let currentUserId = ""; 
 
-// --- 2. AUTHENTICATION (Login/Signup) ---
-
+// --- 3. AUTHENTICATION (Login/Signup) ---
 async function handleSignup() {
-    // 1. पहले इनपुट से ईमेल और पासवर्ड की वैल्यू उठाएं
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-pass').value.trim();
 
-    // 2. अब फंक्शन के अंदर यह सुरक्षा कवच (Check) काम करेगा
     if (!email || !password) {
         document.getElementById('auth-error').innerText = "कृपया ईमेल और पासवर्ड दोनों भरें!";
-        return; // अब यह फंक्शन के अंदर है, इसलिए बिल्कुल सही है!
+        return; 
     }
 
-    // 3. अगर दोनों बॉक्स भरे हैं, तो सुपाबेस में अकाउंट बनेगा
     const { data, error } = await supabaseClient.auth.signUp({ email, password });
-    
     if (error) {
         document.getElementById('auth-error').innerText = "Signup Error: " + error.message;
     } else {
         alert("Registration Successful! Aapka account ban gya hai.");
     }
 }
-
 
 async function handleLogin() {
     const email = document.getElementById('auth-email').value;
@@ -63,6 +57,7 @@ async function checkUserSession() {
 
 async function setupUserProfile(user) {
     if (!user) return;
+    currentUserId = user.id; // 🔥 यूजर आईडी सेट कर दी
 
     let { data: profile, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle();
     const today = new Date().toDateString();
@@ -84,35 +79,22 @@ async function setupUserProfile(user) {
     if (profile) {
         window.CURRENT_USER_PROFILE = profile;
 
-        // 👑 Admin Check
-        // setupUserProfile के अंदर एडमिन वाला हिस्सा ऐसे बदलें:
-
-if (profile.is_admin === true) {
-    // 1. डेस्कटॉप वाला DIV पकड़ें (data-page से)
-    const desktopAdminItem = document.querySelector('.nav-item[data-page="admin"]');
-    
-    // 2. मोबाइल वाला लिंक पकड़ें (href से)
-    const mobileAdminLink = document.querySelector('#mobile-sidebar a[href="admin.html"]');
-
-    // दोनों को एक एरे (Array) में डालकर लूप चलाएं
-    [desktopAdminItem, mobileAdminLink].forEach(element => {
-        if (element) {
-            element.style.display = 'flex'; // साइडबार आइटम आमतौर पर flex होते हैं
-            
-            // क्लिक करने पर admin.html पर भेजें
-            element.onclick = (e) => {
-                e.preventDefault();
-                console.log("Navigating to Admin Panel...");
-                window.location.href = 'admin.html';
-            };
+        // Admin Check
+        if (profile.is_admin === true) {
+            const desktopAdminItem = document.querySelector('.nav-item[data-page="admin"]');
+            const mobileAdminLink = document.querySelector('#mobile-sidebar a[href="admin.html"]');
+            [desktopAdminItem, mobileAdminLink].forEach(element => {
+                if (element) {
+                    element.style.display = 'flex'; 
+                    element.onclick = (e) => {
+                        e.preventDefault();
+                        window.location.href = 'admin.html';
+                    };
+                }
+            });
         }
-    });
 
-    console.log("Admin Panel Unlocked! 👑");
-}
-
-
-        // 💎 Pro Status Check
+        // Pro Check
         checkProStatus(profile);
 
         // UI Updates
@@ -124,7 +106,6 @@ if (profile.is_admin === true) {
         if (displayNameEl) displayNameEl.innerText = profile.display_name;
         if (userInitialEl) userInitialEl.innerText = profile.display_name[0].toUpperCase();
 
-        // AI Welcome Message
         if (messagesDiv && messagesDiv.innerHTML.trim() === "") {
             appendMessage(`नमस्ते ${profile.display_name}! आज हम हिमाचल की किस परीक्षा (Patwari, HPAS या Allied) की तैयारी करें?`, 'ai');
         }
@@ -148,7 +129,7 @@ function checkProStatus(profile) {
     }
 }
 
-// --- 3. PAGE LOGIC & NEWS ---
+// --- 4. NEWS & CHAT LOGIC ---
 window.onload = () => {
     checkUserSession();
     const examDate = new Date("2026-06-07");
@@ -161,7 +142,6 @@ window.onload = () => {
 async function loadRealNews() {
     const newsTextEl = document.getElementById('current-affairs-text');
     if (!newsTextEl) return;
-
     try {
         const response = await fetch('https://hp-exam-pro.onrender.com/api/news?t=' + Date.now());
         if (!response.ok) throw new Error("API Error");
@@ -180,12 +160,10 @@ async function loadRealNews() {
             }, 8000);
         }
     } catch (e) {
-        console.error("News Error:", e);
         newsTextEl.innerText = "ताज़ा खबरों के लिए रिफ्रेश करें।";
     }
 }
 
-// --- CHAT LOGIC ---
 async function sendMessage() {
     const text = userInput.value.trim();
     if (!text || !window.CURRENT_USER_PROFILE) return;
@@ -252,10 +230,8 @@ document.getElementById('togglePassword').addEventListener('click', function () 
 });
 
 
-// ==================== 3. LIVE QUIZ ENGINE & TIMED TEST ====================
+// ==================== 5. LIVE QUIZ ENGINE & TIMED TEST ====================
 
-// A. बैकएंड से 120 सवाल लेकर टेस्ट शुरू करना
-// A. बैकएंड से असली सवाल लेकर टेस्ट शुरू करना
 async function startMockTest(examType) {
     selectedExamType = examType;
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
@@ -266,10 +242,8 @@ async function startMockTest(examType) {
     }
     
     try {
-        // 🔥 1. URL को Render लाइव सर्वर से बदल दिया गया है
         const response = await fetch(`https://hp-exam-pro.onrender.com/api/questions/${examType}?user_id=${userId}`);
         
-        // Freemium Lock Checking (Status 403)
         if (response.status === 403) {
             const errorData = await response.json();
             alert(`👑 Pro Feature: ${errorData.detail}`);
@@ -283,12 +257,11 @@ async function startMockTest(examType) {
         }
 
         const data = await response.json();
-        // 🔥 2. डेटा स्ट्रक्चर फिक्स कर दिया गया है
         if (data && data.length > 0) {
             currentQuestions = data; 
             currentQuestionIndex = 0;
             userAnswers = {};
-            totalQuizTimeSeconds = 5400; // 90 मिनट रिसेट
+            totalQuizTimeSeconds = 5400; 
 
             document.getElementById('exam-selection-view').style.display = 'none';
             document.getElementById('active-quiz-view').style.display = 'block';
@@ -298,14 +271,12 @@ async function startMockTest(examType) {
         } else {
             alert("Sawal load nahi ho paye. Kripya check karein!");
         }
-
     } catch (error) {
         console.error("Test start karne mein error:", error);
         alert("Server se connect nahi ho pa rha hai! Kripya internet check karein.");
     }
 }
 
-// B. Live 90-Minute Countdown Timer
 function startQuizTimer() {
     if (quizTimerInterval) clearInterval(quizTimerInterval);
 
@@ -328,14 +299,12 @@ function startQuizTimer() {
     }, 1000);
 }
 
-// C. ब्लैकबोर्ड पर करंट सवाल और ऑप्शंस रेंडर करना
 function displayQuestion() {
     if (!currentQuestions || currentQuestions.length === 0) return;
 
     const currentQ = currentQuestions[currentQuestionIndex];
     
     document.getElementById('current-q-num').innerText = currentQuestionIndex + 1;
-    // डेटाबेस से आने वाले सवाल का टेक्स्ट
     document.getElementById('quiz-question-text').innerText = currentQ.question_text || currentQ.question;
 
     const progressPercent = ((currentQuestionIndex + 1) / currentQuestions.length) * 100;
@@ -344,7 +313,6 @@ function displayQuestion() {
     const optionsWrapper = document.getElementById('quiz-options-wrapper');
     optionsWrapper.innerHTML = ""; 
 
-    // 4 ऑप्शंस को लूप से रेंडर करना
     for (let i = 1; i <= 4; i++) {
         const optionText = currentQ[`opt${i}`];
         if (!optionText) continue;
@@ -375,7 +343,6 @@ function displayQuestion() {
         nextBtn.onclick = () => navigateQuestion(1);
     }
 
-    // 🔥 नया सवाल आते ही पुराना आपत्ति बॉक्स छुप जाएगा
     const queryBox = document.getElementById('query-input-box');
     if(queryBox) queryBox.style.display = 'none';
     const queryText = document.getElementById('query-issue-text');
@@ -384,8 +351,6 @@ function displayQuestion() {
     renderQuestionPalette();
 }
 
-
-// D. Next / Previous बटन नेविगेशन
 function navigateQuestion(direction) {
     currentQuestionIndex += direction;
     if (currentQuestionIndex < 0) currentQuestionIndex = 0;
@@ -394,7 +359,6 @@ function navigateQuestion(direction) {
     displayQuestion();
 }
 
-// E. टेस्ट सबमिट करना और स्कोर कैलकुलेट करना
 async function submitMockTest() {
     if (quizTimerInterval) clearInterval(quizTimerInterval);
     
@@ -412,18 +376,15 @@ async function submitMockTest() {
         }
     });
     
-    // रिजल्ट स्कोरकार्ड UI को अपडेट करना
     document.getElementById('final-score').innerText = correctCount;
     document.getElementById('stat-correct').innerText = correctCount;
     document.getElementById('stat-wrong').innerText = wrongCount;
     
-    // क्विज़ रूम छुपाएं और रिजल्ट दिखाएं
     document.getElementById('active-quiz-view').style.display = 'none';
     document.getElementById('quiz-result-view').style.display = 'block';
     
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
 
-    // बैकएंड में स्कोर सेव करना (लाइव सर्वर)
     try {
         await fetch('https://hp-exam-pro.onrender.com/api/submit-score', {
             method: 'POST',
@@ -441,310 +402,11 @@ async function submitMockTest() {
     }
 }
 
-
-// F. रिजल्ट पेज से वापस मुख्य परीक्षा चयन पेज पर जाना
 function resetToSelection() {
     document.getElementById('quiz-result-view').style.display = 'none';
     document.getElementById('exam-selection-view').style.display = 'block';
 }
 
-// ==================== 5. NAVIGATION SWITCH CONTROLLER ====================
-function switchTab(pageId) {
-    
-    // 🛡️ 🔥 MOCK TEST EXIT GUARD SECURITY LOGIC (बिल्कुल सबसे ऊपर) 🔥
-    const activeQuizView = document.getElementById('active-quiz-view');
-    if (activeQuizView && activeQuizView.style.display === 'block') {
-        const confirmExit = confirm("⚠️ आपका मॉक टेस्ट अभी चल रहा है!\n\nक्या आप इस टेस्ट को SUBMIT करके दूसरे पेज पर जाना चाहते हैं?\n\n'OK' दबाने पर आपका टेस्ट करंट प्रोग्रेस के साथ सबमिट हो जाएगा, 'Cancel' दबाने पर टेस्ट वैसे ही चलता रहेगा।");
-        
-        if (confirmExit) {
-            submitMockTest(); // ध्यान दें: इस कोड में आपके सबमिट फंक्शन का नाम 'submitMockTest' है
-        } else {
-            return; // 🛑 नेविगेशन को यहीं रोक देगा! यूजर उसी टेस्ट पेज पर रुका रहेगा और टाइमर चलता रहेगा।
-        }
-    }
-
-    // 1. स्क्रीन पर जितने भी पेजेस हैं, उन सबको छुपा दो (आपका पुराना कोड)
-    document.querySelectorAll('.page-content').forEach(page => {
-        page.classList.remove('active');
-        page.style.display = 'none';
-    });
-
-    // 2. जिस पेज की ID हमने भेजी है, सिर्फ उसे सामने लाओ
-    const targetPage = document.getElementById(pageId);
-    if (targetPage) {
-        targetPage.classList.add('active');
-        targetPage.style.display = 'block';
-        
-        // 🔥 यहाँ जुड़ेगा आपका लाइव एनालिटिक्स लोड करने का जादुई चेक:
-        if (pageId === 'analytics-page') {
-            loadAnalyticsData();
-        }
-        
-        // 3. अगर मॉक टेस्ट वाला पेज खुला है, तो उसके अंदर एग्जाम सिलेक्शन (कार्ड्स) दिखें
-        if (pageId === 'mock-tests-page') {
-            if (document.getElementById('exam-selection-view')) document.getElementById('exam-selection-view').style.display = 'block';
-            if (document.getElementById('active-quiz-view')) document.getElementById('active-quiz-view').style.display = 'none';
-            if (document.getElementById('quiz-result-view')) document.getElementById('quiz-result-view').style.display = 'none';
-        }
-    }
-}
-
-
-
-// ==================== 6. MOBILE HAMBURGER MENU TOGGLE (BULLETPROOF) ====================
-window.toggleMenu = function() {
-    console.log("🍔 Hamburger Menu clicked successfully!"); // Isse pata chalega click kaam kar rha hai
-    
-    const mobileSidebar = document.getElementById('mobile-sidebar');
-    if (mobileSidebar) {
-        mobileSidebar.classList.toggle('open');
-        console.log("Sidebar status toggle ho gya hai.");
-    } else {
-        console.error("Error: 'mobile-sidebar' ID wala dabba HTML mein nahi mila!");
-    }
-}
-
-// ==================== 7. LIVE QUIZ ENGINE CONFIGURATION ====================
-
-//let quizQuestions = [];       // बैकएंड से आने वाले सवाल यहाँ जमा होंगे
-//let currentQuestionIndex = 0; // छात्र अभी किस सवाल पर है
-//let userAnswers = {};         // छात्र ने किस सवाल का क्या जवाब दिया
-//let quizTimerInterval = null; 
-//let totalQuizTimeSeconds = 5400; // 90 मिनट्स (पटवारी के लिए)
-
-// A. टेस्ट शुरू करने का फंक्शन
-async function startMockTest(examType) {
-    try {
-        // 1. बैकएंड से सवाल खींचना
-        // 🔍 लाइन नंबर 484 को ढूँढकर इस तरह बदलें:
-        const response = await fetch(`https://hp-exam-pro.onrender.com/api/questions/${examType}`);
-        quizQuestions = await response.json();
-
-        if (!quizQuestions || quizQuestions.detail) {
-            alert("इस परीक्षा के सवाल अभी अपलोड नहीं हुए हैं!");
-            return;
-        }
-
-        // 2. क्विज़ स्टेट रीसेट करना
-        currentQuestionIndex = 0;
-        userAnswers = {};
-        totalQuizTimeSeconds = 5400; // रीसेट टाइमर
-        
-        // 3. स्क्रीन्स को आपस में बदलना
-        document.getElementById('exam-selection-view').style.display = 'none';
-        document.getElementById('active-quiz-view').style.display = 'block';
-        // ✅ टेस्ट शुरू होते ही साइडबार के पुराने कार्ड्स छुपाएं और क्वेश्चन पैलेट दिखाएं
-        document.getElementById('standard-sidebar-content').style.display = 'none';
-        document.getElementById('quiz-navigation-palette').style.display = 'block';
-        // पैलेट के सर्कल्स जनरेट करने वाले फंक्शन को कॉल करें
-        renderQuestionPalette();
-
-        document.getElementById('quiz-exam-title').innerText = examType === 'patwari' ? "HP Patwari Mock Test" : "HP JOA (IT) Mock Test";
-
-        // 4. पहला सवाल दिखाना और टाइमर चालू करना
-        displayCurrentQuestion();
-        startQuizTimer();
-
-    } catch (error) {
-        console.error("क्विज़ शुरू करने में एरर:", error);
-        alert("बैकएंड सर्वर चालू नहीं है या कनेक्शन में गड़बड़ है!");
-    }
-}
-
-// B. स्क्रीन पर सवाल और उसके 4 ऑप्शंस दिखाना
-function displayCurrentQuestion() {
-    if (quizQuestions.length === 0) return;
-
-    const currentQ = quizQuestions[currentQuestionIndex];
-    
-    // सवाल का टेक्स्ट सेट करना
-    document.getElementById('current-q-num').innerText = currentQuestionIndex + 1;
-    document.getElementById('quiz-question-text').innerText = currentQ.question;
-
-    // ऑप्शंस के बटन्स बनाना
-    const optionsWrapper = document.getElementById('quiz-options-wrapper');
-    optionsWrapper.innerHTML = ""; // पुराना साफ़ करें
-
-    currentQ.options.forEach((option, index) => {
-        const button = document.createElement('button');
-        button.innerText = option;
-        button.style.cssText = "padding: 12px; border: 1px solid #334155; border-radius: 8px; background: #0f172a; color: white; text-align: left; cursor: pointer; transition: all 0.2s;";
-
-        // अगर छात्र ने यह ऑप्शन पहले से चुन रखा है तो उसे ब्लू कलर दें
-        if (userAnswers[currentQuestionIndex] === index) {
-            button.style.background = "#2563eb";
-            button.style.borderColor = "#60a5fa";
-        }
-
-        // क्लिक होने पर ऑप्शन सेलेक्ट करना
-        button.onclick = () => {
-            userAnswers[currentQuestionIndex] = index;
-            displayCurrentQuestion(); // स्क्रीन री-रेंडर करें ताकि सेलेक्टेड कलर दिखे
-        };
-
-        optionsWrapper.appendChild(button);
-    });
-
-    // प्रोग्रेस बार को अपडेट करना
-    const progressPercent = ((currentQuestionIndex + 1) / quizQuestions.length) * 100;
-    document.getElementById('quiz-progress-fill').style.width = `${progressPercent}%`;
-
-    // अगर आखिरी सवाल है तो 'Next' बटन को 'Submit Test' में बदलें
-    const nextBtn = document.getElementById('next-q-btn');
-    if (currentQuestionIndex === quizQuestions.length - 1) {
-        nextBtn.innerText = "Submit Test";
-        nextBtn.style.background = "#10b981";
-        nextBtn.onclick = submitFinalQuiz;
-    } else {
-        nextBtn.innerText = "Next";
-        nextBtn.style.background = "#2563eb";
-        nextBtn.onclick = () => navigateQuestion(1);
-    }
-}
-
-// D. Next / Previous बटन नेविगेशन
-function navigateQuestion(direction) {
-    currentQuestionIndex += direction;
-    if (currentQuestionIndex < 0) currentQuestionIndex = 0;
-    if (currentQuestionIndex >= currentQuestions.length) currentQuestionIndex = currentQuestions.length - 1;
-    
-    displayQuestion();
-}
-
-
-// D. लाइव उल्टी गिनती (Timer) चलाना
-function startQuizTimer() {
-    clearInterval(quizTimerInterval);
-    quizTimerInterval = setInterval(() => {
-        totalQuizTimeSeconds--;
-        
-        if (totalQuizTimeSeconds <= 0) {
-            clearInterval(quizTimerInterval);
-            alert("समय समाप्त! आपका टेस्ट ऑटो-सबमिट हो रहा है।");
-            submitFinalQuiz();
-            return;
-        }
-
-        const mins = Math.floor(totalQuizTimeSeconds / 60);
-        const secs = totalQuizTimeSeconds % 60;
-        document.getElementById('quiz-timer').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-    }, 1000);
-}
-
-// E. टेस्ट सबमिट करना और स्कोर कैलकुलेट करना
-// E. टेस्ट सबमिट करना और स्कोर कैलकुलेट करना + LIVE DATABASE SAVING
-async function submitFinalQuiz() {
-    clearInterval(quizTimerInterval); // टाइमर रोकें
-
-    let correctCount = 0;
-    let wrongCount = 0;
-
-    quizQuestions.forEach((q, index) => {
-        if (userAnswers[index] === q.correct) {
-            correctCount++;
-        } else if (userAnswers[index] !== undefined) {
-            wrongCount++;
-        }
-    });
-
-    const finalScore = correctCount; 
-
-    // रिजल्ट स्क्रीन पर डेटा सेट करना
-    document.getElementById('final-score').innerText = finalScore;
-    document.getElementById('stat-correct').innerText = correctCount;
-    document.getElementById('stat-wrong').innerText = wrongCount;
-
-    // पर्दे बदलना
-    document.getElementById('active-quiz-view').style.display = 'none';
-    document.getElementById('quiz-result-view').style.display = 'block';
-
-    // 🔥 LIVE DATABASE SAVING LOGIC 🔥
-    // Agar chhatr login hai toh uski asli Id (currentUserId) lenges, nahi toh test-user-123
-    const userId = currentUserId || "test-user-123"; 
-    const examType = document.getElementById('quiz-exam-title').innerText.includes("Patwari") ? "patwari" : "joa_it";
-
-    try {
-        console.log("Saving score to Cloud Database via Render...");
-        const saveResponse = await fetch(`https://hp-exam-pro.onrender.com/api/submit-score`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                user_id: userId,
-                exam_type: examType,
-                score: finalScore,
-                correct_answers: correctCount,
-                wrong_answers: wrongCount
-            })
-        });
-        const saveResult = await saveResponse.json();
-        console.log("Score successfully saved in Supabase!", saveResult);
-    } catch (error) {
-        console.error("Database mein score save karne mein dikkat aayi:", error);
-    }
-}
-
-
-// F. वापस डैशबोर्ड पर जाने का फंक्शन
-function resetToSelection() {
-    document.getElementById('quiz-result-view').style.display = 'none';
-    document.getElementById('exam-selection-view').style.display = 'block';
-}
-
-// ==================== 8. ANALYTICS ENGINE (FETCH FROM RENDER) ====================
-let performanceChartInstance = null; 
-
-async function loadAnalyticsData() {
-    // अगर छात्र लॉगइन है तो उसकी असली ID लेंगे, नहीं तो टेस्टिंग के लिए डमी ID
-    const userId = currentUserId || "test-user-123";
-    console.log("Fetching analytics for:", userId);
-    
-    try {
-        // 🔥 सीधे आपके Render लाइव सर्वर से डेटा खींचना
-        const response = await fetch(`https://hp-exam-pro.onrender.com/api/analytics/${userId}`);
-        const data = await response.json();
-
-        // डिब्बों में डेटा सेट करना
-        if(document.getElementById('analytics-total-tests')) document.getElementById('analytics-total-tests').innerText = data.total_tests;
-        if(document.getElementById('analytics-avg-score')) document.getElementById('analytics-avg-score').innerText = data.avg_score;
-        if(document.getElementById('analytics-highest-score')) document.getElementById('analytics-highest-score').innerText = data.highest_score;
-        if(document.getElementById('analytics-accuracy')) document.getElementById('analytics-accuracy').innerText = data.accuracy + "%";
-
-        // --- GRAPH GENERATOR ---
-        const chartCanvas = document.getElementById('performanceChart');
-        if (!chartCanvas) return; 
-
-        const ctx = chartCanvas.getContext('2d');
-        if (performanceChartInstance) { performanceChartInstance.destroy(); }
-
-        const labels = data.graph_data.map(item => item.date);
-        const scores = data.graph_data.map(item => item.score);
-
-        performanceChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels.length ? labels : ['No Data Yet'],
-                datasets: [{
-                    label: 'Mock Test Score',
-                    data: scores.length ? scores : [0],
-                    borderColor: '#4f46e5',
-                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: { y: { min: 0, max: 120 } } // पटवारी के 120 मार्क्स का स्केल
-            }
-        });
-
-    } catch (error) {
-        console.error("Analytics लोड करने में गड़बड़ हुई:", error);
-    }
-}
-// ==================== 🎯 QUESTION PALETTE & MOBILE TOGGLE LOGIC ====================
-// ==================== QUESTION PALETTE LOGIC ====================
 function renderQuestionPalette() {
     const grid = document.getElementById('palette-grid');
     if (!grid || !currentQuestions) return;
@@ -787,7 +449,6 @@ function renderQuestionPalette() {
     });
 }
 
-// B. मोबाइल पर पैलेट को छुपाने/दिखाने (Toggle) ka function
 function toggleMobilePalette() {
     const palette = document.getElementById('quiz-navigation-palette');
     if (palette.style.display === 'none' || palette.style.display === '') {
@@ -806,7 +467,99 @@ function toggleMobilePalette() {
     }
 }
 
-// ==================== ⚠️ QUERY RAISE SYSTEM FRONTEND LOGIC ====================
+
+// ==================== 6. NAVIGATION SWITCH CONTROLLER ====================
+function switchTab(pageId) {
+    const activeQuizView = document.getElementById('active-quiz-view');
+    if (activeQuizView && activeQuizView.style.display === 'block') {
+        const confirmExit = confirm("⚠️ आपका मॉक टेस्ट अभी चल रहा है!\n\nक्या आप इस टेस्ट को SUBMIT करके दूसरे पेज पर जाना चाहते हैं?\n\n'OK' दबाने पर आपका टेस्ट करंट प्रोग्रेस के साथ सबमिट हो जाएगा, 'Cancel' दबाने पर टेस्ट वैसे ही चलता रहेगा।");
+        
+        if (confirmExit) {
+            submitMockTest(); 
+        } else {
+            return; 
+        }
+    }
+
+    document.querySelectorAll('.page-content').forEach(page => {
+        page.classList.remove('active');
+        page.style.display = 'none';
+    });
+
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) {
+        targetPage.classList.add('active');
+        targetPage.style.display = 'block';
+        
+        if (pageId === 'analytics-page') {
+            loadAnalyticsData();
+        }
+        
+        if (pageId === 'mock-tests-page') {
+            if (document.getElementById('exam-selection-view')) document.getElementById('exam-selection-view').style.display = 'block';
+            if (document.getElementById('active-quiz-view')) document.getElementById('active-quiz-view').style.display = 'none';
+            if (document.getElementById('quiz-result-view')) document.getElementById('quiz-result-view').style.display = 'none';
+        }
+    }
+}
+
+window.toggleMenu = function() {
+    const mobileSidebar = document.getElementById('mobile-sidebar');
+    if (mobileSidebar) {
+        mobileSidebar.classList.toggle('open');
+    }
+}
+
+
+// ==================== 7. ANALYTICS ENGINE ====================
+let performanceChartInstance = null; 
+
+async function loadAnalyticsData() {
+    const userId = currentUserId || "test-user-123";
+    try {
+        const response = await fetch(`https://hp-exam-pro.onrender.com/api/analytics/${userId}`);
+        const data = await response.json();
+
+        if(document.getElementById('analytics-total-tests')) document.getElementById('analytics-total-tests').innerText = data.total_tests;
+        if(document.getElementById('analytics-avg-score')) document.getElementById('analytics-avg-score').innerText = data.avg_score;
+        if(document.getElementById('analytics-highest-score')) document.getElementById('analytics-highest-score').innerText = data.highest_score;
+        if(document.getElementById('analytics-accuracy')) document.getElementById('analytics-accuracy').innerText = data.accuracy + "%";
+
+        const chartCanvas = document.getElementById('performanceChart');
+        if (!chartCanvas) return; 
+
+        const ctx = chartCanvas.getContext('2d');
+        if (performanceChartInstance) { performanceChartInstance.destroy(); }
+
+        const labels = data.graph_data.map(item => item.date);
+        const scores = data.graph_data.map(item => item.score);
+
+        performanceChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels.length ? labels : ['No Data Yet'],
+                datasets: [{
+                    label: 'Mock Test Score',
+                    data: scores.length ? scores : [0],
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { min: 0, max: 120 } }
+            }
+        });
+
+    } catch (error) {
+        console.error("Analytics लोड करने में गड़बड़ हुई:", error);
+    }
+}
+
+// ==================== 8. QUERY RAISE SYSTEM FRONTEND LOGIC ====================
 function toggleQueryBox() {
     const box = document.getElementById('query-input-box');
     if(box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
