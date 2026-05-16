@@ -105,79 +105,67 @@ async def admin_dashboard(x_admin_password: str = Header(None)):
     return {"admin_status": "Authenticated", "server_health": "Optimal"}
 
 
-# --- 3. DYNAMIC QUIZ ENGINE & FREEMIUM GATEKEEPER (EXACT WEIGHTAGE & Q_TYPE FIX) ---
+# --- 3. DYNAMIC QUIZ ENGINE & MONETIZATION ENGINE ---
+
 @app.get("/api/questions/{exam_type}")
 async def get_exam_questions(exam_type: str, user_id: str = None):
     try:
-        # 👑 A. Freemium Check Logic
+        is_pro = False
+        
+        # 👑 Freemium & Pro Monthly Limit Logic
         if user_id and user_id != "test-user-123":
             profile_resp = supabase.table("profiles").select("is_pro").eq("id", user_id).execute()
             profile_data = profile_resp.data
-            
             is_pro = profile_data[0].get("is_pro", False) if profile_data else False
             
-            if not is_pro:
+            if is_pro:
+                first_day_of_month = datetime.today().replace(day=1).strftime('%Y-%m-%d')
+                tests_resp = supabase.table("test_results").select("id").eq("user_id", user_id).gte("created_at", first_day_of_month).execute()
+                total_attempted = len(tests_resp.data) if tests_resp.data else 0
+                
+                if total_attempted >= 15:
+                    raise HTTPException(status_code=403, detail="⚠️ आप इस महीने के अपने 15 Pro मॉक टेस्ट पूरे कर चुके हैं! अगले महीने नए 15 टेस्ट ऑटोमैटिक अनलॉक हो जाएंगे। 👑")
+            else:
                 tests_resp = supabase.table("test_results").select("id").eq("user_id", user_id).execute()
                 total_past_tests = len(tests_resp.data) if tests_resp.data else 0
                 
                 if total_past_tests >= 1:
-                    raise HTTPException(
-                        status_code=403, 
-                        detail="आप अपना 1 फ्री मॉक टेस्ट दे चुके हैं! असीमित टेस्ट अनलॉक करने के लिए प्रो एक्सेस लें। 👑"
-                    )
+                    raise HTTPException(status_code=403, detail="आप अपना 1 फ्री मॉक टेस्ट दे चुके हैं! असीमित टेस्ट और महीने के 15 प्रीमियम टेस्ट अनलॉक करने के लिए प्रो एक्सेस लें। 👑")
 
         final_questions = []
 
-        # 🎯 1. स्मार्ट हेल्पर फंक्शन: जो Subject और q_type दोनों के आधार पर सवाल छांटेगा
         def fetch_filtered_qs(subject_name: str = None, q_type_value: str = "direct", count: int = 0):
             query = supabase.table("questions").select("*")
-            
-            # अगर विषय दिया है तो विषय से फ़िल्टर करें
-            if subject_name:
-                query = query.eq("subject", subject_name)
-            
-            # q_type कॉलम के आधार पर फ़िल्टर करें (direct या statement)
-            if q_type_value:
-                query = query.eq("q_type", q_type_value)
-                
+            if subject_name: query = query.eq("subject", subject_name)
+            if q_type_value: query = query.eq("q_type", q_type_value)
             res = query.execute()
             data = res.data if res.data else []
-            
-            if len(data) >= count:
-                return random.sample(data, count)
-            return data
+            return random.sample(data, count) if len(data) >= count else data
 
-        # 🎯 B. HP PATWARI EXACT WEIGHTAGE BREAKDOWN (Total: 120 Questions)
         if exam_type == "patwari":
-            final_questions.extend(fetch_filtered_qs(subject_name="maths", q_type_value="direct", count=20))
-            final_questions.extend(fetch_filtered_qs(subject_name=None, q_type_value="statement", count=10)) # किसी भी विषय के 10 स्टेटमेंट सवाल
-            final_questions.extend(fetch_filtered_qs(subject_name="hindi", q_type_value="direct", count=15))
-            final_questions.extend(fetch_filtered_qs(subject_name="english", q_type_value="direct", count=15))
-            final_questions.extend(fetch_filtered_qs(subject_name="science", q_type_value="direct", count=15))
-            final_questions.extend(fetch_filtered_qs(subject_name="geography", q_type_value="direct", count=5))
-            final_questions.extend(fetch_filtered_qs(subject_name="polity", q_type_value="direct", count=5))
-            final_questions.extend(fetch_filtered_qs(subject_name="history", q_type_value="direct", count=5))
-            final_questions.extend(fetch_filtered_qs(subject_name="reasoning", q_type_value="direct", count=7))
-            final_questions.extend(fetch_filtered_qs(subject_name="hp_gk", q_type_value="direct", count=5))
-            final_questions.extend(fetch_filtered_qs(subject_name="current_affairs", q_type_value="direct", count=8))
-            final_questions.extend(fetch_filtered_qs(subject_name="computer", q_type_value="direct", count=10))
-
-            # पूरे पेपर को मिक्स (Shuffle) करें
+            final_questions.extend(fetch_filtered_qs("maths", "direct", 20))
+            final_questions.extend(fetch_filtered_qs(None, "statement", 10)) 
+            final_questions.extend(fetch_filtered_qs("hindi", "direct", 15))
+            final_questions.extend(fetch_filtered_qs("english", "direct", 15))
+            final_questions.extend(fetch_filtered_qs("science", "direct", 15))
+            final_questions.extend(fetch_filtered_qs("geography", "direct", 5))
+            final_questions.extend(fetch_filtered_qs("polity", "direct", 5))
+            final_questions.extend(fetch_filtered_qs("history", "direct", 5))
+            final_questions.extend(fetch_filtered_qs("reasoning", "direct", 7))
+            final_questions.extend(fetch_filtered_qs("hp_gk", "direct", 5))
+            final_questions.extend(fetch_filtered_qs("current_affairs", "direct", 8))
+            final_questions.extend(fetch_filtered_qs("computer", "direct", 10))
             random.shuffle(final_questions)
 
-        # 💻 C. HP JOA IT EXACT WEIGHTAGE BREAKDOWN (Total: 120 Questions)
         elif exam_type == "joa_it":
-            final_questions.extend(fetch_filtered_qs(subject_name="computer", q_type_value="direct", count=80))
-            final_questions.extend(fetch_filtered_qs(subject_name="science", q_type_value="direct", count=10))
-            final_questions.extend(fetch_filtered_qs(subject_name="maths", q_type_value="direct", count=10))
-            final_questions.extend(fetch_filtered_qs(subject_name="hp_gk", q_type_value="direct", count=5))
-            final_questions.extend(fetch_filtered_qs(subject_name="reasoning", q_type_value="direct", count=5))
-            final_questions.extend(fetch_filtered_qs(subject_name=None, q_type_value="statement", count=5)) # 5 स्टेटमेंट सवाल
-            final_questions.extend(fetch_filtered_qs(subject_name="current_affairs", q_type_value="direct", count=5))
-
-            # पूरे पेपर को मिक्स (Shuffle) करें
+            final_questions.extend(fetch_filtered_qs("computer", "direct", 80))
+            final_questions.extend(fetch_filtered_qs("science", "direct", 10))
+            final_questions.extend(fetch_filtered_qs("maths", "direct", 10))
+            final_questions.extend(fetch_filtered_qs("hp_gk", "direct", 5))
+            final_questions.extend(fetch_filtered_qs("reasoning", "direct", 5))
+            final_questions.extend(fetch_filtered_qs(None, "statement", 5)) 
+            final_questions.extend(fetch_filtered_qs("current_affairs", "direct", 5))
             random.shuffle(final_questions)
-            
         else:
             raise HTTPException(status_code=400, detail="Invalid exam type!")
 
@@ -185,11 +173,54 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
             raise HTTPException(status_code=444, detail="इस परीक्षा के सवाल डेटाबेस में उपलब्ध नहीं हैं।")
 
         return final_questions
-
     except HTTPException as he:
         raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# 💰 RAZORPAY ORDER CREATION ENDPOINT
+@app.post("/api/payment/create-order")
+async def create_payment_order(payload: dict):
+    try:
+        user_id = payload.get("user_id")
+        if not user_id: raise HTTPException(status_code=400, detail="User ID required!")
+
+        config_resp = supabase.table("app_config").select("value").eq("key", "pro_price").single().execute()
+        price_amount = int(config_resp.data.get("value", 149)) if config_resp.data else 149
+
+        options = {
+            "amount": price_amount * 100, 
+            "currency": "INR",
+            "receipt": f"receipt_{user_id[:8]}",
+            "payment_capture": 1
+        }
+        order = razorpay_client.order.create(data=options)
+        return {"status": "success", "order_id": order["id"], "amount": options["amount"], "currency": "INR"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# 🔐 RAZORPAY PAYMENT VERIFICATION ENDPOINT
+@app.post("/api/payment/verify")
+async def verify_payment_signature(payload: dict):
+    try:
+        user_id = payload.get("user_id")
+        params_dict = {
+            'razorpay_order_id': payload.get("razorpay_order_id"),
+            'razorpay_payment_id': payload.get("razorpay_payment_id"),
+            'razorpay_signature': payload.get("razorpay_signature")
+        }
+        
+        razorpay_client.utility.verify_payment_signature(params_dict)
+        supabase.table("profiles").update({"is_pro": True}).eq("id", user_id).execute()
+        
+        return {"status": "success", "message": "👑 बधाई हो! आपका प्रो एक्सेस सफलतापूर्वक एक्टिव कर दिया गया है।"}
+    except razorpay.errors.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="🔐 सुरक्षा अलर्ट: पेमेंट सिग्नेचर वेरिफिकेशन फेल हो गया!")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 # --- 4. SCORE SUBMISSION ENDPOINT ---
