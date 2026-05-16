@@ -272,12 +272,19 @@ async def get_analytics(user_id: str):
         total_attempted = total_correct + total_wrong
         accuracy = round((total_correct / total_attempted) * 100, 1) if total_attempted > 0 else 0
 
-        # लास्ट 7 टेस्ट्स का डेटा ग्राफ के लिए सेट करना
-        graph_data = []
-        for r in records[-7:]:
+        # ✅ Iski jagah ye naya safe code paste karein:ा
+graph_data = []
+for r in records[-7:]:
+    if r.get("created_at"):
+        try:
             dt = datetime.fromisoformat(r["created_at"].split(".")[0].replace("Z", ""))
             date_str = dt.strftime("%d %b")
-            graph_data.append({"date": date_str, "score": r["score"]})
+        except Exception:
+            date_str = datetime.now().strftime("%d %b")
+    else:
+        date_str = datetime.now().strftime("%d %b") # Agar database mein date NULL hai toh aaj ki date lag jaaye
+        
+    graph_data.append({"date": date_str, "score": r["score"]})
 
         return {
             "total_tests": total_tests,
