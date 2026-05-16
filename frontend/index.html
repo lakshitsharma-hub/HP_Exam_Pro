@@ -141,6 +141,24 @@
 
         <div id="quiz-options-wrapper" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;">
             </div>
+                <div id="quiz-options-wrapper" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;">
+            </div>
+
+        <div id="query-raise-container" style="margin-top: 15px; border-top: 1px dashed #334155; padding-top: 12px; margin-bottom: 20px;">
+            <button id="toggle-query-btn" onclick="toggleQueryBox()" style="background: transparent; color: #94a3b8; border: none; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> इस सवाल में कोई गड़बड़ है? आपत्ति दर्ज करें
+            </button>
+            
+            <div id="query-input-box" style="display: none; margin-top: 10px;">
+                <textarea id="query-issue-text" rows="2" placeholder="कृपया बताएं कि सवाल या ऑप्शंस में क्या त्रुटि है..." style="width: 100%; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 6px; padding: 10px; font-size: 13px; resize: none; outline: none;"></textarea>
+                <button onclick="submitQuestionQuery()" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 5px; cursor: pointer; float: right;">
+                    भेजें (Submit Objection)
+                </button>
+                <div style="clear: both;"></div>
+            </div>
+        </div>
+        <div class="quiz-footer" style="display: flex; justify-content: space-between; border-top: 1px solid #334155; padding-top: 15px;">
+
 
         <div class="quiz-footer" style="display: flex; justify-content: space-between; border-top: 1px solid #334155; padding-top: 15px;">
             <button id="prev-q-btn" onclick="navigateQuestion(-1)" style="background: #475569; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Previous</button>
