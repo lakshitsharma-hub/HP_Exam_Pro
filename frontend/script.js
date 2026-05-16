@@ -756,17 +756,12 @@ function renderQuestionPalette() {
         }
 
         // 🚀 Click karte hi seedhe us sawal par jump karein!
-        circle.onclick = () => {
-            currentQuestionIndex = index;
-            displayCurrentQuestion(); // Naya sawal screen par dikhayein
-            renderQuestionPalette();  // Palette ke rang refresh karein
-            
-            // Mobile par click karne ke baad palette apne aap band ho jaye
-            if (window.innerWidth <= 768) {
-                document.getElementById('quiz-navigation-palette').style.display = 'none';
-            }
-        };
-
+        // ✅ इसकी जगह सिर्फ इतना छोटा और साफ कोड पेस्ट कर दो:
+circle.onclick = () => {
+    currentQuestionIndex = index;
+    displayCurrentQuestion(); 
+    renderQuestionPalette();  
+};
         grid.appendChild(circle);
     });
 }
