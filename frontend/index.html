@@ -204,6 +204,26 @@
         </main>
 
         <aside class="insights-panel">
+    <div id="quiz-navigation-palette" style="display: none; background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px;">
+        <h3 style="color: #94a3b8; font-size: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <span>Question Palette 🎯</span>
+            <span id="palette-timer" style="color: #ef4444; font-weight: bold;"></span>
+        </h3>
+        <div id="palette-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-height: 280px; overflow-y: auto; padding-right: 5px;"></div>
+        
+        <div style="display: flex; gap: 8px; font-size: 11px; margin-top: 15px; color: #94a3b8; flex-wrap: wrap; border-top: 1px solid #334155; padding-top: 10px;">
+            <span><span style="display:inline-block; width:10px; height:10px; background:#3b82f6; border-radius:50%;"></span> Current</span>
+            <span><span style="display:inline-block; width:10px; height:10px; background:#10b981; border-radius:50%;"></span> Solved</span>
+            <span><span style="display:inline-block; width:10px; height:10px; background:#475569; border-radius:50%;"></span> Unsolved</span>
+        </div>
+    </div>
+
+    <div id="standard-sidebar-content">
+        <div class="info-card">
+            <h3><i class="fa-solid fa-calendar-days"></i> Upcoming Exams</h3>
+            </div>
+        </div>
+
             <div class="info-card">
                 <h3><i class="fa-solid fa-calendar-days"></i> Upcoming Exams</h3>
                 <div class="exam-entry">
