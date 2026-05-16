@@ -18,6 +18,14 @@ let currentUserId = ""; // लॉगिन के बाद यहाँ Supabas
 
 // आपका पुराना वेरिएबल्स का कोड (अगर कोई है) तो इसके नीचे रहेगा...
 
+// handleSignup फंक्शन के अंदर सबसे ऊपर ये चेक जोड़ो:
+const email = document.getElementById('auth-email').value.trim();
+const password = document.getElementById('auth-pass').value.trim();
+
+if (!email || !password) {
+    document.getElementById('auth-error').innerText = "कृपया ईमेल और पासवर्ड दोनों भरें!";
+    return; // कोड को आगे बढ़ने से रोकें
+}
 
 // --- 2. AUTHENTICATION (Login/Signup) ---
 
