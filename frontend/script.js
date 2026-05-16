@@ -505,6 +505,12 @@ async function startMockTest(examType) {
         // 3. स्क्रीन्स को आपस में बदलना
         document.getElementById('exam-selection-view').style.display = 'none';
         document.getElementById('active-quiz-view').style.display = 'block';
+        // ✅ टेस्ट शुरू होते ही साइडबार के पुराने कार्ड्स छुपाएं और क्वेश्चन पैलेट दिखाएं
+        document.getElementById('standard-sidebar-content').style.display = 'none';
+        document.getElementById('quiz-navigation-palette').style.display = 'block';
+        // पैलेट के सर्कल्स जनरेट करने वाले फंक्शन को कॉल करें
+        renderQuestionPalette();
+
         document.getElementById('quiz-exam-title').innerText = examType === 'patwari' ? "HP Patwari Mock Test" : "HP JOA (IT) Mock Test";
 
         // 4. पहला सवाल दिखाना और टाइमर चालू करना
@@ -708,5 +714,77 @@ async function loadAnalyticsData() {
 
     } catch (error) {
         console.error("Analytics लोड करने में गड़बड़ हुई:", error);
+    }
+}
+// ==================== 🎯 QUESTION PALETTE & MOBILE TOGGLE LOGIC ====================
+
+// A. पैलेट के सर्कल्स लाइव बनाने और उनपर क्लिक कराने का फंक्शन
+function renderQuestionPalette() {
+    const grid = document.getElementById('palette-grid');
+    if (!grid || !quizQuestions) return;
+    grid.innerHTML = ''; // Purana content saaf karein
+
+    quizQuestions.forEach((_, index) => {
+        const circle = document.createElement('div');
+        circle.innerText = index + 1;
+
+        // Gol buttons ki sunder dark styling
+        circle.style.width = '38px';
+        circle.style.height = '38px';
+        circle.style.borderRadius = '50%';
+        circle.style.display = 'flex';
+        circle.style.alignItems = 'center';
+        circle.style.justifyContent = 'center';
+        circle.style.cursor = 'pointer';
+        circle.style.fontSize = '14px';
+        circle.style.fontWeight = 'bold';
+        circle.style.transition = 'all 0.2s ease';
+
+        // 🎨 Live Color Coding Conditions
+        if (index === currentQuestionIndex) {
+            circle.style.background = '#3b82f6'; // Jo sawal khula hai uske liye Blue
+            circle.style.color = 'white';
+            circle.style.boxShadow = '0 0 8px #3b82f6';
+            circle.style.border = '2px solid #93c5fd';
+        } else if (userAnswers[index] !== undefined) {
+            circle.style.background = '#10b981'; // Jo sawal hal ho gya uske liye Green
+            circle.style.color = 'white';
+        } else {
+            circle.style.background = '#475569'; // Bache hue sawalon ke liye Gray
+            circle.style.color = '#cbd5e1';
+        }
+
+        // 🚀 Click karte hi seedhe us sawal par jump karein!
+        circle.onclick = () => {
+            currentQuestionIndex = index;
+            displayCurrentQuestion(); // Naya sawal screen par dikhayein
+            renderQuestionPalette();  // Palette ke rang refresh karein
+            
+            // Mobile par click karne ke baad palette apne aap band ho jaye
+            if (window.innerWidth <= 768) {
+                document.getElementById('quiz-navigation-palette').style.display = 'none';
+            }
+        };
+
+        grid.appendChild(circle);
+    });
+}
+
+// B. मोबाइल पर पैलेट को छुपाने/दिखाने (Toggle) ka function
+function toggleMobilePalette() {
+    const palette = document.getElementById('quiz-navigation-palette');
+    if (palette.style.display === 'none' || palette.style.display === '') {
+        palette.style.display = 'block';
+        palette.style.position = 'fixed';
+        palette.style.bottom = '0';
+        palette.style.left = '0';
+        palette.style.width = '100%';
+        palette.style.zIndex = '1000';
+        palette.style.background = '#1e293b';
+        palette.style.boxShadow = '0 -4px 20px rgba(0,0,0,0.5)';
+        palette.style.borderTop = '2px solid #334155';
+        palette.style.padding = '20px';
+    } else {
+        palette.style.display = 'none';
     }
 }
