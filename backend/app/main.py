@@ -173,3 +173,49 @@ async def submit_mock_test(request: TestSubmitRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# --- QUIZ ENDPOINT: परीक्षा के सवाल भेजना ---
+@app.get("/api/questions/{exam_type}")
+async def get_exam_questions(exam_type: str):
+    # हिमाचल पटवारी के सैंपल सवाल
+    if exam_type == "patwari":
+        return [
+            {
+                "id": 1,
+                "question": "हिमाचल प्रदेश के किस जिले में 'पंगवाला' जनजाति मुख्य रूप से पाई जाती है?",
+                "options": ["लाहौल-स्पीति", "चम्बा", "किन्नौर", "कुल्लू"],
+                "correct": 1  # यानी "चम्बा" (index 1)
+            },
+            {
+                "id": 2,
+                "question": "एक आयत (Rectangle) की लंबाई 15 सेमी और चौड़ाई 10 सेमी है, उसका क्षेत्रफल (Area) क्या होगा?",
+                "options": ["150 वर्ग सेमी", "50 वर्ग सेमी", "25 वर्ग सेमी", "100 वर्ग सेमी"],
+                "correct": 0
+            },
+            {
+                "id": 3,
+                "question": "'शुद्ध वर्तनी' का चयन कीजिए:",
+                "options": ["कविइत्री", "कवयित्री", "कविइत्रि", "कवयित्रीं"],
+                "correct": 1
+            }
+        ]
+    
+    # JOA IT के सैंपल सवाल
+    elif exam_type == "joa_it":
+        return [
+            {
+                "id": 1,
+                "question": "Which of the following is known as the volatile memory of a computer?",
+                "options": ["ROM", "RAM", "Hard Disk", "SSD"],
+                "correct": 1
+            },
+            {
+                "id": 2,
+                "question": "What is the shortcut key to open a new blank document in MS Word?",
+                "options": ["Ctrl + O", "Ctrl + N", "Ctrl + S", "Ctrl + M"],
+                "correct": 1
+            }
+        ]
+    
+    else:
+        return {"detail": "Exam type not found"}
