@@ -255,12 +255,10 @@ document.getElementById('togglePassword').addEventListener('click', function () 
 // ==================== 3. LIVE QUIZ ENGINE & TIMED TEST ====================
 
 // A. बैकएंड से 120 सवाल लेकर टेस्ट शुरू करना
+// A. बैकएंड से असली सवाल लेकर टेस्ट शुरू करना
 async function startMockTest(examType) {
     selectedExamType = examType;
-    
-    if (!currentUserId) {
-        currentUserId = "test-user-123"; // डमी आईडी टेस्टिंग के लिए
-    }
+    const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
     
     const titleEl = document.getElementById('quiz-exam-title');
     if (titleEl) {
@@ -268,14 +266,14 @@ async function startMockTest(examType) {
     }
     
     try {
-        const response = await fetch(`http://127.0.0.1:8000/api/mock-test/generate?user_id=${currentUserId}&exam_type=${examType}`);
+        // 🔥 1. URL को Render लाइव सर्वर से बदल दिया गया है
+        const response = await fetch(`https://hp-exam-pro.onrender.com/api/questions/${examType}?user_id=${userId}`);
         
         // Freemium Lock Checking (Status 403)
         if (response.status === 403) {
             const errorData = await response.json();
             alert(`👑 Pro Feature: ${errorData.detail}`);
             
-            // सीधे प्रो-एक्सेस वाले पेज पर रीडायरेक्ट करना
             const proPage = document.getElementById('pro-access-page');
             if (proPage) {
                 document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
@@ -285,8 +283,9 @@ async function startMockTest(examType) {
         }
 
         const data = await response.json();
-        if (data.status === "success" && data.questions.length > 0) {
-            currentQuestions = data.questions;
+        // 🔥 2. डेटा स्ट्रक्चर फिक्स कर दिया गया है
+        if (data && data.length > 0) {
+            currentQuestions = data; 
             currentQuestionIndex = 0;
             userAnswers = {};
             totalQuizTimeSeconds = 5400; // 90 मिनट रिसेट
@@ -302,7 +301,7 @@ async function startMockTest(examType) {
 
     } catch (error) {
         console.error("Test start karne mein error:", error);
-        alert("Server se connect nahi ho pa rha hai! Pehle uvicorn server start karein.");
+        alert("Server se connect nahi ho pa rha hai! Kripya internet check karein.");
     }
 }
 
