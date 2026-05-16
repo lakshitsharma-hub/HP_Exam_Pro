@@ -469,3 +469,158 @@ window.toggleMenu = function() {
         console.error("Error: 'mobile-sidebar' ID wala dabba HTML mein nahi mila!");
     }
 }
+
+// ==================== 7. LIVE QUIZ ENGINE CONFIGURATION ====================
+
+let quizQuestions = [];       // बैकएंड से आने वाले सवाल यहाँ जमा होंगे
+let currentQuestionIndex = 0; // छात्र अभी किस सवाल पर है
+let userAnswers = {};         // छात्र ने किस सवाल का क्या जवाब दिया
+let quizTimerInterval = null; 
+let totalQuizTimeSeconds = 5400; // 90 मिनट्स (पटवारी के लिए)
+
+// A. टेस्ट शुरू करने का फंक्शन
+async function startMockTest(examType) {
+    try {
+        // 1. बैकएंड से सवाल खींचना
+        const response = await fetch(`http://127.0.0.1:8000/api/questions/${examType}`);
+        quizQuestions = await response.json();
+
+        if (!quizQuestions || quizQuestions.detail) {
+            alert("इस परीक्षा के सवाल अभी अपलोड नहीं हुए हैं!");
+            return;
+        }
+
+        // 2. क्विज़ स्टेट रीसेट करना
+        currentQuestionIndex = 0;
+        userAnswers = {};
+        totalQuizTimeSeconds = 5400; // रीसेट टाइमर
+        
+        // 3. स्क्रीन्स को आपस में बदलना
+        document.getElementById('exam-selection-view').style.display = 'none';
+        document.getElementById('active-quiz-view').style.style.display = 'block';
+        document.getElementById('quiz-exam-title').innerText = examType === 'patwari' ? "HP Patwari Mock Test" : "HP JOA (IT) Mock Test";
+
+        // 4. पहला सवाल दिखाना और टाइमर चालू करना
+        displayCurrentQuestion();
+        startQuizTimer();
+
+    } catch (error) {
+        console.error("क्विज़ शुरू करने में एरर:", error);
+        alert("बैकएंड सर्वर चालू नहीं है या कनेक्शन में गड़बड़ है!");
+    }
+}
+
+// B. स्क्रीन पर सवाल और उसके 4 ऑप्शंस दिखाना
+function displayCurrentQuestion() {
+    if (quizQuestions.length === 0) return;
+
+    const currentQ = quizQuestions[currentQuestionIndex];
+    
+    // सवाल का टेक्स्ट सेट करना
+    document.getElementById('current-q-num').innerText = currentQuestionIndex + 1;
+    document.getElementById('quiz-question-text').innerText = currentQ.question;
+
+    // ऑप्शंस के बटन्स बनाना
+    const optionsWrapper = document.getElementById('quiz-options-wrapper');
+    optionsWrapper.innerHTML = ""; // पुराना साफ़ करें
+
+    currentQ.options.forEach((option, index) => {
+        const button = document.createElement('button');
+        button.innerText = option;
+        button.style.cssText = "padding: 12px; border: 1px solid #334155; border-radius: 8px; background: #0f172a; color: white; text-align: left; cursor: pointer; transition: all 0.2s;";
+
+        // अगर छात्र ने यह ऑप्शन पहले से चुन रखा है तो उसे ब्लू कलर दें
+        if (userAnswers[currentQuestionIndex] === index) {
+            button.style.background = "#2563eb";
+            button.style.borderColor = "#60a5fa";
+        }
+
+        // क्लिक होने पर ऑप्शन सेलेक्ट करना
+        button.onclick = () => {
+            userAnswers[currentQuestionIndex] = index;
+            displayCurrentQuestion(); // स्क्रीन री-रेंडर करें ताकि सेलेक्टेड कलर दिखे
+        };
+
+        optionsWrapper.appendChild(button);
+    });
+
+    // प्रोग्रेस बार को अपडेट करना
+    const progressPercent = ((currentQuestionIndex + 1) / quizQuestions.length) * 100;
+    document.getElementById('quiz-progress-fill').style.width = `${progressPercent}%`;
+
+    // अगर आखिरी सवाल है तो 'Next' बटन को 'Submit Test' में बदलें
+    const nextBtn = document.getElementById('next-q-btn');
+    if (currentQuestionIndex === quizQuestions.length - 1) {
+        nextBtn.innerText = "Submit Test";
+        nextBtn.style.background = "#10b981";
+        nextBtn.onclick = submitFinalQuiz;
+    } else {
+        nextBtn.innerText = "Next";
+        nextBtn.style.background = "#2563eb";
+        nextBtn.onclick = () => navigateQuestion(1);
+    }
+}
+
+// C. आगे-पीछे (Next/Previous) जाने का लॉजिक
+function navigateQuestion(direction) {
+    currentQuestionIndex += direction;
+    
+    // बाउंड्री चेक (पहला या आखिरी सवाल)
+    if (currentQuestionIndex < 0) currentQuestionIndex = 0;
+    if (currentQuestionIndex >= quizQuestions.length) currentQuestionIndex = quizQuestions.length - 1;
+
+    displayCurrentQuestion();
+}
+
+// D. लाइव उल्टी गिनती (Timer) चलाना
+function startQuizTimer() {
+    clearInterval(quizTimerInterval);
+    quizTimerInterval = setInterval(() => {
+        totalQuizTimeSeconds--;
+        
+        if (totalQuizTimeSeconds <= 0) {
+            clearInterval(quizTimerInterval);
+            alert("समय समाप्त! आपका टेस्ट ऑटो-सबमिट हो रहा है।");
+            submitFinalQuiz();
+            return;
+        }
+
+        const mins = Math.floor(totalQuizTimeSeconds / 60);
+        const secs = totalQuizTimeSeconds % 60;
+        document.getElementById('quiz-timer').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }, 1000);
+}
+
+// E. टेस्ट सबमिट करना और स्कोर कैलकुलेट करना
+function submitFinalQuiz() {
+    clearInterval(quizTimerInterval); // टाइमर रोकें
+
+    let correctCount = 0;
+    let wrongCount = 0;
+
+    quizQuestions.forEach((q, index) => {
+        if (userAnswers[index] === q.correct) {
+            correctCount++;
+        } else if (userAnswers[index] !== undefined) {
+            wrongCount++;
+        }
+    });
+
+    // पटवारी परीक्षा के मार्क्स कैलकुलेशन (मान लेते हैं हर सवाल 1 नंबर का है)
+    const finalScore = correctCount; 
+
+    // रिजल्ट स्क्रीन पर डेटा सेट करना
+    document.getElementById('final-score').innerText = finalScore;
+    document.getElementById('stat-correct').innerText = correctCount;
+    document.getElementById('stat-wrong').innerText = wrongCount;
+
+    // पर्दे बदलना
+    document.getElementById('active-quiz-view').style.display = 'none';
+    document.getElementById('quiz-result-view').style.display = 'block';
+}
+
+// F. वापस डैशबोर्ड पर जाने का फंक्शन
+function resetToSelection() {
+    document.getElementById('quiz-result-view').style.display = 'none';
+    document.getElementById('exam-selection-view').style.display = 'block';
+}
