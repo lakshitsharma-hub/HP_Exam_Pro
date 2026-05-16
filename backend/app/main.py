@@ -1,24 +1,31 @@
 from fastapi import FastAPI, Header, HTTPException
-from fastapi.middleware.cors import CORSMiddleware # 1. इसे इम्पोर्ट करें
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from .engine import AIEngine
 from .database import db
 import os
 import random
-from fastapi.middleware.cors import CORSMiddleware
 import feedparser
-from supabase import create_client, Client # 👈 सुपाबेस के लिए नया इम्पोर्ट
-from datetime import datetime # 👈 तारीख के लिए नया इम्पोर्ट
+from supabase import create_client, Client
+from datetime import datetime
 
 app = FastAPI(title="HP Exam Pro API")
 
 # --- SUPABASE DATABASE CONFIGURATION ---
 SUPABASE_URL = "https://jitkmfqxojfppnpoxeff.supabase.co"
-# 💡 अपनी असली Anon/Public Key यहाँ पेस्ट करना जो तुम्हारी script.js में ऊपर लगी है
 SUPABASE_KEY = "sb_publishable_6H4ld2wexzzNexqTfOtvIw_xLkWKsif" 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# स्कोर डेटा वैलिडेशन के लिए मॉडल
+# --- CORS MIDDLEWARE SETUP (Mila kar ek kar diya hai) ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://hp-exam-pro.vercel.app", "http://localhost:3000", "http://127.0.0.1:5500", "*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- PYDANTIC MODELS (Data Validation Models) ---
 class ScoreSubmission(BaseModel):
     user_id: str
     exam_type: str
@@ -26,17 +33,23 @@ class ScoreSubmission(BaseModel):
     correct_answers: int
     wrong_answers: int
 
+class QueryRaiseInput(BaseModel):
+    user_id: str
+    question_id: str
+    issue_text: str
 
+class ChatRequest(BaseModel):
+    message: str
+
+
+# --- 1. CURRENT AFFAIRS / NEWS ENDPOINT ---
 @app.get("/api/news")
 async def get_hp_news():
-    # दो अलग-अलग न्यूज़ सोर्स (ताकि एक फेल हो तो दूसरा चले)
     sources = [
-        "https://www.amarujala.com/rss/himachal-pradesh.xml",  # अमर उजाला (Hindi)
-        "https://www.tribuneindia.com/rss/feed.aspx?cat_id=40" # ट्रिब्यून (English)
+        "https://www.amarujala.com/rss/himachal-pradesh.xml",  
+        "https://www.tribuneindia.com/rss/feed.aspx?cat_id=40" 
     ]
-    
     all_news = []
-    
     for url in sources:
         try:
             feed = feedparser.parse(url)
@@ -46,12 +59,10 @@ async def get_hp_news():
         except Exception as e:
             print(f"Error fetching from {url}: {e}")
 
-    # अगर दोनों से न्यूज़ मिल गई, तो उन्हें मिक्स (Shuffle) कर दें
     if all_news:
         random.shuffle(all_news)
-        return {"news": all_news[:8]} # टॉप 8 खबरें भेजें
+        return {"news": all_news[:8]}
     
-    # अगर कहीं से न्यूज़ नहीं मिली, तो ये 'Static' करंट अफेयर्स भेजें (ताकि खाली न दिखे)
     return {
         "news": [
             "हिमाचल प्रदेश सरकार ने 'मुख्यमंत्री सुख-आश्रय योजना' के तहत नए दिशा-निर्देश जारी किए।",
@@ -62,48 +73,17 @@ async def get_hp_news():
     }
 
 
-# ... बाकी का चैट वाला कोड इसके नीचे रहेगा
-
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://hp-exam-pro.vercel.app"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-# 2. CORS सेटअप करें (यह ब्राउज़र को आपके बैकएंड से बात करने की इजाजत देगा)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # अभी के लिए सबको इजाजत दें
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-engine = AIEngine()
-
-# ... बाकी का कोड वैसा ही रहेगा ...
-
-
-# 3. डेटा का ढांचा (Schema)
-class ChatRequest(BaseModel):
-    message: str
-
-# 4. सारे 'Routes' (रास्ते/Endpoints) यहाँ से शुरू होते हैं
-
+# --- 2. CORE SYSTEM ENDPOINTS ---
 @app.get("/")
 def read_root():
     return {"status": "Engine is roaring!", "project": "HP Exam Pro"}
 
-# --- TEST ENDPOINT: इसे यहाँ लिखा है ताकि आप चेक कर सकें ---
 @app.get("/api/test-db")
 async def test_database():
-    # यह database.py के फंक्शन को कॉल करेगा
     result = db.create_admin_entry()
     return {"message": result}
+
+engine = AIEngine()
 
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
@@ -112,44 +92,46 @@ async def chat(request: ChatRequest):
 
 @app.get("/api/admin/dashboard")
 async def admin_dashboard(x_admin_password: str = Header(None)):
-    # .env से पासवर्ड चेक करना
     if x_admin_password != os.getenv("ADMIN_PASSWORD"):
         raise HTTPException(status_code=401, detail="Invalid Admin Password!")
     return {"admin_status": "Authenticated", "server_health": "Optimal"}
-    
-# --- NAYA ENDPOINT: MOCK TEST GENERATE + FREEMIUM GATEKEEPER ---
-@app.get("/api/mock-test/generate")
-async def generate_mock_test(user_id: str, exam_type: str):
+
+
+# --- 3. DYNAMIC QUIZ ENGINE & FREEMIUM GATEKEEPER ---
+@app.get("/api/questions/{exam_type}")
+async def get_exam_questions(exam_type: str, user_id: str = None):
     try:
-        # 1. Pahle check karein ki kya user premium member hai
-        user_res = db.supabase.table("profiles").select("is_premium").eq("id", user_id).execute()
-        
-        # Agar profile table mein user milta hai toh uska status check karein
-        is_premium = False
-        if user_res.data:
-            is_premium = user_res.data[0].get("is_premium", False)
-        
-        # 2. Agar user premium nahi hai, toh check karein usne pahle kitne test diye hain
-        if not is_premium:
-            attempts_res = db.supabase.table("test_attempts").select("id").eq("user_id", user_id).execute()
-            total_attempts = len(attempts_res.data) if attempts_res.data else 0
+        # 👑 A. Freemium Check Logic
+        if user_id and user_id != "test-user-123":
+            profile_resp = supabase.table("profiles").select("is_pro").eq("id", user_id).execute()
+            profile_data = profile_resp.data
             
-            # Agar wo pahle hi 1 free test de chuka hai, toh block karein (Status 403 Forbidden)
-            if total_attempts >= 1:
-                raise HTTPException(
-                    status_code=403, 
-                    detail="Aapka 1 Free Mock Test poora ho chuka hai. Baaki ke tests unlock karne ke liye Pro Access lein! 👑"
-                )
-        
-        # 3. Agar user premium hai ya uska pehla free test hai, toh sawal nikalna shuru karein
-        if exam_type == "patwari":
-            questions = db.get_patwari_test()
-        elif exam_type == "joa_it":
-            questions = db.get_joa_it_test()
-        else:
-            raise HTTPException(status_code=400, detail="Invalid exam type!")
+            is_pro = profile_data[0].get("is_pro", False) if profile_data else False
             
-        return {"status": "success", "questions": questions}
+            # अगर यूजर PRO नहीं है, तो चेक करो उसने पहले कितने टेस्ट सबमिट किए हैं
+            if not is_pro:
+                tests_resp = supabase.table("test_results").select("id").eq("user_id", user_id).execute()
+                total_past_tests = len(tests_resp.data) if tests_resp.data else 0
+                
+                # 🛑 अगर रिकॉर्ड्स की संख्या 1 या उससे ज़्यादा है, तो ब्लॉक करें (403 Forbidden)
+                if total_past_tests >= 1:
+                    raise HTTPException(
+                        status_code=403, 
+                        detail="आप अपना 1 फ्री मॉक टेस्ट दे चुके हैं! असीमित टेस्ट अनलॉक करने के लिए प्रो एक्सेस लें। 👑"
+                    )
+
+        # 📚 B. Supabase से असली सवाल खींचना
+        response = supabase.table("questions").select("*").eq("exam_type", exam_type).execute()
+        questions = response.data
+        
+        if not questions:
+            raise HTTPException(status_code=444, detail="इस परीक्षा के सवाल अभी डेटाबेस में उपलब्ध नहीं हैं।")
+        
+        # अगर डेटाबेस में 120 से ज़्यादा सवाल हैं, तो उनमें से 120 रैंडम सेट करें
+        if len(questions) > 120:
+            questions = random.sample(questions, 120)
+            
+        return questions
 
     except HTTPException as he:
         raise he
@@ -157,87 +139,7 @@ async def generate_mock_test(user_id: str, exam_type: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# --- 1. टेस्ट सबमिशन के लिए डेटा का ढांचा (Schema) ---
-class TestSubmitRequest(BaseModel):
-    user_id: str
-    exam_type: str
-    score: int
-    total_qs: int
-    correct_answers: int
-    wrong_answers: int
-
-# --- 2. टेस्ट स्कोर को डेटाबेस में सेव करने का एंडपॉइंट ---
-@app.post("/api/mock-test/submit")
-async def submit_mock_test(request: TestSubmitRequest):
-    try:
-        # फ्रंटएंड से आया डेटा तैयार करना
-        attempt_data = {
-            "user_id": request.user_id,
-            "exam_type": request.exam_type,
-            "score": request.score,
-            "total_qs": request.total_qs,
-            "correct_answers": request.correct_answers,
-            "wrong_answers": request.wrong_answers
-        }
-        
-        # Supabase की 'test_attempts' टेबल (डायरी) में एंट्री दर्ज करना
-        res = db.supabase.table("test_attempts").insert(attempt_data).execute()
-        
-        return {
-            "status": "success", 
-            "message": "Badhai ho! Aapka score database mein save ho gya hai.",
-            "data": res.data
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# --- QUIZ ENDPOINT: परीक्षा के सवाल भेजना ---
-@app.get("/api/questions/{exam_type}")
-async def get_exam_questions(exam_type: str):
-    # हिमाचल पटवारी के सैंपल सवाल
-    if exam_type == "patwari":
-        return [
-            {
-                "id": 1,
-                "question": "हिमाचल प्रदेश के किस जिले में 'पंगवाला' जनजाति मुख्य रूप से पाई जाती है?",
-                "options": ["लाहौल-स्पीति", "चम्बा", "किन्नौर", "कुल्लू"],
-                "correct": 1  # यानी "चम्बा" (index 1)
-            },
-            {
-                "id": 2,
-                "question": "एक आयत (Rectangle) की लंबाई 15 सेमी और चौड़ाई 10 सेमी है, उसका क्षेत्रफल (Area) क्या होगा?",
-                "options": ["150 वर्ग सेमी", "50 वर्ग सेमी", "25 वर्ग सेमी", "100 वर्ग सेमी"],
-                "correct": 0
-            },
-            {
-                "id": 3,
-                "question": "'शुद्ध वर्तनी' का चयन कीजिए:",
-                "options": ["कविइत्री", "कवयित्री", "कविइत्रि", "कवयित्रीं"],
-                "correct": 1
-            }
-        ]
-    
-    # JOA IT के सैंपल सवाल
-    elif exam_type == "joa_it":
-        return [
-            {
-                "id": 1,
-                "question": "Which of the following is known as the volatile memory of a computer?",
-                "options": ["ROM", "RAM", "Hard Disk", "SSD"],
-                "correct": 1
-            },
-            {
-                "id": 2,
-                "question": "What is the shortcut key to open a new blank document in MS Word?",
-                "options": ["Ctrl + O", "Ctrl + N", "Ctrl + S", "Ctrl + M"],
-                "correct": 1
-            }
-        ]
-    
-    else:
-        return {"detail": "Exam type not found"}
-
-# --- A. स्कोर सेव करने का एंडपॉइंट ---
+# --- 4. SCORE SUBMISSION ENDPOINT ---
 @app.post("/api/submit-score")
 async def submit_score(data: ScoreSubmission):
     try:
@@ -252,7 +154,26 @@ async def submit_score(data: ScoreSubmission):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- B. लाइव एनालिटिक्स डेटा भेजने का एंडपॉइंट ---
+
+# --- 5. QUERY RAISE SYSTEM ENDPOINT ---
+@app.post("/api/query/raise")
+async def raise_question_query(data: QueryRaiseInput):
+    try:
+        # छात्र की आपत्ति सीधे 'query_raises' टेबल में जाएगी
+        response = supabase.table("query_raises").insert([
+            {
+                "user_id": data.user_id,
+                "question_id": data.question_id,
+                "issue_text": data.issue_text
+            }
+        ]).execute()
+        
+        return {"status": "success", "message": "आपकी आपत्ति सफलतापूर्वक दर्ज कर ली गई है। टीम इसकी समीक्षा करेगी!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# --- 6. LIVE ANALYTICS ENDPOINT ---
 @app.get("/api/analytics/{user_id}")
 async def get_analytics(user_id: str):
     try:
@@ -271,7 +192,6 @@ async def get_analytics(user_id: str):
         total_attempted = total_correct + total_wrong
         accuracy = round((total_correct / total_attempted) * 100, 1) if total_attempted > 0 else 0
 
-        # लास्ट 7 टेस्ट्स का डेटा ग्राफ के लिए सेट करना
         graph_data = []
         for r in records[-7:]:
             if r.get("created_at"):
@@ -294,4 +214,3 @@ async def get_analytics(user_id: str):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
