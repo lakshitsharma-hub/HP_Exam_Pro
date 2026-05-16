@@ -236,3 +236,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
     visibility: visible !important;
 }
 
+/* 📱 Mobile View ke liye palette opener button responsive setting */
+@media (max-width: 768px) {
+    #mobile-palette-toggle {
+        display: inline-block !important; /* Mobile par button show hoga */
+    }
+}
