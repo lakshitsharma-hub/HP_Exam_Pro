@@ -13,27 +13,6 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script>
-    (function() {
-        // यहाँ अपना कोई भी खुफिया पासवर्ड/पिन रख लो (जैसे: 'Lakshit@2026' या '9876')
-        const SECRET_PIN = 'Lakshit0703*'; 
-
-        const isAuthenticated = localStorage.getItem('admin_auth_token');
-
-        if (isAuthenticated !== SECRET_PIN) {
-            const userPassword = prompt('🔒 Admin Security Control: Enter PIN to access Admin Panel:');
-            
-            if (userPassword === SECRET_PIN) {
-                // अगर पासवर्ड सही है, तो ब्राउज़र में सेव कर लो ताकि बार-बार न मांगना पड़े
-                localStorage.setItem('admin_auth_token', SECRET_PIN);
-            } else {
-                // अगर गलत पासवर्ड डाला या कैंसिल किया, तो तुरंत होमपेज पर लात मारकर बाहर फेंक दो
-                alert('Access Denied! Unauthorized Access.');
-                window.location.href = 'index.html';
-            }
-        }
-    })();
-</script>
 
 </head>
 <body>
