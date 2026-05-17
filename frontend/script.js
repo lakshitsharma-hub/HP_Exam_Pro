@@ -149,7 +149,8 @@ window.onload = () => {
     const examDate = new Date("2026-06-07");
     const diff = Math.ceil((examDate - new Date()) / (1000 * 60 * 60 * 24));
     const countdownEl = document.getElementById('patwari-countdown');
-    if(countdownEl) countdownEl.innerText = diff > 0 ? diff + " Days Left" : "Exam Today!";
+    //if(countdownEl) countdownEl.innerText = diff > 0 ? diff + " Days Left" : "Exam Today!";
+    if(countdownEl) countdownEl.innerText = "Coming Soon";
     loadRealNews();
 };
 
