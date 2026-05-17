@@ -57,13 +57,18 @@ async def get_hp_news():
         "https://www.amarujala.com/rss/himachal-pradesh.xml",  
         "https://www.tribuneindia.com/rss/feed.aspx?cat_id=40" 
     ]
-    all_news = []
+        all_news = []
+    banned_keywords = ["चरस", "चिट्टा", "गिरफ्तार", "गिरफ़्तार", "हत्या", "मौत", "हादसा", "चोरी", "पकड़ा", "पकड़े", "दुर्घटना", "शव", "क्राइम"]
+    
     for url in sources:
         try:
             feed = feedparser.parse(url)
             if feed.entries:
-                titles = [entry.title for entry in feed.entries[:5]]
-                all_news.extend(titles)
+                for entry in feed.entries[:15]:
+                    title = entry.title
+                    if not any(word in title for word in banned_keywords):
+                        all_news.append(title)
+
         except Exception as e:
             print(f"Error fetching from {url}: {e}")
 
