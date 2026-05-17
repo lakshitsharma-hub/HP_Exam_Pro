@@ -30,14 +30,20 @@
     </div>
 </nav>
 
-    <div id="mobile-sidebar" class="mobile-sidebar">
-    <a href="#" onclick="switchTab('dashboard-page'); toggleMenu();">Profile</a>
-    <a href="#" onclick="switchTab('mock-tests-page'); toggleMenu();">Mock Tests</a>
-    <a href="#" onclick="switchTab('analytics-page'); toggleMenu();">Analytics</a>
-    <a href="#" style="color: #f59e0b !important; font-weight: bold; background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b;" onclick="switchTab('pro-access-page'); toggleMenu();">Get Pro Access</a>
-
-        <a href="admin.html" id="admin-link" style="display: none;">Admin Panel</a>
+        <div id="mobile-sidebar" class="mobile-sidebar">
+        <div style="padding: 15px 20px; border-bottom: 1px solid #334155; margin-bottom: 10px;">
+            <h3 style="color: white; margin: 0; font-size: 18px;">Menu</h3>
+        </div>
+        
+        <a href="#" onclick="switchTab('dashboard-page'); toggleMenu();"><i class="fa-solid fa-house" style="width: 25px; color: #94a3b8;"></i> Dashboard</a>
+        <a href="#" onclick="switchTab('mock-tests-page'); toggleMenu();"><i class="fa-solid fa-pen-to-square" style="width: 25px; color: #94a3b8;"></i> Mock Tests</a>
+        <a href="#" onclick="switchTab('analytics-page'); toggleMenu();"><i class="fa-solid fa-chart-line" style="width: 25px; color: #94a3b8;"></i> Analytics</a>
+        <a href="#" style="color: #f59e0b !important; font-weight: bold; background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b;" onclick="switchTab('pro-access-page'); toggleMenu();"><i class="fa-solid fa-crown" style="width: 25px;"></i> Get Pro Access</a>
+        <a href="admin.html" id="admin-link" style="display: none;"><i class="fa-solid fa-user-shield" style="width: 25px; color: #94a3b8;"></i> Admin Panel</a>
+        
+        <a href="#" onclick="handleLogout()" style="color: #ef4444; margin-top: 20px; border-top: 1px dashed #334155; padding-top: 15px;"><i class="fa-solid fa-right-from-bracket" style="width: 25px;"></i> Logout</a>
     </div>
+
     <div id="auth-overlay" class="auth-overlay">
         <div class="auth-card">
             <div class="brand-logo" style="margin: 0 auto 20px;">
