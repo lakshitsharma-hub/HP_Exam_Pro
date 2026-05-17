@@ -45,6 +45,20 @@ async function handleLogin() {
         checkUserSession();
     }
 }
+async function handleLogout() {
+    const confirmLogout = confirm("क्या आप सच में Logout करना चाहते हैं?");
+    if (!confirmLogout) return;
+
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) {
+        alert("Logout Error: " + error.message);
+    } else {
+        // लॉगआउट होते ही पेज को रिफ्रेश कर दो, ताकि वापस लॉगिन स्क्रीन आ जाए
+        window.location.reload();
+    }
+}
+
+
 
 async function checkUserSession() {
     const { data: { session } } = await supabaseClient.auth.getSession();
