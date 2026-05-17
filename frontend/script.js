@@ -771,11 +771,17 @@ function showReview() {
 
     currentQuestions.forEach((q, index) => {
         const chosenKey = userAnswers[q.id]; // जैसे 'opt1', 'opt2'
-        const correctKey = q.correct_option || q.answer || q.correct; // असली जवाब की Key
+                let correctKey = q.correct_option || q.answer || q.correct_answer || q.correct;
         
+        // अगर डेटाबेस में सही जवाब '1', '2' के फॉर्मेट में सेव है, तो उसे 'opt1', 'opt2' बना दो
+        if (['1', '2', '3', '4', 1, 2, 3, 4].includes(correctKey)) {
+            correctKey = 'opt' + correctKey;
+        }
+
         // जो टेक्स्ट बच्चे ने चुना और जो असली जवाब था (उन्हें निकालना)
         const chosenText = chosenKey ? q[chosenKey] : "Did not attempt";
-        const correctText = q[correctKey] ? q[correctKey] : "Data missing";
+        const correctText = q[correctKey] || correctKey || "Data Not Provided";
+
 
         // सही/गलत के हिसाब से रंग तय करना
         const isCorrect = chosenKey === correctKey;
