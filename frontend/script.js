@@ -431,16 +431,22 @@ async function submitMockTest() {
     let correctCount = 0;
     let wrongCount = 0;
     
-    currentQuestions.forEach(q => {
+        currentQuestions.forEach(q => {
         const chosen = userAnswers[q.id];
-        const correct = q.correct_option || q.answer || q.correct; 
+        let correctKey = q.correct_option || q.answer || q.correct_answer || q.correct;
         
-        if (chosen === correct) {
+        // स्कोर कैलकुलेट करने के लिए भी वही स्मार्ट डिकोडिंग
+        if (['1', '2', '3', '4', 1, 2, 3, 4].includes(correctKey)) {
+            correctKey = 'opt' + correctKey;
+        }
+        
+        if (chosen === correctKey) {
             correctCount++;
         } else if (chosen) {
             wrongCount++;
         }
     });
+
     
     document.getElementById('final-score').innerText = correctCount;
     document.getElementById('stat-correct').innerText = correctCount;
