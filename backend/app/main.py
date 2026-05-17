@@ -54,11 +54,12 @@ class ChatRequest(BaseModel):
 @app.get("/api/news")
 async def get_hp_news():
     sources = [
-        "https://www.amarujala.com/rss/himachal-pradesh.xml",  
-        "https://www.tribuneindia.com/rss/feed.aspx?cat_id=40" 
+        "https://www.amarujala.com/rss/himachal-pradesh.xml",  # हिमाचल न्यूज़
+        "https://www.tribuneindia.com/rss/feed.aspx?cat_id=40", # हिमाचल न्यूज़
+        "https://www.thehindu.com/news/national/feeder/default.rss" # 🇮🇳 नेशनल न्यूज़ (योजनाएं, अवार्ड्स आदि के लिए)
     ]
-        all_news = []
-    banned_keywords = ["चरस", "चिट्टा", "गिरफ्तार", "गिरफ़्तार", "हत्या", "मौत", "हादसा", "चोरी", "पकड़ा", "पकड़े", "दुर्घटना", "शव", "क्राइम"]
+    all_news = []
+    banned_keywords = ["चरस", "चिट्टा", "गिरफ्तार", "गिरफ़्तार", "हत्या", "मौत", "हादसा", "चोरी", "पकड़ा", "पकड़े", "दुर्घटना", "शव", "क्राइम", "रेप", "लूट"]
     
     for url in sources:
         try:
@@ -68,20 +69,20 @@ async def get_hp_news():
                     title = entry.title
                     if not any(word in title for word in banned_keywords):
                         all_news.append(title)
-
         except Exception as e:
             print(f"Error fetching from {url}: {e}")
-
+            
     if all_news:
         random.shuffle(all_news)
-        return {"news": all_news[:8]}
-    
+        # 🎯 खबरें 8 से बढ़ाकर 10 कर दी हैं, ताकि हिमाचल और नेशनल दोनों मिक्स होकर अच्छे से दिखें
+        return {"news": all_news[:10]}
+        
     return {
         "news": [
             "हिमाचल प्रदेश सरकार ने 'मुख्यमंत्री सुख-आश्रय योजना' के तहत नए दिशा-निर्देश जारी किए।",
+            "केंद्र सरकार ने राष्ट्रीय स्तर पर नई छात्रवृत्ति योजना (National Scholarship Scheme) की घोषणा की।",
             "कांगड़ा के शाहपुर में नए आईटी पार्क के निर्माण की प्रक्रिया तेज़ हुई।",
-            "रोहतांग दर्रे में सैलानियों के लिए ऑनलाइन परमिट कोटा बढ़ाया गया।",
-            "हिमाचल पुलिस ने साइबर क्राइम से निपटने के लिए नया पोर्टल लॉन्च किया।"
+            "इस वर्ष के राष्ट्रीय खेल पुरस्कारों (National Sports Awards) की आधिकारिक घोषणा की गई।"
         ]
     }
 
