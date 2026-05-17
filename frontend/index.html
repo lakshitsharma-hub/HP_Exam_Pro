@@ -146,7 +146,16 @@
 
         <div id="quiz-options-wrapper" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;"></div>
 
-        <div id="query-raise-container" style="margin-top: 15px; border-top: 1px dashed #334155; padding-top: 12px; margin-bottom: 20px;">
+       
+        <div class="quiz-footer" style="display: flex; justify-content: space-between; border-top: 1px solid #334155; padding-top: 15px;">
+
+
+        <div class="quiz-footer" style="display: flex; justify-content: space-between; border-top: 1px solid #334155; padding-top: 15px;">
+            <button id="prev-q-btn" onclick="navigateQuestion(-1)" style="background: #475569; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Previous</button>
+            <button id="next-q-btn" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Next</button>
+        </div>
+    </div>
+ <div id="query-raise-container" style="margin-top: 15px; border-top: 1px dashed #334155; padding-top: 12px; margin-bottom: 20px;">
             <button id="toggle-query-btn" onclick="toggleQueryBox()" style="background: transparent; color: #94a3b8; border: none; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> इस सवाल में कोई गड़बड़ है? आपत्ति दर्ज करें
             </button>
@@ -159,15 +168,6 @@
                 <div style="clear: both;"></div>
             </div>
         </div>
-        <div class="quiz-footer" style="display: flex; justify-content: space-between; border-top: 1px solid #334155; padding-top: 15px;">
-
-
-        <div class="quiz-footer" style="display: flex; justify-content: space-between; border-top: 1px solid #334155; padding-top: 15px;">
-            <button id="prev-q-btn" onclick="navigateQuestion(-1)" style="background: #475569; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Previous</button>
-            <button id="next-q-btn" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Next</button>
-        </div>
-    </div>
-
     <div id="quiz-result-view" style="display: none; background: #1e293b; padding: 30px; border-radius: 12px; color: white; max-width: 500px; margin: 0 auto; text-align: center;">
         <h2 style="color: #10b981; margin-bottom: 10px;">🎉 Test Completed!</h2>
         <p style="color: #94a3b8;">Aapka result neeche diya gya hai:</p>
