@@ -458,7 +458,12 @@ async function submitMockTest() {
     // 🎯 टेस्ट सबमिट होते ही पैलेट हटाकर नॉर्मल साइडबार वापस लाएं
     if(document.getElementById('standard-sidebar-content')) document.getElementById('standard-sidebar-content').style.display = 'block';
     if(document.getElementById('quiz-navigation-palette')) document.getElementById('quiz-navigation-palette').style.display = 'none';
-
+        // 🧹 टेस्ट सबमिट होते ही रिव्यू डिब्बे को रीसेट कर दो, ताकि पुराना कचरा न दिखे
+    const reviewBox = document.getElementById('review-container');
+    if (reviewBox) {
+        reviewBox.style.display = 'none';
+        reviewBox.innerHTML = '';
+    }
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
 
     try {
