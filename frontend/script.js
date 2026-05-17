@@ -478,6 +478,13 @@ function resetToSelection() {
     // 🎯 पुराना साइडबार वापस दिखाएं और पैलेट छुपाएं
     if(document.getElementById('standard-sidebar-content')) document.getElementById('standard-sidebar-content').style.display = 'block';
     if(document.getElementById('quiz-navigation-palette')) document.getElementById('quiz-navigation-palette').style.display = 'none';
+        // 🧹 जाते-जाते पिछले टेस्ट का रिव्यू डिब्बा बंद और साफ़ करें
+    const reviewBox = document.getElementById('review-container');
+    if (reviewBox) {
+        reviewBox.style.display = 'none';
+        reviewBox.innerHTML = '';
+    }
+
 }
 
 
