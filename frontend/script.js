@@ -270,7 +270,8 @@ async function startMockTest(examType) {
     }
     
     try {
-        const response = await fetch(`https://hp-exam-pro.onrender.com/api/questions/${examType}?user_id=${userId}`);
+        const response = await fetch(`https://hp-exam-pro.onrender.com/api/questions/${examType}?user_id=${userId}&t=${Date.now()}`);
+
         
         // 🧼 डेटा आते ही लोडिंग ओवरले को स्क्रीन से तुरंत हटा दें
         if (document.getElementById('quiz-cloud-loader')) document.getElementById('quiz-cloud-loader').remove();
