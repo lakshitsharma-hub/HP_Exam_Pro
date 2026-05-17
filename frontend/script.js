@@ -754,3 +754,70 @@ async function initiateProPayment() {
         alert("पेमेंट सिस्टम से कनेक्ट करने में दिक्कत आई! कृपया बैकएंड लॉग्स चेक करें।");
     }
 }
+
+// ==================== 9. POST-TEST REVIEW & EXPLANATION ====================
+function showReview() {
+    const reviewContainer = document.getElementById('review-container');
+    if (!reviewContainer) return;
+
+    // अगर पहले से खुला है तो बंद कर दो (Toggle effect)
+    if (reviewContainer.style.display === 'block') {
+        reviewContainer.style.display = 'none';
+        return;
+    }
+
+    reviewContainer.style.display = 'block';
+    reviewContainer.innerHTML = `<h3 style="color: #38bdf8; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px;">Detailed Analysis & Solutions</h3>`;
+
+    currentQuestions.forEach((q, index) => {
+        const chosenKey = userAnswers[q.id]; // जैसे 'opt1', 'opt2'
+        const correctKey = q.correct_option || q.answer || q.correct; // असली जवाब की Key
+        
+        // जो टेक्स्ट बच्चे ने चुना और जो असली जवाब था (उन्हें निकालना)
+        const chosenText = chosenKey ? q[chosenKey] : "Did not attempt";
+        const correctText = q[correctKey] ? q[correctKey] : "Data missing";
+
+        // सही/गलत के हिसाब से रंग तय करना
+        const isCorrect = chosenKey === correctKey;
+        const statusColor = isCorrect ? '#10b981' : (chosenKey ? '#ef4444' : '#f59e0b');
+        const statusIcon = isCorrect ? '✅' : (chosenKey ? '❌' : '⚠️ Unattempted');
+
+        // हर सवाल के लिए एक डिब्बा (Card) बनाना
+        const qCard = document.createElement('div');
+        qCard.style.cssText = `
+            background: #1e293b; border-left: 4px solid ${statusColor}; 
+            padding: 15px; margin-bottom: 15px; border-radius: 6px;
+        `;
+
+        let htmlContent = `
+            <p style="margin: 0 0 10px 0; font-weight: bold; color: #f8fafc;">Q${index + 1}: ${q.question_text || q.question}</p>
+            <div style="font-size: 14px; margin-bottom: 5px;">
+                <span style="color: #94a3b8;">Your Answer:</span> 
+                <span style="color: ${statusColor}; font-weight: bold;">${chosenText} ${statusIcon}</span>
+            </div>
+        `;
+
+        // अगर गलत जवाब दिया है या छोड़ा है, तो असली जवाब हरा दिखाओ
+        if (!isCorrect) {
+            htmlContent += `
+                <div style="font-size: 14px; margin-bottom: 10px;">
+                    <span style="color: #94a3b8;">Correct Answer:</span> 
+                    <span style="color: #10b981; font-weight: bold;">${correctText}</span>
+                </div>
+            `;
+        }
+
+        // 💡 असली जादू: अगर डेटाबेस में Explanation है, तो उसे दिखाओ
+        if (q.explanation && q.explanation.trim() !== "") {
+            htmlContent += `
+                <div style="margin-top: 12px; padding: 12px; background: rgba(56, 189, 248, 0.1); border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.2);">
+                    <div style="color: #38bdf8; font-size: 13px; font-weight: bold; margin-bottom: 5px;">💡 Solution / Explanation:</div>
+                    <div style="color: #cbd5e1; font-size: 14px; line-height: 1.5;">${q.explanation}</div>
+                </div>
+            `;
+        }
+
+        qCard.innerHTML = htmlContent;
+        reviewContainer.appendChild(qCard);
+    });
+}
