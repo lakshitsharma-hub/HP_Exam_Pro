@@ -25,35 +25,32 @@
     #standard-sidebar-content .info-card {
         background: rgba(255, 255, 255, 0.65) !important;
         backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important; /* Safari support */
+        -webkit-backdrop-filter: blur(12px) !important;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
         border: 1px solid rgba(255, 255, 255, 0.8) !important;
         border-radius: 14px !important;
+        color: #0f172a; /* 🎯 FIX: !important हटा दिया है */
         transition: all 0.3s ease !important;
     }
 
-    /* डार्क टेक्स्ट */
-    #standard-sidebar-content .info-card,
-    #standard-sidebar-content .info-card p,
-    #standard-sidebar-content .info-card strong,
-    #standard-sidebar-content .info-card .exam-info,
+    /* डार्क टेक्स्ट (बिना !important के) */
+    #standard-sidebar-content .info-card h3,
     #standard-sidebar-content #daily-question-text,
-    #standard-sidebar-content .info-card h3 {
-        color: #0f172a !important;
+    #standard-sidebar-content .exam-info {
+        color: #0f172a; 
     }
 
-    /* Hover Effect: हल्का सा ब्लू ग्लो */
     #standard-sidebar-content .info-card:hover {
         transform: translateY(-3px) !important;
         box-shadow: 0 10px 25px rgba(37, 99, 235, 0.08) !important;
         border-color: rgba(37, 99, 235, 0.2) !important;
     }
 
-    /* Options Button को भी हल्का ट्रांसपेरेंट लुक */
+    /* 🎯 FIX: बटन्स के बैकग्राउंड से भी !important हटा दिया है ताकि JS का हरा/लाल रंग काम कर सके */
     #standard-sidebar-content .info-card button.daily-opt-btn {
-        background: rgba(255, 255, 255, 0.8) !important;
-        border: 1px solid rgba(226, 232, 240, 0.9) !important;
-        color: #334155 !important;
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        color: #334155;
     }
 
     /* 2. Soft Abstract Background Shapes */
@@ -64,6 +61,7 @@
         border-radius: 50%; z-index: -1; pointer-events: none;
     }
 </style>
+
 
 </head>
 <body>
