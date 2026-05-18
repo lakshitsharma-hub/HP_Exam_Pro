@@ -38,13 +38,24 @@ async function handleLogin() {
     const email = document.getElementById('auth-email').value;
     const password = document.getElementById('auth-pass').value;
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    
+
     if (error) {
-        document.getElementById('auth-error').innerText = "Login Error: " + error.message;
+        // Checking if the password entered is incorrect
+        if (error.message === "Invalid login credentials") {
+            const askReset = confirm("❌ Incorrect password! Would you like to receive a secure password reset link on your registered email?");
+            
+            if (askReset) {
+                // If user clicks OK, this will send the reset link
+                handleForgotPassword(email); 
+            }
+        } else {
+            document.getElementById('auth-error').innerText = "Login Error: " + error.message;
+        }
     } else {
         checkUserSession();
     }
 }
+
 async function handleLogout() {
     const confirmLogout = confirm("क्या आप सच में Logout करना चाहते हैं?");
     if (!confirmLogout) return;
