@@ -606,9 +606,16 @@ function switchTab(pageId) {
     });
 
     const targetPage = document.getElementById(pageId);
-    if (targetPage) {
-        targetPage.classList.add('active');
+if (targetPage) {
+    targetPage.classList.add('active');
+    
+    // 🎯 FIX: Agar dashboard khul rha hai toh 'flex' layout do, baaki sabko 'block'
+    if (pageId.includes('dashboard')) {
+        targetPage.style.display = 'flex';
+    } else {
         targetPage.style.display = 'block';
+    }
+
         
         if (pageId === 'analytics-page') {
             loadAnalyticsData();
