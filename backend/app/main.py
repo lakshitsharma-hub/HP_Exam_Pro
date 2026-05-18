@@ -325,3 +325,19 @@ async def get_analytics(user_id: str):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/daily-question")
+async def get_daily_question():
+    try:
+        # 🔍 सुपाबेस की 'questions' टेबल से सारे सवाल उठाना
+        response = supabase.table("questions").select("*").execute()
+        
+        if response.data and len(response.data) > 0:
+            # 🎯 पायथन की random लाइब्रेरी से कोई भी एक सवाल चुनना
+            random_question = random.choice(response.data)
+            return {"status": "success", "question": random_question}
+            
+        return {"status": "error", "message": "No questions found in database."}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
