@@ -222,9 +222,11 @@ async function sendMessage() {
 function appendMessage(text, sender) {
     const wrap = document.createElement('div');
     wrap.className = `message-wrapper ${sender}`;
+    
+    // 🎯 FIX: AI अवतार को डार्क सर्कुलर बैकग्राउंड दिया गया है ताकि व्हाइट बेस गायब न हो
     const avatar = sender === 'user' 
         ? `<div class="avatar" style="background:#2563eb; color:white; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">${window.CURRENT_USER_PROFILE.display_name[0].toUpperCase()}</div>` 
-        : `<div class="bot-avatar-logo"><div class="mountain-peak"></div><div class="book-base"></div></div>`;
+        : `<div class="bot-avatar-container" style="background: #1e293b; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><div class="bot-avatar-logo" style="display: flex; flex-direction: column; align-items: center; transform: scale(0.85);"><div class="mountain-peak"></div><div class="book-base"></div></div></div>`;
     
     const content = sender === 'ai' ? marked.parse(text) : text.replace(/\n/g, '<br>');
     wrap.innerHTML = `${avatar}<div class="bubble">${content}</div>`;
@@ -235,13 +237,18 @@ function appendMessage(text, sender) {
 function addLoader() {
     const id = 'l-' + Date.now();
     const div = document.createElement('div');
-    div.id = id; div.className = 'message-wrapper ai';
-    const botLogo = `<div class="bot-avatar-logo"><div class="mountain-peak"></div><div class="book-base"></div></div>`;
+    div.id = id; 
+    div.className = 'message-wrapper ai';
+    
+    // 🎯 FIX: यहाँ भी लोडर वाले लोगो को सेम डार्क थीम कंटेनर में रैप किया गया है
+    const botLogo = `<div class="bot-avatar-container" style="background: #1e293b; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><div class="bot-avatar-logo" style="display: flex; flex-direction: column; align-items: center; transform: scale(0.85);"><div class="mountain-peak"></div><div class="book-base"></div></div></div>`;
+    
     div.innerHTML = `${botLogo}<div class="bubble"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
     messagesDiv.appendChild(div);
     messagesDiv.scrollTop = messagesDiv.scrollHeight; 
     return id;
 }
+
 
 function removeLoader(id) { document.getElementById(id)?.remove(); }
 
