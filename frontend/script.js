@@ -872,3 +872,40 @@ function showReview() {
         reviewContainer.appendChild(qCard);
     });
 }
+
+// 1. Function to send password reset link via Email
+async function handleForgotPassword(email) {
+    const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://hp-exam-pro.vercel.app/#reset-password',
+    });
+
+    if (error) {
+        alert("⚠️ Error: " + error.message);
+    } else {
+        alert("📨 A secure password reset link has been sent to your email inbox! Please check it.");
+    }
+}
+
+// 2. Function to update the password in Supabase
+async function handleUpdatePassword(newPassword) {
+    const { data, error } = await supabaseClient.auth.updateUser({
+        password: newPassword
+    });
+
+    if (error) {
+        alert("⚠️ Password update failed: " + error.message);
+    } else {
+        alert("🎉 Success! Your password has been updated. You can now login with your new password.");
+    }
+}
+
+// 3. Supabase listener to automatically detect when user clicks the email link
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    if (event === "PASSWORD_RECOVERY") {
+        // This prompts the user to enter their new password immediately upon return
+        const newPass = prompt("🔑 Enter your new HP Exam Pro password:");
+        if (newPass) {
+            handleUpdatePassword(newPass);
+        }
+    }
+});
