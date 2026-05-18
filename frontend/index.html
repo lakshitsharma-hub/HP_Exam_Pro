@@ -62,9 +62,12 @@
             <p>अपनी तैयारी ट्रैक करने के लिए लॉगिन करें</p>
             <input type="email" id="auth-email" placeholder="Enter Your E-Mail">
             <div class="password-field-container">
-                <input type="password" id="auth-pass" placeholder="Password ">
-                <i class="fa-solid fa-eye" id="togglePassword"></i>
-            </div>
+    <input type="password" id="auth-pass" placeholder="App Password (NOT Gmail Password)">
+    <i class="fa-solid fa-eye" id="togglePassword"></i>
+</div>
+<small style="color: #94a3b8; display: block; margin-top: 5px; margin-bottom: 10px; font-size: 12px; text-align: left;">
+    ⚠️ Do NOT use your real Gmail password. Create or enter a password just for this website.
+</small>
             <div class="auth-actions">
                 <button onclick="handleLogin()" id="login-btn">Login</button>
                 <button onclick="handleSignup()" id="signup-btn" class="secondary">Sign Up</button>
