@@ -909,3 +909,119 @@ supabaseClient.auth.onAuthStateChange(async (event, session) => {
         }
     }
 });
+
+// ==================== ❓ DAILY QUESTION OF THE DAY LOGIC ====================
+
+// 1. Dynamic Confetti Script Loader (Hawaiyan udane ke liye library automatically load hogi)
+if (!window.confetti) {
+    const confettiScript = document.createElement('script');
+    confettiScript.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+    document.head.appendChild(confettiScript);
+}
+
+// 2. Function to load Random Question from Backend
+async function loadDailyQuestion() {
+    try {
+        const response = await fetch('/api/daily-question');
+        const data = await response.json();
+
+        if (data.status === "success" && data.question) {
+            const q = data.question;
+            
+            // Setting Question Text (Assumed column name is 'question_text' or 'question')
+            document.getElementById('daily-question-text').innerText = q.question || q.question_text || "Today's Challenge Question";
+
+            // Creating Options Array dynamically
+            const options = [
+                { key: 'A', text: q.option_a || q.a },
+                { key: 'B', text: q.option_b || q.b },
+                { key: 'C', text: q.option_c || q.c },
+                { key: 'D', text: q.option_d || q.d }
+            ].filter(opt => opt.text); // Filter out empty options
+
+            const container = document.getElementById('daily-options-container');
+            container.innerHTML = ''; // Clear old loading text
+
+            // Finding Correct Answer Key (e.g., 'A', 'B', 'C', 'D')
+            const correctKey = (q.correct_option || q.answer || "").toUpperCase().trim();
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'daily-opt-btn';
+                btn.innerText = `${opt.key}. ${opt.text}`;
+                
+                // Beautiful minimal button styling to match your theme
+                btn.style.width = '100%';
+                btn.style.padding = '10px 12px';
+                btn.style.textAlign = 'left';
+                btn.style.border = '1px solid #e2e8f0';
+                btn.style.borderRadius = '8px';
+                btn.style.background = '#f8fafc';
+                btn.style.cursor = 'pointer';
+                btn.style.fontSize = '13px';
+                btn.style.transition = 'all 0.2s';
+                btn.style.color = '#334155';
+
+                // Click event for checking answer
+                btn.onclick = () => checkDailyAnswer(btn, opt.key, correctKey, q.explanation || "No explanation provided.");
+                container.appendChild(btn);
+            });
+        } else {
+            document.getElementById('daily-question-text').innerText = "Stay tuned for tomorrow's question!";
+        }
+    } catch (error) {
+        console.error("Daily question load nahi ho paya:", error);
+    }
+}
+
+// 3. Core Logic to Check Answer, Trigger Confetti and Show Explanation
+function checkDailyAnswer(clickedBtn, selectedKey, correctKey, explanationText) {
+    // Disable all option buttons so user cannot click multiple times
+    const allButtons = document.querySelectorAll('.daily-opt-btn');
+    allButtons.forEach(btn => btn.disabled = true);
+
+    const expBox = document.getElementById('daily-explanation-box');
+    expBox.style.display = 'block';
+
+    if (selectedKey === correctKey) {
+        // 🎉 1. USER IS CORRECT! Green feedback
+        clickedBtn.style.background = '#d1fae5';
+        clickedBtn.style.borderColor = '#10b981';
+        clickedBtn.style.color = '#065f46';
+        clickedBtn.style.fontWeight = 'bold';
+
+        // 🚀 2. TRIGER HAWAIYAN (Canvas Confetti Boom Effect)
+        if (window.confetti) {
+            confetti({
+                particleCount: 150,
+                spread: 80,
+                origin: { y: 0.6 }
+            });
+        }
+
+        expBox.innerHTML = `<strong style="color: #10b981;">🎉 Correct Answer!</strong><br><span style="margin-top: 4px; display:block;">${explanationText}</span>`;
+    } else {
+        // ❌ 1. USER IS WRONG! Red feedback
+        clickedBtn.style.background = '#fee2e2';
+        clickedBtn.style.borderColor = '#ef4444';
+        clickedBtn.style.color = '#991b1b';
+
+        // 2. Highlight the correct answer in Green so they learn instantly
+        allButtons.forEach(btn => {
+            if (btn.innerText.startsWith(correctKey + '.')) {
+                btn.style.background = '#d1fae5';
+                btn.style.borderColor = '#10b981';
+                btn.style.color = '#065f46';
+                btn.style.fontWeight = 'bold';
+            }
+        });
+
+        expBox.innerHTML = `<strong style="color: #ef4444;">❌ Incorrect Answer!</strong><br><span style="margin-top: 4px; display:block;"><strong>Explanation:</strong> ${explanationText}</span>`;
+    }
+}
+
+// 4. Automatically trigger this function whenever Dashboard/Sidebar content loads
+document.addEventListener('DOMContentLoaded', () => {
+    loadDailyQuestion();
+});
+// =============================================================================
