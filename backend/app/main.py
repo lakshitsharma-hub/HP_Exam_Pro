@@ -210,10 +210,10 @@ async def create_payment_order(payload: dict):
         # 🛠️ FIX: .single() हटा दिया गया है!
         config_resp = supabase.table("app_config").select("value").eq("key", "pro_price").execute()
         
-        # अगर डेटाबेस में प्राइस मिलता है तो वो लो, वर्ना डिफ़ॉल्ट 149 सेट कर दो
-        price_amount = 149
+        # अगर डेटाबेस में प्राइस मिलता है तो वो लो, वर्ना डिफ़ॉल्ट 99 सेट कर दो
+        price_amount = 99
         if config_resp.data and len(config_resp.data) > 0:
-            price_amount = int(config_resp.data[0].get("value", 149))
+            price_amount = int(config_resp.data[0].get("value", 99))
 
         options = {
             "amount": price_amount * 100, 
