@@ -21,41 +21,36 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style id="modern-ux-theme">
-    /* 1. Subtle Shadows & Gradients for Sidebar Cards */
+    /* 1. क्लीन वाइट ग्रेडिएंट और बेहद हल्की मॉडर्न परछाईं */
     #standard-sidebar-content .info-card {
-        background: linear-gradient(135deg, #243146 0%, #1e293b 100%) !important;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        /* प्योर वाइट से हल्के स्लेट कलर का बेहद सॉफ्ट ग्रेडिएंट */
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+        /* बेहद बारीक और इंटरनेशनल ग्रेड की परछाईं (Subtle Shadow) */
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+        border: 1px solid #e2e8f0 !important;
         transition: transform 0.2s ease, box-shadow 0.2s ease !important;
     }
 
-    /* 🆕 FIX: कार्ड्स के अंदर के टेक्स्ट को लाइट कलर देना ताकि डार्क बैकग्राउंड पर साफ़ पढ़े जा सकें */
+    /* कार्ड्स का टेक्स्ट कलर वापस एकदम साफ और डार्क रहेगा */
     #standard-sidebar-content .info-card,
     #standard-sidebar-content .info-card p,
     #standard-sidebar-content .info-card strong,
     #standard-sidebar-content .info-card .exam-info,
     #standard-sidebar-content #daily-question-text {
-        color: #f1f5f9 !important;
-    }
-
-    /* ⚠️ Exception: ऑप्शंस बटन का टेक्स्ट डार्क ही रहेगा क्योंकि बटन्स का बैकग्राउंड लाइट ग्रे है */
-    #standard-sidebar-content .info-card button.daily-opt-btn {
         color: #334155 !important;
-        background-color: #f8fafc !important;
     }
 
-    /* जब कोई यूजर इन कार्ड्स पर माउस ले जाएगा (Hover Effect) */
+    /* होवर करने पर कार्ड थोड़ा सा ऊपर उठेगा */
     #standard-sidebar-content .info-card:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35) !important;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.08) !important;
     }
 
-    /* 2. Soft Abstract Background Shapes (पीछे तैरते हुए खूबसूरत सॉफ्ट ग्लोइंग गोले) */
+    /* 2. बैकग्राउंड में बेहद शांत और लाइट ग्लो (Abstract Shapes) जो आँखों को न चुभे */
     body {
         position: relative;
         overflow-x: hidden;
     }
-    
     body::before {
         content: "";
         position: fixed;
@@ -63,20 +58,7 @@
         right: -5%;
         width: 500px;
         height: 500px;
-        background: radial-gradient(circle, rgba(37, 99, 235, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
-        border-radius: 50%;
-        z-index: -1;
-        pointer-events: none;
-    }
-
-    body::after {
-        content: "";
-        position: fixed;
-        bottom: -10%;
-        left: -5%;
-        width: 600px;
-        height: 600px;
-        background: radial-gradient(circle, rgba(99, 102, 241, 0.04) 0%, rgba(255, 255, 255, 0) 70%);
+        background: radial-gradient(circle, rgba(37, 99, 235, 0.03) 0%, rgba(255, 255, 255, 0) 70%);
         border-radius: 50%;
         z-index: -1;
         pointer-events: none;
