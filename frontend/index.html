@@ -20,6 +20,57 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style id="modern-ux-theme">
+    /* 1. Subtle Shadows & Gradients for Sidebar Cards */
+    #standard-sidebar-content .info-card {
+        /* फ्लैट रंग की जगह एक बहुत ही प्रीमियम डार्क लीनियर ग्रेडिएंट */
+        background: linear-gradient(135deg, #243146 0%, #1e293b 100%) !important;
+        /* हल्की और सॉफ्ट परछाईं जिससे कार्ड्स थोड़े उभरे हुए दिखें */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    /* जब कोई यूजर इन कार्ड्स पर माउस ले जाएगा (Hover Effect) */
+    #standard-sidebar-content .info-card:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35) !important;
+    }
+
+    /* 2. Soft Abstract Background Shapes (पीछे तैरते हुए खूबसूरत सॉफ्ट ग्लोइंग गोले) */
+    body {
+        position: relative;
+        overflow-x: hidden;
+    }
+    
+    /* स्क्रीन के ऊपर दायीं तरफ एक हल्का नीला एब्सट्रैक्ट ग्लो */
+    body::before {
+        content: "";
+        position: fixed;
+        top: -10%;
+        right: -5%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(37, 99, 235, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
+        border-radius: 50%;
+        z-index: -1; /* यह हमेशा कोड के पीछे रहेगा */
+        pointer-events: none; /* इस पर क्लिक नहीं होगा, क्लिक सीधे ऐप पर जाएगा */
+    }
+
+    /* स्क्रीन के नीचे बायीं तरफ एक हल्का पर्पल एब्सट्रैक्ट ग्लो */
+    body::after {
+        content: "";
+        position: fixed;
+        bottom: -10%;
+        left: -5%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.04) 0%, rgba(255, 255, 255, 0) 70%);
+        border-radius: 50%;
+        z-index: -1;
+        pointer-events: none;
+    }
+</style>
 
 </head>
 <body>
