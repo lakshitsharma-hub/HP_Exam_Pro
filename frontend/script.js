@@ -876,7 +876,7 @@ function showReview() {
 // 1. Function to send password reset link via Email
 async function handleForgotPassword(email) {
     const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://hp-exam-pro.vercel.app/#reset-password',
+        redirectTo: 'https://hp-exam-pro.vercel.app/', // 👈 Bas yahan se '#reset-password' hata diya hai
     });
 
     if (error) {
