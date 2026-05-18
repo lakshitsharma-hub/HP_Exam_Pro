@@ -919,7 +919,7 @@ if (!window.confetti) {
     document.head.appendChild(confettiScript);
 }
 
-// 2. Function to load Random Question from Backend
+// 2. Function to load Random Question from Backend (Updated with Exact Supabase Headers)
 async function loadDailyQuestion() {
     try {
         const response = await fetch('https://hp-exam-pro.onrender.com/api/daily-question');
@@ -928,29 +928,29 @@ async function loadDailyQuestion() {
         if (data.status === "success" && data.question) {
             const q = data.question;
             
-            // Setting Question Text (Assumed column name is 'question_text' or 'question')
-            document.getElementById('daily-question-text').innerText = q.question || q.question_text || "Today's Challenge Question";
+            // 🎯 1. Setting exact question text header
+            document.getElementById('daily-question-text').innerText = q.question_text || "Today's Challenge Question";
 
-            // Creating Options Array dynamically
+            // 🎯 2. Mapping exact headers: opt1, opt2, opt3, opt4
             const options = [
-                { key: 'A', text: q.option_a || q.a },
-                { key: 'B', text: q.option_b || q.b },
-                { key: 'C', text: q.option_c || q.c },
-                { key: 'D', text: q.option_d || q.d }
-            ].filter(opt => opt.text); // Filter out empty options
+                { key: '1', text: q.opt1 },
+                { key: '2', text: q.opt2 },
+                { key: '3', text: q.opt3 },
+                { key: '4', text: q.opt4 }
+            ].filter(opt => opt.text); // Filters out any empty values
 
             const container = document.getElementById('daily-options-container');
-            container.innerHTML = ''; // Clear old loading text
+            container.innerHTML = ''; // Clearing loading text
 
-            // Finding Correct Answer Key (e.g., 'A', 'B', 'C', 'D')
-            const correctKey = (q.correct_option || q.answer || "").toUpperCase().trim();
+            // 🎯 3. Fetching exact correct_option value (like '1', '2', '3', or '4')
+            const correctKey = String(q.correct_option || "").trim();
 
             options.forEach(opt => {
                 const btn = document.createElement('button');
                 btn.className = 'daily-opt-btn';
-                btn.innerText = `${opt.key}. ${opt.text}`;
+                btn.innerText = `${opt.key}. ${opt.text}`; // Will show as 1. Alan Turing, 2. Charles Babbage etc.
                 
-                // Beautiful minimal button styling to match your theme
+                // Beautiful minimal button styling
                 btn.style.width = '100%';
                 btn.style.padding = '10px 12px';
                 btn.style.textAlign = 'left';
@@ -962,7 +962,7 @@ async function loadDailyQuestion() {
                 btn.style.transition = 'all 0.2s';
                 btn.style.color = '#334155';
 
-                // Click event for checking answer
+                // Click event passing the numeric keys and explanation header
                 btn.onclick = () => checkDailyAnswer(btn, opt.key, correctKey, q.explanation || "No explanation provided.");
                 container.appendChild(btn);
             });
@@ -973,6 +973,7 @@ async function loadDailyQuestion() {
         console.error("Daily question load nahi ho paya:", error);
     }
 }
+
 
 // 3. Core Logic to Check Answer, Trigger Confetti and Show Explanation
 function checkDailyAnswer(clickedBtn, selectedKey, correctKey, explanationText) {
