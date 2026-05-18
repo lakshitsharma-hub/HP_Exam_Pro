@@ -23,12 +23,25 @@
     <style id="modern-ux-theme">
     /* 1. Subtle Shadows & Gradients for Sidebar Cards */
     #standard-sidebar-content .info-card {
-        /* फ्लैट रंग की जगह एक बहुत ही प्रीमियम डार्क लीनियर ग्रेडिएंट */
         background: linear-gradient(135deg, #243146 0%, #1e293b 100%) !important;
-        /* हल्की और सॉफ्ट परछाईं जिससे कार्ड्स थोड़े उभरे हुए दिखें */
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
         transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    /* 🆕 FIX: कार्ड्स के अंदर के टेक्स्ट को लाइट कलर देना ताकि डार्क बैकग्राउंड पर साफ़ पढ़े जा सकें */
+    #standard-sidebar-content .info-card,
+    #standard-sidebar-content .info-card p,
+    #standard-sidebar-content .info-card strong,
+    #standard-sidebar-content .info-card .exam-info,
+    #standard-sidebar-content #daily-question-text {
+        color: #f1f5f9 !important;
+    }
+
+    /* ⚠️ Exception: ऑप्शंस बटन का टेक्स्ट डार्क ही रहेगा क्योंकि बटन्स का बैकग्राउंड लाइट ग्रे है */
+    #standard-sidebar-content .info-card button.daily-opt-btn {
+        color: #334155 !important;
+        background-color: #f8fafc !important;
     }
 
     /* जब कोई यूजर इन कार्ड्स पर माउस ले जाएगा (Hover Effect) */
@@ -43,7 +56,6 @@
         overflow-x: hidden;
     }
     
-    /* स्क्रीन के ऊपर दायीं तरफ एक हल्का नीला एब्सट्रैक्ट ग्लो */
     body::before {
         content: "";
         position: fixed;
@@ -53,11 +65,10 @@
         height: 500px;
         background: radial-gradient(circle, rgba(37, 99, 235, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
         border-radius: 50%;
-        z-index: -1; /* यह हमेशा कोड के पीछे रहेगा */
-        pointer-events: none; /* इस पर क्लिक नहीं होगा, क्लिक सीधे ऐप पर जाएगा */
+        z-index: -1;
+        pointer-events: none;
     }
 
-    /* स्क्रीन के नीचे बायीं तरफ एक हल्का पर्पल एब्सट्रैक्ट ग्लो */
     body::after {
         content: "";
         position: fixed;
@@ -71,6 +82,7 @@
         pointer-events: none;
     }
 </style>
+
 
 </head>
 <body>
