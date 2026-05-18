@@ -21,51 +21,49 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style id="modern-ux-theme">
-    /* 1. Clean White Cards */
+    /* 1. Frosted Glass Effect (Apple Style) */
     #standard-sidebar-content .info-card {
-        background: #ffffff !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02) !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 12px !important;
-        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        background: rgba(255, 255, 255, 0.65) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important; /* Safari support */
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.8) !important;
+        border-radius: 14px !important;
+        transition: all 0.3s ease !important;
     }
 
-    /* डार्क टेक्स्ट ताकि लाइट बैकग्राउंड पर एकदम साफ़ दिखे */
+    /* डार्क टेक्स्ट */
     #standard-sidebar-content .info-card,
     #standard-sidebar-content .info-card p,
     #standard-sidebar-content .info-card strong,
     #standard-sidebar-content .info-card .exam-info,
     #standard-sidebar-content #daily-question-text,
     #standard-sidebar-content .info-card h3 {
-        color: #1e293b !important;
+        color: #0f172a !important;
     }
 
-    /* Hover Effect: माउस ले जाने पर हल्का सा उठेगा */
+    /* Hover Effect: हल्का सा ब्लू ग्लो */
     #standard-sidebar-content .info-card:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 24px rgba(148, 163, 184, 0.15) !important;
+        transform: translateY(-3px) !important;
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.08) !important;
+        border-color: rgba(37, 99, 235, 0.2) !important;
     }
 
-    /* Options Button को सॉफ्ट ग्रे लुक */
+    /* Options Button को भी हल्का ट्रांसपेरेंट लुक */
     #standard-sidebar-content .info-card button.daily-opt-btn {
-        background-color: #f8fafc !important;
-        border: 1px solid #e2e8f0 !important;
+        background: rgba(255, 255, 255, 0.8) !important;
+        border: 1px solid rgba(226, 232, 240, 0.9) !important;
         color: #334155 !important;
     }
-    #standard-sidebar-content .info-card button.daily-opt-btn:hover {
-        background-color: #f1f5f9 !important;
-        border-color: #cbd5e1 !important;
-    }
 
-    /* 2. Soft Abstract Background Shapes (पीछे का हल्का ग्लो) */
+    /* 2. Soft Abstract Background Shapes */
     body { position: relative; overflow-x: hidden; }
     body::before {
-        content: ""; position: fixed; top: -10%; right: -5%; width: 500px; height: 500px;
-        background: radial-gradient(circle, rgba(37, 99, 235, 0.03) 0%, rgba(255, 255, 255, 0) 70%);
+        content: ""; position: fixed; top: 0%; right: 0%; width: 600px; height: 600px;
+        background: radial-gradient(circle, rgba(56, 189, 248, 0.06) 0%, rgba(255, 255, 255, 0) 70%);
         border-radius: 50%; z-index: -1; pointer-events: none;
     }
 </style>
-
 
 </head>
 <body>
