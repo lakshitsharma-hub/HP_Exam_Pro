@@ -283,16 +283,32 @@
     </div>
 
     <div id="standard-sidebar-content">
-            <div class="info-card">
-                <h3><i class="fa-solid fa-calendar-days"></i> Upcoming Exams</h3>
-                <div class="exam-entry">
-                    <div class="exam-info"><strong>HPRCA Patwari  </strong><span id="patwari-countdown" class="exam-status urgent">...</span></div>
-                </div>
-            </div>
-            <div class="info-card">
-                <h3><i class="fa-solid fa-newspaper"></i> Current Affairs</h3>
-                <div class="news-card"><p id="current-affairs-text">न्यूज़ अपडेट हो रही है...</p></div>
-            </div>
+    <div class="info-card">
+        <h3><i class="fa-solid fa-calendar-days"></i> Upcoming Exams</h3>
+        <div class="exam-entry">
+            <div class="exam-info"><strong>HPRCA Patwari </strong><span id="patwari-countdown" class="exam-status"></span></div>
+        </div>
+        <div class="exam-entry" style="margin-top: 8px;">
+            <div class="exam-info"><strong>HP JOA IT </strong><span id="joait-countdown" class="exam-status">Coming Soon</span></div>
+        </div>
+    </div>
+
+    <div class="info-card">
+        <h3><i class="fa-solid fa-newspaper"></i> Current Affairs</h3>
+        <div class="news-card"><p id="current-affairs-text">न्यूज़ अपडेट हो रही है...</p></div>
+    </div>
+
+    <div class="info-card" id="daily-question-card">
+        <h3><i class="fa-solid fa-circle-question"></i> Question of the Day</h3>
+        <div style="margin-top: 10px;">
+            <p id="daily-question-text" style="font-weight: 500; font-size: 14px; margin-bottom: 12px; line-height: 1.4;">Loading today's challenge...</p>
+            
+            <div id="daily-options-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            
+            <div id="daily-explanation-box" style="display: none; margin-top: 12px; padding: 10px; border-radius: 6px; font-size: 13px; line-height: 1.4; background-color: rgba(255, 255, 255, 0.08);"></div>
+        </div>
+    </div>
+
             </div>
         </aside>
     </div>
