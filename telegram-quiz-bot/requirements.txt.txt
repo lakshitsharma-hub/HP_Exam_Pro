@@ -1,0 +1,2 @@
+supabase==2.4.0
+python-telegram-bot==21.1.1
