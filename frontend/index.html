@@ -19,7 +19,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -301,25 +300,28 @@
         <canvas id="performanceChart" style="max-height: 300px; width: 100%;"></canvas>
     </div>
 </div>
-               <div id="pro-access-page" class="page-content" style="display: none; padding: 40px 20px; background: #0f172a; width: 100%; min-height: 80vh; border-radius: 12px; color: white; text-align: center; box-sizing: border-box; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);">
-    <h2 style="color: #f59e0b; font-size: 28px; margin-bottom: 10px;">👑 Upgrade to Pro Workspace</h2>
+             <div id="pro-access-page" class="page-content" style="display: none; padding: 40px 20px; background: #0f172a; width: 100%; min-height: 80vh; border-radius: 12px; color: white; text-align: center; box-sizing: border-box; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);">
+    <h2 style="color: #0088cc; font-size: 28px; margin-bottom: 10px;">👑 Upgrade to Pro Workspace</h2>
     <p style="color: #94a3b8; margin-bottom: 30px;">HPRCA के असली पैटर्न पर आधारित प्रीमियम मॉक टेस्ट अनलॉक करें!</p>
 
-    <div style="background: #1e293b; border: 2px solid #f59e0b; border-radius: 16px; padding: 30px; max-width: 400px; margin: 0 auto; box-shadow: 0 10px 25px rgba(245, 158, 11, 0.2);">
-        <h3 style="font-size: 24px; margin-bottom: 5px; color: white;">Pro Monthly Pass</h3>
-        <div style="font-size: 36px; font-weight: bold; color: #10b981; margin-bottom: 20px;">₹99 <span style="font-size: 14px; color: #94a3b8; font-weight: normal;">/ month</span></div>
-
-        <ul style="list-style: none; padding: 0; text-align: left; margin-bottom: 30px; color: #cbd5e1; font-size: 15px; line-height: 1.8;">
-            <li><i class="fa-solid fa-circle-check" style="color: #10b981; margin-right: 8px;"></i> हर महीने 15 प्रीमियम मॉक टेस्ट</li>
-            <li><i class="fa-solid fa-circle-check" style="color: #10b981; margin-right: 8px;"></i> बिल्कुल HP Patwari & JOA IT ब्लूप्रिंट पर आधारित</li>
-            <li><i class="fa-solid fa-circle-check" style="color: #10b981; margin-right: 8px;"></i> नए पैटर्न के Statement Based सवाल</li>
-            <li><i class="fa-solid fa-circle-check" style="color: #10b981; margin-right: 8px;"></i> डीप एनालिटिक्स और परफॉरमेंस ट्रैकिंग</li>
+    <div class="pro-card">
+        <h3>HP Exam Pro - Premium</h3>
+        <div class="price">₹49<span>/month</span></div>
+        
+        <ul class="features">
+            <li>🎯 15 Premium Mock Tests / Month (Syllabus Based)</li>
+            <li>📊 Live State-Level Leaderboard & Analytics</li>
+            <li>📰 AI-Filtered Premium Current Affairs</li>
+            <li>💡 Daily 5 Practice Questions with Detailed Solutions</li>
         </ul>
 
-        <button onclick="initiateProPayment()" style="background: linear-gradient(to right, #f59e0b, #d97706); color: white; padding: 14px 24px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: transform 0.2s;">
-            Get Pro Access Now 👑
+        <button id="buy-pro-btn" class="direct-pay-btn">
+            <i class="fab fa-telegram-plane"></i> Activate via Telegram (Instant)
         </button>
-        <p style="font-size: 11px; color: #64748b; margin-top: 15px;"><i class="fa-solid fa-lock"></i> Secured by Razorpay</p>
+
+        <div class="trust-badge">
+            <p>🔒 100% Safe UPI Payment | 2-Min Activation Guarantee</p>
+        </div>
     </div>
 </div>
 
