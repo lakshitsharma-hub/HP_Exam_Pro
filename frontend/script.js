@@ -744,13 +744,13 @@ function initiateProPayment() {
         return;
     }
 
-    // यूजर की ईमेल आईडी निकालें (अगर उपलब्ध न हो तो User ID यूज़ करें)
+    // यूजर की ईमेल आईडी निकालें
     const userEmail = userProfile?.email || "Not Provided";
     
     // एक बढ़िया सा प्रोफेशनल मैसेज जो बच्चे के चैट बॉक्स में खुद-ब-खुद टाइप हो जाएगा
     const message = encodeURIComponent(`Hello Sir, मुझे 'HP Exam Pro' का प्रीमियम एक्सेस (Pro Membership) चाहिए।\n\nMy Registered Email: ${userEmail}\nUser ID: ${userId}`);
     
-    // 🎯 तुम्हारा असली टेलीग्राम यूजरनेम यहाँ सेट कर दिया है
+    // तुम्हारा असली टेलीग्राम यूजरनेम
     const myTelegramUsername = "Lakshit_sharma07"; 
     
     const telegramLink = `https://t.me/${myTelegramUsername}?text=${message}`;
