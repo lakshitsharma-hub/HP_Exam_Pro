@@ -4,7 +4,6 @@ import asyncio
 from supabase import create_client
 
 # ==================== CONFIGURATION (GitHub Secrets से डेटा उठाना) ====================
-# यह कोड अपने आप गिटहब के लॉकर से तुम्हारी चाबियाँ (Keys) निकाल लेगा
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
@@ -25,32 +24,33 @@ async def send_daily_quiz():
         id_response = supabase.table("questions").select("id").execute()
         
         if not id_response.data:
-            print("❌ एरर: डेटाबेस में कोई सवाल नहीं मिला!")
+            print("❌ डेटाबेस में कोई सवाल नहीं मिला!")
             return
             
         available_ids = [row['id'] for row in id_response.data]
         print(f"📊 कुल {len(available_ids)} सवाल एक्टिव मिले।")
         
-        # === 🔄 असली जादू: चालू सवाल ढूंढने के लिए Loop ===
+        # === 🔄 असली सुधार: मिसिंग/डिलीटेड IDs से बचने के लिए Loop ===
         q = None
         while len(available_ids) > 0:
             random_id = random.choice(available_ids)
             print(f"🎯 लॉटरी में चुनी गई ID: {random_id}")
 
-            # डेटाबेस से सवाल उठाना
+            # सवाल उठाना
             response = supabase.table("questions").select("*").eq("id", random_id).execute()
             
+            # चेक करो कि सुपाबेस ने डेटा दिया या मिसिंग ID की वजह से खाली लिस्ट मिली
             if response.data and len(response.data) > 0:
                 q = response.data[0]
-                break # चालू सवाल मिल गया, लूप से बाहर निकलो!
+                break  # बिल्कुल सही सवाल मिल गया! लूप से बाहर निकलो।
             else:
-                print(f"⚠️ ID {random_id} खाली निकली, दूसरी ID ट्राई कर रहे हैं...")
-                available_ids.remove(random_id) # खराब ID को लिस्ट से हटाओ
+                print(f"⚠️ ID {random_id} डेटाबेस में मिसिंग/डिलीटेड है भाई, दूसरी ID ट्राई कर रहे हैं...")
+                available_ids.remove(random_id)  # इस खराब ID को लिस्ट से हटा दो ताकि दोबारा न चुनी जाए
 
         if not q:
             print("❌ एरर: डेटाबेस की सभी एक्टिव IDs चेक कर लीं, पर कोई वैलिड सवाल नहीं मिला!")
             return
-        # ===============================================
+        # =============================================================
 
         question_text = f"📝 Question of the Day:\n\n{q['question_text']}"
         options = [q['opt1'], q['opt2'], q['opt3'], q['opt4']]
@@ -60,7 +60,7 @@ async def send_daily_quiz():
         if len(explanation) > 200:
             explanation = explanation[:197] + "..."
 
-        # 4. Telegram Bot इनिशइलाइज़ करना
+        # 4. Telegram Bot इनिशियलाइज़ करना
         from telegram import Bot
         bot = Bot(token=TELEGRAM_BOT_TOKEN)
 
@@ -95,7 +95,7 @@ async def send_daily_quiz():
 
     except Exception as e:
         print(f"❌ एरर आया भाई: {e}")
-        
 
 if __name__ == "__main__":
     asyncio.run(send_daily_quiz())
+    
