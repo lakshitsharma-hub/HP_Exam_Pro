@@ -275,7 +275,7 @@ async function sendMessage() {
     const loaderId = addLoader();
 
     try {
-        const response = await fetch('https://hp-exam-pro.onrender.com/api/chat', { 
+        const response = await fetch('https://hp-exam-pro-dixk.onrender.com/api/chat', { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: text })
