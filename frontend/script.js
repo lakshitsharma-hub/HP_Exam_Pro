@@ -958,7 +958,7 @@ if (!window.confetti) {
 // 2. Function to load Random Question from Backend (Updated with Exact Supabase Headers)
 async function loadDailyQuestion() {
     try {
-        const response = await fetch('https://hp-exam-pro.onrender.com/api/daily-question');
+        const response = await fetch('https://hp-exam-pro-dixk.onrender.com/api/daily-question');
         const data = await response.json();
 
         if (data.status === "success" && data.question) {
