@@ -106,25 +106,53 @@
 
     <div id="auth-overlay" class="auth-overlay">
         <div class="auth-card">
+            <!-- तुम्हारा ब्रांड लोगो -->
             <div class="brand-logo" style="margin: 0 auto 20px;">
                 <div class="mountain-peak"></div>
                 <div class="book-base"></div>
             </div>
             <h2>HP Exam Pro</h2>
             <p>अपनी तैयारी ट्रैक करने के लिए लॉगिन करें</p>
+
+            <!-- 🌟 1. Google Login Button -->
+            <button class="google-btn" onclick="loginWithGoogle()" style="margin-bottom: 15px;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo" style="width: 20px; height: 20px;">
+                Continue with Google
+            </button>
+
+            <div class="auth-divider">
+                <span>OR continue with email</span>
+            </div>
+
+            <!-- 🌟 2. Tabs (Login / Sign Up) -->
+            <div class="auth-tabs">
+                <button id="tab-login" class="active" onclick="switchAuthTab('login')">Login</button>
+                <button id="tab-signup" onclick="switchAuthTab('signup')">Sign Up</button>
+            </div>
+
+            <!-- 🌟 3. Email & Password Inputs -->
             <input type="email" id="auth-email" placeholder="Enter Your E-Mail">
             <div class="password-field-container">
-    <input type="password" id="auth-pass" placeholder="App Password (NOT Gmail Password)">
-    <i class="fa-solid fa-eye" id="togglePassword"></i>
-</div>
-<small style="color: #94a3b8; display: block; margin-top: 5px; margin-bottom: 10px; font-size: 12px; text-align: left;">
-    ⚠️ Do NOT use your real Gmail password. Create or enter a password just for this website.
-</small>
-            <div class="auth-actions">
-                <button onclick="handleLogin()" id="login-btn">Login</button>
-                <button onclick="handleSignup()" id="signup-btn" class="secondary">Sign Up</button>
+                <input type="password" id="auth-pass" placeholder="App Password (NOT Gmail Password)">
+                <i class="fa-solid fa-eye" id="togglePassword"></i>
             </div>
-            <p id="auth-error" style="color: #ef4444; font-size: 12px; margin-top: 15px;"></p>
+            
+            <!-- तुम्हारी पुरानी वार्निंग -->
+            <small style="color: #94a3b8; display: block; margin-top: 5px; margin-bottom: 5px; font-size: 12px; text-align: left;">
+                ⚠️ Do NOT use your real Gmail password. Create or enter a password just for this website.
+            </small>
+
+            <!-- 🌟 4. Forgot Password Link (सिर्फ लॉगिन में दिखेगा) -->
+            <div id="forgot-pass-container" style="text-align: right; margin-bottom: 15px;">
+                <a href="#" onclick="triggerForgotPassword()" style="font-size: 12px; color: #3b82f6; text-decoration: none; font-weight: bold;">Forgot Password?</a>
+            </div>
+
+            <!-- 🌟 5. Main Action Button (जिसमें लोडर आएगा) -->
+            <button id="main-auth-btn" onclick="handleAuthAction()" style="width: 100%; background: #2563eb; color: white; padding: 14px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s;">
+                Login
+            </button>
+
+            <p id="auth-error" style="color: #ef4444; font-size: 12px; margin-top: 15px; display: none;"></p>
         </div>
     </div>
     <div class="app-container">
