@@ -114,9 +114,9 @@
             <h2>HP Exam Pro</h2>
             <p>अपनी तैयारी ट्रैक करने के लिए लॉगिन करें</p>
 
-            <!-- 🌟 1. Google Login Button -->
+            <!-- 🌟 1. Google Login Button (Fixed Logo) -->
             <button class="google-btn" onclick="loginWithGoogle()" style="margin-bottom: 15px;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo" style="width: 20px; height: 20px;">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/google/google-original.svg" alt="Google Logo" style="width: 20px; height: 20px;">
                 Continue with Google
             </button>
 
@@ -130,24 +130,19 @@
                 <button id="tab-signup" onclick="switchAuthTab('signup')">Sign Up</button>
             </div>
 
-            <!-- 🌟 3. Email & Password Inputs -->
+            <!-- 🌟 3. Clean Inputs -->
             <input type="email" id="auth-email" placeholder="Enter Your E-Mail">
             <div class="password-field-container">
-                <input type="password" id="auth-pass" placeholder="App Password (NOT Gmail Password)">
+                <input type="password" id="auth-pass" placeholder="Enter Password">
                 <i class="fa-solid fa-eye" id="togglePassword"></i>
             </div>
-            
-            <!-- तुम्हारी पुरानी वार्निंग -->
-            <small style="color: #94a3b8; display: block; margin-top: 5px; margin-bottom: 5px; font-size: 12px; text-align: left;">
-                ⚠️ Do NOT use your real Gmail password. Create or enter a password just for this website.
-            </small>
 
-            <!-- 🌟 4. Forgot Password Link (सिर्फ लॉगिन में दिखेगा) -->
-            <div id="forgot-pass-container" style="text-align: right; margin-bottom: 15px;">
+            <!-- 🌟 4. Forgot Password Link -->
+            <div id="forgot-pass-container" style="text-align: right; margin-bottom: 15px; margin-top: 5px;">
                 <a href="#" onclick="triggerForgotPassword()" style="font-size: 12px; color: #3b82f6; text-decoration: none; font-weight: bold;">Forgot Password?</a>
             </div>
 
-            <!-- 🌟 5. Main Action Button (जिसमें लोडर आएगा) -->
+            <!-- 🌟 5. Main Action Button -->
             <button id="main-auth-btn" onclick="handleAuthAction()" style="width: 100%; background: #2563eb; color: white; padding: 14px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s;">
                 Login
             </button>
