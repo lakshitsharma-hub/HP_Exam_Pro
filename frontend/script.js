@@ -17,6 +17,82 @@ let selectedExamType = "";
 let currentUserId = ""; 
 
 // --- 3. AUTHENTICATION (Login/Signup) ---
+// ==================== NEW AUTH SYSTEM (Google, Tabs & Loader) ====================
+
+let currentAuthMode = 'login'; 
+
+// 1. Google Login
+async function loginWithGoogle() {
+    const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin }
+    });
+    if (error) alert("Google Login Error: " + error.message);
+}
+
+// 2. Tab Switcher
+function switchAuthTab(mode) {
+    currentAuthMode = mode;
+    const btn = document.getElementById('main-auth-btn');
+    const forgotLink = document.getElementById('forgot-pass-container');
+    const tabLogin = document.getElementById('tab-login');
+    const tabSignup = document.getElementById('tab-signup');
+    const errorMsg = document.getElementById('auth-error');
+
+    errorMsg.style.display = 'none';
+    document.getElementById('auth-pass').value = '';
+
+    if (mode === 'login') {
+        btn.innerText = "Login";
+        forgotLink.style.display = "block"; 
+        tabLogin.classList.add('active');
+        tabSignup.classList.remove('active');
+    } else {
+        btn.innerText = "Sign Up";
+        forgotLink.style.display = "none"; 
+        tabSignup.classList.add('active');
+        tabLogin.classList.remove('active');
+    }
+}
+
+// 3. Button Click Loader
+async function handleAuthAction() {
+    const btn = document.getElementById('main-auth-btn');
+    const errorMsg = document.getElementById('auth-error');
+    const originalText = btn.innerText;
+
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing...`;
+    btn.disabled = true;
+    btn.style.opacity = "0.7";
+    errorMsg.style.display = 'none';
+
+    try {
+        if (currentAuthMode === 'login') {
+            await handleLogin(); 
+        } else {
+            await handleSignup(); 
+        }
+    } catch (err) {
+        console.error(err);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        btn.style.opacity = "1";
+    }
+}
+
+// 4. Trigger Forgot Password
+function triggerForgotPassword() {
+    const email = document.getElementById('auth-email').value.trim();
+    if (!email) {
+        const err = document.getElementById('auth-error');
+        err.innerText = "पासवर्ड रीसेट करने के लिए पहले अपना ईमेल भरें!";
+        err.style.display = 'block';
+        return;
+    }
+    handleForgotPassword(email); 
+}
+// =================================================================================
 async function handleSignup() {
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-pass').value.trim();
