@@ -106,10 +106,66 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
 .password-field-container { position: relative; width: 100%; margin-bottom: 15px; }
 .password-field-container input { margin-bottom: 0 !important; padding-right: 45px !important; }
 #togglePassword { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; font-size: 14px; }
-.auth-actions { display: flex; gap: 12px; }
-.auth-actions button { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; }
-#login-btn { background: #2563eb; color: white; }
-#signup-btn.secondary { background: #f1f5f9; color: #0f172a; }
+/* --- NEW GOOGLE BTN & TABS STYLING --- */
+.google-btn {
+    width: 100%;
+    padding: 12px;
+    background: white;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.google-btn:hover { background: #f8fafc; }
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 15px 0;
+    color: #94a3b8;
+    font-size: 12px;
+}
+.auth-divider::before, .auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e2e8f0;
+}
+.auth-divider span { padding: 0 10px; }
+
+.auth-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    background: #f1f5f9;
+    padding: 5px;
+    border-radius: 10px;
+}
+.auth-tabs button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    transition: all 0.3s;
+}
+.auth-tabs button.active {
+    background: white;
+    color: #2563eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
 
 /* ========================================= */
 /* --- MOBILE & TABLET RESPONSIVENESS --- */
