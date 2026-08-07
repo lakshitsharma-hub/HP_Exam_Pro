@@ -245,7 +245,7 @@ async function loadRealNews() {
     const newsTextEl = document.getElementById('current-affairs-text');
     if (!newsTextEl) return;
     try {
-        const response = await fetch('https://hp-exam-pro.onrender.com/api/news?t=' + Date.now());
+        const response = await fetch('https://hp-exam-pro-dixk.onrender.com/api/news?t=' + Date.now());
         if (!response.ok) throw new Error("API Error");
         const data = await response.json();
         
