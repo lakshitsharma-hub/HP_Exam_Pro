@@ -54,27 +54,52 @@ class ChatRequest(BaseModel):
 @app.get("/api/news")
 async def get_hp_news():
     sources = [
-        "https://www.amarujala.com/rss/himachal-pradesh.xml",  # हिमाचल न्यूज़
-        "https://www.tribuneindia.com/rss/feed.aspx?cat_id=40", # हिमाचल न्यूज़
-        "https://www.thehindu.com/news/national/feeder/default.rss" # 🇮🇳 नेशनल न्यूज़ (योजनाएं, अवार्ड्स आदि के लिए)
+        "https://www.amarujala.com/rss/himachal-pradesh.xml",  # हिमाचल न्यूज़
+        "https://www.tribuneindia.com/rss/feed.aspx?cat_id=40", # हिमाचल न्यूज़
+        "https://www.thehindu.com/news/national/feeder/default.rss" # 🇮🇳 नेशनल न्यूज़
     ]
     all_news = []
-    banned_keywords = ["चरस", "चिट्टा", "गिरफ्तार", "गिरफ़्तार", "हत्या", "मौत", "हादसा", "चोरी", "पकड़ा", "पकड़े", "दुर्घटना", "शव", "क्राइम", "रेप", "लूट"]
     
+    # 🚫 1. Banned Keywords (क्राइम, मौसम, आपदा, और फालतू राजनीति हटाने के लिए)
+    banned_keywords = [
+        # Crime & Accidents (तुम्हारे पुराने वाले)
+        "चरस", "चिट्टा", "गिरफ्तार", "गिरफ़्तार", "हत्या", "मौत", "हादसा", "चोरी", "पकड़ा", "पकड़े", "दुर्घटना", "शव", "क्राइम", "रेप", "लूट",
+        # Weather & Disasters (कुल्लू बाढ़ जैसी न्यूज़ रोकने के लिए)
+        "बाढ़", "जलभराव", "बारिश", "मौसम", "भूस्खलन", "बर्फबारी", "अलर्ट", "तबाही", "नुकसान", "रास्ता बंद", 
+        "flood", "rain", "landslide", "weather", "snowfall", "alert",
+        # Politics & Local arguments
+        "आरोप", "विवाद", "धरना", "प्रदर्शन", "हंगामा"
+    ]
+
+    # ✅ 2. Exam Keywords (योजनाएं, शिक्षा, नियुक्तियां, बजट को प्राथमिकता देने के लिए)
+    exam_keywords = [
+        "योजना", "स्कीम", "लॉन्च", "उद्घाटन", "पुरस्कार", "अवार्ड", "नियुक्ति", "बजट", "शिक्षा", 
+        "परीक्षा", "भर्ती", "कैबिनेट", "फैसला", "मंजूरी", "रैंकिंग", "खेल", "गोल्ड", "मेडल",
+        "scheme", "award", "appointed", "budget", "education", "exam", "cabinet", "sports", "medal"
+    ]
+
     for url in sources:
         try:
             feed = feedparser.parse(url)
             if feed.entries:
-                for entry in feed.entries[:15]:
+                for entry in feed.entries[:20]: # ज़्यादा न्यूज़ फेच कर रहे हैं ताकि फ़िल्टर के बाद कमी न पड़े
                     title = entry.title
-                    if not any(word in title for word in banned_keywords):
-                        all_news.append(title)
+                    title_lower = title.lower() # English keywords मैच करने के लिए
+                    
+                    # चेक 1: क्या इसमें कोई बैन किया हुआ शब्द है?
+                    has_banned_word = any(word in title_lower for word in banned_keywords)
+                    
+                    if not has_banned_word:
+                        # चेक 2: अगर एग्जाम वाला शब्द है, तो उसे लिस्ट में सबसे ऊपर (Index 0) पर डालें
+                        if any(word in title_lower for word in exam_keywords):
+                            all_news.insert(0, title) 
+                        else:
+                            all_news.append(title)
         except Exception as e:
             print(f"Error fetching from {url}: {e}")
             
     if all_news:
-        random.shuffle(all_news)
-        # 🎯 खबरें 8 से बढ़ाकर 10 कर दी हैं, ताकि हिमाचल और नेशनल दोनों मिक्स होकर अच्छे से दिखें
+        # नोट: यहाँ से random.shuffle(all_news) हटा दिया है ताकि एग्जाम वाली ज़रूरी न्यूज़ हमेशा ऊपर रहे!
         return {"news": all_news[:10]}
         
     return {
