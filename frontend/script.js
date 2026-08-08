@@ -785,7 +785,7 @@ async function submitQuestionQuery() {
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
 
     try {
-        const response = await fetch('https://hp-exam-pro.onrender.com/api/query/raise', {
+        const response = await fetch('https://hp-exam-pro-dixk.onrender.com/api/query/raise', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
