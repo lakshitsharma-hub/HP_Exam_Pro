@@ -726,7 +726,7 @@ let performanceChartInstance = null;
 async function loadAnalyticsData() {
     const userId = currentUserId || "test-user-123";
     try {
-        const response = await fetch(`https://hp-exam-pro.onrender.com/api/analytics/${userId}`);
+        const response = await fetch(`https://hp-exam-pro-dixk.onrender.com/api/analytics/${userId}`);
         const data = await response.json();
 
         if(document.getElementById('analytics-total-tests')) document.getElementById('analytics-total-tests').innerText = data.total_tests;
