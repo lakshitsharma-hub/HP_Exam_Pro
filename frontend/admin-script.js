@@ -87,6 +87,145 @@ async function loadUsers() {
         tableBody.innerHTML += row;
     });
 }
+// 📄 LIVE MOCK TEST & ANSWER KEY PDF GENERATION LOGIC
+async function generateTestPDF(examType) {
+    const examName = examType === 'patwari' ? 'HPRCA Patwari Examination' : 'JOA IT Examination';
+    const totalMarks = examType === 'patwari' ? '120' : '120';
+    
+    // 1. बैकएंड से लाइव सवाल फेच करो
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write('<html><head><title>Generating PDF...</title></head><body style="font-family:sans-serif; padding:40px; text-align:center;"><h2>⏳ HP Exam Pro... प्रश्न पत्र तैयार किया जा रहा है...</h2></body></html>');
+
+    try {
+        const response = await fetch(`https://hp-exam-pro-dixk.onrender.com/api/questions/${examType}?user_id=test-user-123&t=${Date.now()}`);
+        const questions = await response.json();
+
+        if (!questions || questions.length === 0) {
+            alert("सवाल लोड नहीं हो पाए!");
+            printWindow.close();
+            return;
+        }
+
+        // 2. HTML layout ready करना
+        let questionsHTML = '';
+        let answerKeyRows = '';
+        let explanationsHTML = '';
+
+        questions.forEach((q, index) => {
+            const qNum = index + 1;
+            let correctOpt = q.correct_option || q.answer || q.correct_answer || "N/A";
+            
+            // Format Correct Option
+            if (['1', '2', '3', '4', 1, 2, 3, 4].includes(correctOpt)) {
+                correctOpt = 'Option ' + correctOpt;
+            }
+
+            // Question Card
+            questionsHTML += `
+                <div style="margin-bottom: 18px; page-break-inside: avoid;">
+                    <p style="font-weight: bold; margin: 0 0 6px 0; color: #1e293b;">Q${qNum}. ${q.question_text || q.question}</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 13px; color: #334155; padding-left: 10px;">
+                        <div>(A) ${q.opt1 || ''}</div>
+                        <div>(B) ${q.opt2 || ''}</div>
+                        <div>(C) ${q.opt3 || ''}</div>
+                        <div>(D) ${q.opt4 || ''}</div>
+                    </div>
+                </div>
+            `;
+
+            // Answer Key Grid Row
+            answerKeyRows += `
+                <div style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-size: 12px;">
+                    <b>Q${qNum}:</b> ${correctOpt}
+                </div>
+            `;
+
+            // Explanations (अगर हों)
+            if (q.explanation && q.explanation.trim() !== "") {
+                explanationsHTML += `
+                    <div style="margin-bottom: 10px; padding: 8px; background: #f8fafc; border-left: 3px solid #2563eb; font-size: 12px;">
+                        <b>Q${qNum} Sol:</b> ${q.explanation}
+                    </div>
+                `;
+            }
+        });
+
+        // 3. पूरा डॉक्यूमेंट तैयार करना
+        const fullHTML = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>${examName} - Mock Test PDF</title>
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+                    body { font-family: 'Plus Jakarta Sans', sans-serif; padding: 20px; color: #0f172a; line-height: 1.4; }
+                    .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 20px; }
+                    .header h1 { margin: 0; font-size: 22px; color: #1e293b; }
+                    .header p { margin: 4px 0; font-size: 13px; color: #475569; }
+                    .meta-info { display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+                    .page-break { page-break-before: always; }
+                    .answer-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 15px; }
+                    @media print {
+                        body { padding: 0; }
+                        button { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div style="text-align: right; margin-bottom: 10px;">
+                    <button onclick="window.print()" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">🖨️ Save as PDF / Print</button>
+                </div>
+
+                <div class="header">
+                    <h1>🏔️ HP EXAM PRO - OFFICIAL MOCK TEST</h1>
+                    <p><b>Target Exam:</b> ${examName}</p>
+                </div>
+
+                <div class="meta-info">
+                    <span>Time Allowed: 90 Minutes</span>
+                    <span>Total Questions: ${questions.length}</span>
+                    <span>Max Marks: ${totalMarks}</span>
+                </div>
+
+                <!-- 📝 QUESTION PAPER -->
+                <div>
+                    ${questionsHTML}
+                </div>
+
+                <!-- 🔑 ANSWER KEY SECTION (New Page) -->
+                <div class="page-break"></div>
+                <div class="header" style="margin-top: 20px;">
+                    <h1>🔑 ANSWER KEY & SOLUTIONS</h1>
+                    <p>${examName} - Answer Key Matrix</p>
+                </div>
+
+                <div class="answer-grid">
+                    ${answerKeyRows}
+                </div>
+
+                <h3 style="margin-top: 30px; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">💡 Detailed Explanations</h3>
+                <div>
+                    ${explanationsHTML || '<p style="font-size: 12px; color: #64748b;">No specific explanations provided for this set.</p>'}
+                </div>
+
+                <script>
+                    window.onload = function() {
+                        setTimeout(() => { window.print(); }, 500);
+                    };
+                </script>
+            </body>
+            </html>
+        `;
+
+        printWindow.document.open();
+        printWindow.document.write(fullHTML);
+        printWindow.document.close();
+
+    } catch (e) {
+        alert("PDF Generate करने में एरर आया: " + e.message);
+        if (printWindow) printWindow.close();
+    }
+}
 
 // 2. Pro Status चालू/बंद करना
 async function togglePro(userId, currentStatus) {
