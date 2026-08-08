@@ -576,7 +576,7 @@ async function submitMockTest() {
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
 
     try {
-        await fetch('https://hp-exam-pro.onrender.com/api/submit-score', {
+        await fetch('https://hp-exam-pro-dixk.onrender.com/api/submit-score', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
