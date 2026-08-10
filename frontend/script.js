@@ -379,31 +379,51 @@ async function startMockTest(examType) {
     }
     
     try {
-        const response = await fetch(`https://hp-exam-pro-dixk.onrender.com/api/questions/${examType}?user_id=${userId}&t=${Date.now()}`);
+            let data = null;
 
-        
-        // 🧼 डेटा आते ही लोडिंग ओवरले को स्क्रीन से तुरंत हटा दें
-        if (document.getElementById('quiz-cloud-loader')) document.getElementById('quiz-cloud-loader').remove();
-        
-        // बटन्स को वापस नॉर्मल स्टेट में लाएं
-        examButtons.forEach(btn => {
-            btn.disabled = false;
-            btn.style.opacity = "1";
-        });
-        
-        if (response.status === 403) {
-            const errorData = await response.json();
-            alert(`👑 Pro Feature: ${errorData.detail}`);
-            
-            const proPage = document.getElementById('pro-access-page');
-            if (proPage) {
-                document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
-                proPage.classList.add('active');
+            // 🟢 NAYA LOGIC: चेक करें कि क्या यूज़र Re-attempt कर रहा है?
+            if (window.reAttemptQuestions) {
+                data = window.reAttemptQuestions;
+                window.reAttemptQuestions = null; // इस्तेमाल के बाद इसे खाली कर दें
+                
+                // लोडिंग स्क्रीन हटाएं और बटन्स चालू करें (बिना Fetch किए)
+                if (document.getElementById('quiz-cloud-loader')) document.getElementById('quiz-cloud-loader').remove();
+                examButtons.forEach(btn => { btn.disabled = false; btn.style.opacity = "1"; });
+            } 
+            else {
+                // 🟢 PURANA LOGIC: अगर नया टेस्ट है, तो बैकएंड से फेच करें
+                const response = await fetch(`https://hp-exam-pro-dixk.onrender.com/api/questions/${examType}?user_id=${userId}&t=${Date.now()}`);
+
+                // डेटा आते ही लोडिंग ओवरले को स्क्रीन से तुरंत हटा दें
+                if (document.getElementById('quiz-cloud-loader')) document.getElementById('quiz-cloud-loader').remove();
+
+                // बटन्स को वापस नॉर्मल स्टेट में लाएं
+                examButtons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
+                });
+
+                // Pro Feature (403 Error) चेकिंग
+                if (response.status === 403) {
+                    const errorData = await response.json();
+                    alert('👑 Pro Feature: ' + errorData.detail);
+
+                    const proPage = document.getElementById('pro-access-page');
+                    if (proPage) {
+                        document.querySelectorAll('.page-content').forEach(p => {
+                            p.classList.remove('active');
+                            p.style.display = 'none';
+                        });
+                        proPage.classList.add('active');
+                        proPage.style.display = 'block';
+                    }
+                    return;
+                }
+
+                data = await response.json();
             }
-            return;
-        }
 
-        const data = await response.json();
+            // 👇 (इसके ठीक नीचे तुम्हारी Line 407 वाली `if (data && data.length > 0) {` वैसी की वैसी ही रहेगी)
         if (data && data.length > 0) {
             currentQuestions = data; 
             currentQuestionIndex = 0;
