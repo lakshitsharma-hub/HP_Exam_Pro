@@ -286,7 +286,9 @@ async def submit_score(data: ScoreSubmission):
             "exam_type": data.exam_type,
             "score": data.score,
             "correct_answers": data.correct_answers,
-            "wrong_answers": data.wrong_answers
+            "wrong_answers": data.wrong_answers,
+            "questions_snapshot": data.questions_snapshot,
+            "user_responses": data.user_responses
         }).execute()
         return {"status": "success", "data": response.data}
     except Exception as e:
