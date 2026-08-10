@@ -704,6 +704,10 @@ if (targetPage) {
         
         if (pageId === 'analytics-page') {
             loadAnalyticsData();
+            // 🟢 टेस्ट हिस्ट्री लोड करने का ट्रिगर 
+            if (typeof loadAttemptedHistory === 'function') {
+                loadAttemptedHistory();
+            }
         }
         
         if (pageId === 'mock-tests-page') {
