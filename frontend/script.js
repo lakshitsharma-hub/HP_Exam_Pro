@@ -916,6 +916,7 @@ function showReview() {
 }
 // Mock Test History Logic
 // 📜 यूज़र के अटेम्प्टेड टेस्ट्स की हिस्ट्री लोड करना
+// 📜 यूज़र के अटेम्प्टेड टेस्ट्स की हिस्ट्री लोड करना
 async function loadAttemptedHistory() {
     const historyContainer = document.getElementById('attempt-history-container');
     if (!historyContainer) return;
@@ -947,13 +948,14 @@ async function loadAttemptedHistory() {
         const card = document.createElement('div');
         card.style.cssText = 'background: #1e293b; padding: 12px 16px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155;';
         
+        // 🟢 FIX 1: यहाँ Review बटन में 'this' पास किया है ताकि हम उसी बटन पर Loading दिखा सकें
         card.innerHTML = `
             <div>
                 <h4 style="margin: 0; color: #f8fafc; font-size: 14px;">📝 ${examName}</h4>
                 <small style="color: #94a3b8; font-size: 11px;">दिनांक: <b>${attemptDate}</b> | स्कोर: <b style="color: #10b981;">${item.score} Marks</b></small>
             </div>
             <div style="display: flex; gap: 8px;">
-                <button onclick="reviewPastTest('${item.id}')" style="background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">👁️ Review</button>
+                <button onclick="reviewPastTest('${item.id}', this)" style="background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; min-width: 80px;">👁️ Review</button>
                 <button onclick="confirmReattempt('${item.exam_type}')" style="background: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">🔄 Re-attempt</button>
             </div>
         `;
@@ -961,13 +963,24 @@ async function loadAttemptedHistory() {
     });
 }
 
-// 👁️ पुराने टेस्ट का रिव्यु खोलना
-async function reviewPastTest(testId) {
+// 👁️ पुराने टेस्ट का रिव्यु खोलना (लोैडिंग इफ़ेक्ट के साथ)
+async function reviewPastTest(testId, btnElement) {
+    // 🟢 FIX 2: बटन पर गोल-गोल (Loading) इफ़ेक्ट दिखाएं
+    const originalText = btnElement.innerHTML;
+    btnElement.innerHTML = '⏳ Loading...';
+    btnElement.disabled = true;
+    btnElement.style.opacity = '0.7';
+
     const { data, error } = await supabaseClient
         .from('test_results')
         .select('*')
         .eq('id', testId)
         .single();
+
+    // डेटा आते ही बटन को वापस नॉर्मल कर दो
+    btnElement.innerHTML = originalText;
+    btnElement.disabled = false;
+    btnElement.style.opacity = '1';
 
     if (error || !data || !data.questions_snapshot) {
         alert("इस टेस्ट का डिटेल्ड रिव्यू डेटा उपलब्ध नहीं है!");
@@ -976,6 +989,11 @@ async function reviewPastTest(testId) {
 
     currentQuestions = data.questions_snapshot;
     userAnswers = data.user_responses || {};
+
+    // 🟢 FIX 3: MAIN FIX - पहले Mock Test वाले टैब पर स्विच करो!
+    if (typeof switchTab === 'function') {
+        switchTab('mock-tests-page');
+    }
 
     const selectionView = document.getElementById('exam-selection-view');
     const quizView = document.getElementById('active-quiz-view');
