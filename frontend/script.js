@@ -956,7 +956,7 @@ async function loadAttemptedHistory() {
             </div>
             <div style="display: flex; gap: 8px;">
                 <button onclick="reviewPastTest('${item.id}', this)" style="background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; min-width: 80px;">👁️ Review</button>
-                <button onclick="confirmReattempt('${item.exam_type}')" style="background: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">🔄 Re-attempt</button>
+                <button onclick="confirmReattempt('${item.id}', '${item.exam_type}', this)" style="background: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; min-width: 90px;">🔄 Re-attempt</button>
             </div>
         `;
         historyContainer.appendChild(card);
@@ -1007,11 +1007,35 @@ async function reviewPastTest(testId, btnElement) {
 }
 
 // 🔄 Re-attempt की पुष्टि
-function confirmReattempt(examType) {
+// 🔄 Re-attempt की पुष्टि और वही पुराने सवाल लोड करना (नया लॉजिक)
+async function confirmReattempt(testId, examType, btnElement) {
     const examName = examType === 'patwari' ? 'Patwari' : 'JOA IT';
-    const sure = confirm(`Are you sure? क्या आप सच में ${examName} Mock Test को दोबारा Re-attempt करना चाहते हैं?`);
+    const sure = confirm(`Are you sure? क्या आप सच में इसी ${examName} टेस्ट को दोबारा देना चाहते हैं? (सवाल वही रहेंगे)`);
     
     if (sure) {
+        // लोडिंग इफ़ेक्ट
+        const originalText = btnElement.innerHTML;
+        btnElement.innerHTML = '⏳...';
+        btnElement.disabled = true;
+
+        // डेटाबेस से उसी टेस्ट के सवाल निकालें
+        const { data, error } = await supabaseClient
+            .from('test_results')
+            .select('questions_snapshot')
+            .eq('id', testId)
+            .single();
+
+        btnElement.innerHTML = originalText;
+        btnElement.disabled = false;
+
+        if (error || !data || !data.questions_snapshot) {
+            alert("इस टेस्ट का डेटा नहीं मिला!");
+            return;
+        }
+
+        // सवालों को एक टेम्परेरी ग्लोबल वेरिएबल में सेव कर लें
+        window.reAttemptQuestions = data.questions_snapshot;
+
         if (typeof switchTab === 'function') switchTab('mock-tests-page');
         startMockTest(examType);
     }
