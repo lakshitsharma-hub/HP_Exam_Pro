@@ -982,6 +982,15 @@ async function loadAttemptedHistory() {
         historyContainer.appendChild(card);
     });
 }
+// 🛑 End Test बटन दबाने पर Warning / Confirmation पूछना
+function promptEndTest() {
+    const sure = confirm("⚠️ Are you sure?\nक्या आप सच में टेस्ट को अभी Submit करना चाहते हैं?");
+    
+    if (sure) {
+        // अगर यूज़र 'OK' दबाता है, तो असली सबमिट फंक्शन चला दो
+        submitMockTest();
+    }
+}
 
 // 👁️ पुराने टेस्ट का रिव्यु खोलना (लोैडिंग इफ़ेक्ट के साथ)
 async function reviewPastTest(testId, btnElement) {
