@@ -40,6 +40,8 @@ class ScoreSubmission(BaseModel):
     score: int
     correct_answers: int
     wrong_answers: int
+    questions_snapshot: list = []
+    user_responses: dict = {}
 
 class QueryRaiseInput(BaseModel):
     user_id: str
