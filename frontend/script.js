@@ -580,12 +580,14 @@ async function submitMockTest() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                user_id: userId,
-                exam_type: selectedExamType,
-                score: correctCount,
-                correct_answers: correctCount,
-                wrong_answers: wrongCount
-            })
+            user_id: userId,
+            exam_type: selectedExamType,
+            score: correctCount,
+            correct_answers: correctCount,
+            wrong_answers: wrongCount, // 👈 यहाँ कॉमा (,) ज़रूर लगाना
+            questions_snapshot: currentQuestions, // 👈 यह नया जोड़ा
+            user_responses: userAnswers           // 👈 यह नया जोड़ा
+        })
         });
     } catch (error) {
         console.error("Data save karne mein error aaya:", error);
@@ -908,6 +910,91 @@ function showReview() {
         reviewContainer.appendChild(qCard);
     });
 }
+// Mock Test History Logic
+// 📜 यूज़र के अटेम्प्टेड टेस्ट्स की हिस्ट्री लोड करना
+async function loadAttemptedHistory() {
+    const historyContainer = document.getElementById('attempt-history-container');
+    if (!historyContainer) return;
+
+    const userId = currentUserId || window.CURRENT_USER_PROFILE?.id;
+    if (!userId) {
+        historyContainer.innerHTML = '<p style="color:#94a3b8; font-size:13px;">हिस्ट्री देखने के लिए कृपया लॉगिन करें।</p>';
+        return;
+    }
+
+    historyContainer.innerHTML = '<p style="color:#94a3b8; font-size:13px;">⏳ अटेम्प्टेड टेस्ट्स लोड हो रहे हैं...</p>';
+
+    const { data: attempts, error } = await supabaseClient
+        .from('test_results')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+    if (error || !attempts || attempts.length === 0) {
+        historyContainer.innerHTML = '<p style="color:#94a3b8; font-size:13px;">आपने अभी तक कोई टेस्ट नहीं दिया है।</p>';
+        return;
+    }
+
+    historyContainer.innerHTML = '';
+    attempts.forEach(item => {
+        const examName = item.exam_type === 'patwari' ? 'Patwari Mock Test' : 'JOA IT Mock Test';
+        const attemptDate = new Date(item.created_at).toLocaleDateString('hi-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        
+        const card = document.createElement('div');
+        card.style.cssText = 'background: #1e293b; padding: 12px 16px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155;';
+        
+        card.innerHTML = `
+            <div>
+                <h4 style="margin: 0; color: #f8fafc; font-size: 14px;">📝 ${examName}</h4>
+                <small style="color: #94a3b8; font-size: 11px;">दिनांक: <b>${attemptDate}</b> | स्कोर: <b style="color: #10b981;">${item.score} Marks</b></small>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button onclick="reviewPastTest('${item.id}')" style="background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">👁️ Review</button>
+                <button onclick="confirmReattempt('${item.exam_type}')" style="background: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">🔄 Re-attempt</button>
+            </div>
+        `;
+        historyContainer.appendChild(card);
+    });
+}
+
+// 👁️ पुराने टेस्ट का रिव्यु खोलना
+async function reviewPastTest(testId) {
+    const { data, error } = await supabaseClient
+        .from('test_results')
+        .select('*')
+        .eq('id', testId)
+        .single();
+
+    if (error || !data || !data.questions_snapshot) {
+        alert("इस टेस्ट का डिटेल्ड रिव्यू डेटा उपलब्ध नहीं है!");
+        return;
+    }
+
+    currentQuestions = data.questions_snapshot;
+    userAnswers = data.user_responses || {};
+
+    const selectionView = document.getElementById('exam-selection-view');
+    const quizView = document.getElementById('active-quiz-view');
+    const resultView = document.getElementById('quiz-result-view');
+
+    if (selectionView) selectionView.style.display = 'none';
+    if (quizView) quizView.style.display = 'none';
+    if (resultView) resultView.style.display = 'block';
+
+    showReview();
+}
+
+// 🔄 Re-attempt की पुष्टि
+function confirmReattempt(examType) {
+    const examName = examType === 'patwari' ? 'Patwari' : 'JOA IT';
+    const sure = confirm(`Are you sure? क्या आप सच में ${examName} Mock Test को दोबारा Re-attempt करना चाहते हैं?`);
+    
+    if (sure) {
+        if (typeof switchTab === 'function') switchTab('mock-tests-page');
+        startMockTest(examType);
+    }
+}
+
 
 // 1. Function to send password reset link via Email
 async function handleForgotPassword(email) {
