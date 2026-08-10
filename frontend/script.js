@@ -985,19 +985,18 @@ async function loadAttemptedHistory() {
 
 // 👁️ पुराने टेस्ट का रिव्यु खोलना (लोैडिंग इफ़ेक्ट के साथ)
 async function reviewPastTest(testId, btnElement) {
-    // 🟢 FIX 2: बटन पर गोल-गोल (Loading) इफ़ेक्ट दिखाएं
     const originalText = btnElement.innerHTML;
     btnElement.innerHTML = '⏳ Loading...';
     btnElement.disabled = true;
     btnElement.style.opacity = '0.7';
 
+    // डेटाबेस से पुराना रिज़ल्ट लाएं
     const { data, error } = await supabaseClient
         .from('test_results')
         .select('*')
         .eq('id', testId)
         .single();
 
-    // डेटा आते ही बटन को वापस नॉर्मल कर दो
     btnElement.innerHTML = originalText;
     btnElement.disabled = false;
     btnElement.style.opacity = '1';
@@ -1010,7 +1009,6 @@ async function reviewPastTest(testId, btnElement) {
     currentQuestions = data.questions_snapshot;
     userAnswers = data.user_responses || {};
 
-    // 🟢 FIX 3: MAIN FIX - पहले Mock Test वाले टैब पर स्विच करो!
     if (typeof switchTab === 'function') {
         switchTab('mock-tests-page');
     }
@@ -1023,9 +1021,17 @@ async function reviewPastTest(testId, btnElement) {
     if (quizView) quizView.style.display = 'none';
     if (resultView) resultView.style.display = 'block';
 
+    // 🟢 MAIN FIX: नीले डिब्बे (Score) और सही/गलत स्टैट्स में पुराने नंबर डालें
+    const finalScoreEl = document.getElementById('final-score');
+    const statCorrectEl = document.getElementById('stat-correct');
+    const statWrongEl = document.getElementById('stat-wrong');
+    
+    if (finalScoreEl) finalScoreEl.innerText = data.score !== undefined ? data.score : 0;
+    if (statCorrectEl) statCorrectEl.innerText = data.correct_answers !== undefined ? data.correct_answers : 0;
+    if (statWrongEl) statWrongEl.innerText = data.wrong_answers !== undefined ? data.wrong_answers : 0;
+
     showReview();
 }
-
 // 🔄 Re-attempt की पुष्टि
 // 🔄 Re-attempt की पुष्टि और वही पुराने सवाल लोड करना (नया लॉजिक)
 async function confirmReattempt(testId, examType, btnElement) {
