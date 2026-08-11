@@ -595,23 +595,28 @@ async function submitMockTest() {
     }
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
 
-    try {
-        await fetch('https://hp-exam-pro-dixk.onrender.com/api/submit-score', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-            user_id: userId,
-            exam_type: selectedExamType,
-            score: correctCount,
-            correct_answers: correctCount,
-            wrong_answers: wrongCount, // 👈 यहाँ कॉमा (,) ज़रूर लगाना
-            questions_snapshot: currentQuestions, // 👈 यह नया जोड़ा
-            user_responses: userAnswers           // 👈 यह नया जोड़ा
-        })
-        });
-    } catch (error) {
-        console.error("Data save karne mein error aaya:", error);
-    }
+        // 🟢 NAYA LOGIC: यूज़र का नाम स्क्रीन या प्रोफाइल से निकालें
+        const userNameEl = document.getElementById('display-name');
+        const userName = window.CURRENT_USER_PROFILE?.display_name || (userNameEl ? userNameEl.innerText : "Student");
+
+        try {
+            await fetch('https://hp-exam-pro-dixk.onrender.com/api/submit-score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: userId,
+                    display_name: userName, // 👈 नाम यहाँ से बैकएंड को जाएगा
+                    exam_type: selectedExamType,
+                    score: correctCount,
+                    correct_answers: correctCount,
+                    wrong_answers: wrongCount,
+                    questions_snapshot: currentQuestions,
+                    user_responses: userAnswers
+                })
+            });
+        } catch (error) {
+            console.error("Data save karne mein error aaya:", error);
+        }
 }
 
 function resetToSelection() {
