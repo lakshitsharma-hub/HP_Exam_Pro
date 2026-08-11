@@ -973,7 +973,12 @@ async function loadAttemptedHistory() {
 
     historyContainer.innerHTML = '';
     attempts.forEach(item => {
-        const examName = item.exam_type === 'patwari' ? 'Patwari Mock Test' : 'JOA IT Mock Test';
+        let examName = 'JOA IT Mock Test';
+if (item.exam_type === 'patwari') {
+    examName = 'Patwari Mock Test';
+} else if (item.exam_type === 'hp_police') {
+    examName = 'HP Police Mock Test';
+}
         const attemptDate = new Date(item.created_at).toLocaleDateString('hi-IN', { day: 'numeric', month: 'short', year: 'numeric' });
         
         const card = document.createElement('div');
