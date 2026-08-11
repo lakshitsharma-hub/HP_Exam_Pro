@@ -284,6 +284,7 @@ async def submit_score(data: ScoreSubmission):
     try:
         response = supabase.table("test_results").insert({
             "user_id": data.user_id,
+            "display_name": data.display_name,
             "exam_type": data.exam_type,
             "score": data.score,
             "correct_answers": data.correct_answers,
