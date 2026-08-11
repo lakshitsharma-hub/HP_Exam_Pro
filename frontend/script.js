@@ -1060,8 +1060,13 @@ async function reviewPastTest(testId, btnElement) {
 // 🔄 Re-attempt की पुष्टि
 // 🔄 Re-attempt की पुष्टि और वही पुराने सवाल लोड करना (नया लॉजिक)
 async function confirmReattempt(testId, examType, btnElement) {
-    const examName = examType === 'patwari' ? 'Patwari' : 'JOA IT';
-    const sure = confirm(`Are you sure? क्या आप सच में इसी ${examName} टेस्ट को दोबारा देना चाहते हैं? (सवाल वही रहेंगे)`);
+    let examName = 'JOA IT';
+if (examType === 'patwari') {
+    examName = 'Patwari';
+} else if (examType === 'hp_police') {
+    examName = 'HP Police Constable';
+}
+    const sure = confirm(`Are you sure want to Re-Attempt ${examName} ? (सवाल वही रहेंगे)`);
     
     if (sure) {
         // लोडिंग इफ़ेक्ट
