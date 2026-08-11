@@ -375,8 +375,10 @@ async function startMockTest(examType) {
     
     const titleEl = document.getElementById('quiz-exam-title');
     if (titleEl) {
-        titleEl.innerText = examType === 'patwari' ? 'Patwari Exam Mode' : 'JOA IT Exam Mode';
-    }
+            if (examType === 'patwari') titleEl.innerText = 'Patwari Exam Mode';
+            else if (examType === 'hp_police') titleEl.innerText = 'HP Police Exam Mode';
+            else titleEl.innerText = 'JOA IT Exam Mode';
+        }
     
     try {
             let data = null;
@@ -428,7 +430,11 @@ async function startMockTest(examType) {
             currentQuestions = data; 
             currentQuestionIndex = 0;
             userAnswers = {};
-            totalQuizTimeSeconds = 5400; 
+            if (examType === 'hp_police') {
+    totalQuizTimeSeconds = 7200; // Police के लिए 120 मिनट
+} else {
+    totalQuizTimeSeconds = 5400; // Patwari और JOA IT के लिए 90 मिनट
+} 
 
             document.getElementById('exam-selection-view').style.display = 'none';
             document.getElementById('active-quiz-view').style.display = 'block';
