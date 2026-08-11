@@ -89,10 +89,22 @@ async function loadUsers() {
 }
 // 📄 LIVE MOCK TEST & ANSWER KEY PDF GENERATION LOGIC
 async function generateTestPDF(examType) {
-    const examName = examType === 'patwari' ? 'HPRCA Patwari Examination' : 'JOA IT Examination';
-    const totalMarks = examType === 'patwari' ? '120' : '120';
+    // 🟢 1. डायनामिक एग्जाम डेटा सेट करना
+    let examName = 'JOA IT Examination';
+    let totalMarks = '120';
+    let timeAllowed = '90 Minutes';
+
+    if (examType === 'patwari') {
+        examName = 'HPRCA Patwari Examination';
+        totalMarks = '120';
+        timeAllowed = '90 Minutes';
+    } else if (examType === 'hp_police') {
+        examName = 'HP Police Constable Examination';
+        totalMarks = '90';
+        timeAllowed = '120 Minutes (2 Hours)';
+    }
     
-    // 1. बैकएंड से लाइव सवाल फेच करो
+    // 2. बैकएंड से लाइव सवाल फेच करो
     const printWindow = window.open('', '_blank');
     printWindow.document.write('<html><head><title>Generating PDF...</title></head><body style="font-family:sans-serif; padding:40px; text-align:center;"><h2>⏳ HP Exam Pro... प्रश्न पत्र तैयार किया जा रहा है...</h2></body></html>');
 
@@ -106,7 +118,7 @@ async function generateTestPDF(examType) {
             return;
         }
 
-        // 2. HTML layout ready करना
+        // 3. HTML layout ready करना
         let questionsHTML = '';
         let answerKeyRows = '';
         let explanationsHTML = '';
@@ -150,7 +162,7 @@ async function generateTestPDF(examType) {
             }
         });
 
-        // 3. पूरा डॉक्यूमेंट तैयार करना
+        // 4. पूरा डॉक्यूमेंट तैयार करना (CSS Watermark & WhatsApp Footer के साथ)
         const fullHTML = `
             <!DOCTYPE html>
             <html>
@@ -158,20 +170,64 @@ async function generateTestPDF(examType) {
                 <title>${examName} - Mock Test PDF</title>
                 <style>
                     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
-                    body { font-family: 'Plus Jakarta Sans', sans-serif; padding: 20px; color: #0f172a; line-height: 1.4; }
+                    body { font-family: 'Plus Jakarta Sans', sans-serif; padding: 20px; padding-bottom: 60px; color: #0f172a; line-height: 1.4; position: relative; z-index: 1; }
+                    
+                    /* 🟢 Watermark CSS */
+                    .watermark {
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%) rotate(-45deg);
+                        font-size: 110px;
+                        font-weight: bold;
+                        color: rgba(148, 163, 184, 0.15); 
+                        z-index: -1;
+                        white-space: nowrap;
+                        pointer-events: none;
+                        user-select: none;
+                    }
+
+                    /* 🟢 Footer CSS (हर पेज के नीचे दिखेगा) */
+                    .pdf-footer {
+                        position: fixed;
+                        bottom: 10px;
+                        left: 0;
+                        width: 100%;
+                        text-align: center;
+                        font-size: 12px;
+                        color: #475569;
+                        border-top: 1px dashed #cbd5e1;
+                        padding-top: 8px;
+                        background: white;
+                        z-index: 10;
+                        line-height: 1.6;
+                    }
+
                     .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 20px; }
                     .header h1 { margin: 0; font-size: 22px; color: #1e293b; }
                     .header p { margin: 4px 0; font-size: 13px; color: #475569; }
                     .meta-info { display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
                     .page-break { page-break-before: always; }
                     .answer-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 15px; }
+                    
                     @media print {
-                        body { padding: 0; }
+                        body { padding: 0; padding-bottom: 50px; }
                         button { display: none; }
+                        .watermark { color: rgba(148, 163, 184, 0.2) !important; -webkit-print-color-adjust: exact; }
+                        .pdf-footer { bottom: 0; -webkit-print-color-adjust: exact; }
                     }
                 </style>
             </head>
             <body>
+                <!-- 🟢 Watermark HTML -->
+                <div class="watermark">HP EXAM PRO</div>
+
+                <!-- 🟢 WhatsApp Footer HTML (साफ़ चेतावनी के साथ) -->
+                <div class="pdf-footer">
+                    © 2026 HP EXAM PRO | Practice Mock Test <br>
+                    💬 <b>For Support & Queries, WhatsApp Only (Strictly No Calls): +91 86289-11975</b>
+                </div>
+
                 <div style="text-align: right; margin-bottom: 10px;">
                     <button onclick="window.print()" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">🖨️ Save as PDF / Print</button>
                 </div>
@@ -182,7 +238,7 @@ async function generateTestPDF(examType) {
                 </div>
 
                 <div class="meta-info">
-                    <span>Time Allowed: 90 Minutes</span>
+                    <span>Time Allowed: ${timeAllowed}</span>
                     <span>Total Questions: ${questions.length}</span>
                     <span>Max Marks: ${totalMarks}</span>
                 </div>
@@ -226,7 +282,6 @@ async function generateTestPDF(examType) {
         if (printWindow) printWindow.close();
     }
 }
-
 // 2. Pro Status चालू/बंद करना
 async function togglePro(userId, currentStatus) {
     const { error } = await supabaseClient
