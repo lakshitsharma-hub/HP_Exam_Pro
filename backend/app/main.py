@@ -217,6 +217,19 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
             final_questions.extend(fetch_filtered_qs(None, "statement", 5))
             final_questions.extend(fetch_filtered_qs("current_affairs", "direct", 5))
 
+        # 3. HP Police Constable Exam Mode (90 Questions Blueprint)
+        elif exam_type == "hp_police":
+            # Languages (40 Marks)
+            final_questions.extend(fetch_filtered_qs("hindi", "direct", 20))
+            final_questions.extend(fetch_filtered_qs("english", "direct", 20))
+            # Maths & Reasoning (30 Marks)
+            final_questions.extend(fetch_filtered_qs("maths", "direct", 20))
+            final_questions.extend(fetch_filtered_qs("reasoning", "direct", 10))
+            # General Awareness (20 Marks) - Divided intelligently
+            final_questions.extend(fetch_filtered_qs("hp_gk", "direct", 7))
+            final_questions.extend(fetch_filtered_qs("current_affairs", "direct", 7))
+            final_questions.extend(fetch_filtered_qs("science", "direct", 6))
+
         else:
             raise HTTPException(status_code=400, detail="Invalid exam type!")
 
