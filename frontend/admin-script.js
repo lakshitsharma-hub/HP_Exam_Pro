@@ -162,7 +162,7 @@ async function generateTestPDF(examType) {
             }
         });
 
-        // 4. पूरा डॉक्यूमेंट तैयार करना (CSS Watermark & WhatsApp Footer के साथ)
+        // 4. पूरा डॉक्यूमेंट तैयार करना
         const fullHTML = `
             <!DOCTYPE html>
             <html>
@@ -170,7 +170,7 @@ async function generateTestPDF(examType) {
                 <title>${examName} - Mock Test PDF</title>
                 <style>
                     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
-                    body { font-family: 'Plus Jakarta Sans', sans-serif; padding: 20px; padding-bottom: 60px; color: #0f172a; line-height: 1.4; position: relative; z-index: 1; }
+                    body { font-family: 'Plus Jakarta Sans', sans-serif; padding: 20px; padding-bottom: 50px; color: #0f172a; line-height: 1.4; position: relative; z-index: 1; }
                     
                     /* 🟢 Watermark CSS */
                     .watermark {
@@ -187,20 +187,17 @@ async function generateTestPDF(examType) {
                         user-select: none;
                     }
 
-                    /* 🟢 Footer CSS (हर पेज के नीचे दिखेगा) */
+                    /* 🟢 Copyright Footer CSS (हर पेज के लिए) */
                     .pdf-footer {
                         position: fixed;
                         bottom: 10px;
                         left: 0;
                         width: 100%;
                         text-align: center;
-                        font-size: 12px;
-                        color: #475569;
-                        border-top: 1px dashed #cbd5e1;
-                        padding-top: 8px;
+                        font-size: 11px;
+                        color: #64748b;
                         background: white;
                         z-index: 10;
-                        line-height: 1.6;
                     }
 
                     .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 20px; }
@@ -211,7 +208,7 @@ async function generateTestPDF(examType) {
                     .answer-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 15px; }
                     
                     @media print {
-                        body { padding: 0; padding-bottom: 50px; }
+                        body { padding: 0; padding-bottom: 40px; }
                         button { display: none; }
                         .watermark { color: rgba(148, 163, 184, 0.2) !important; -webkit-print-color-adjust: exact; }
                         .pdf-footer { bottom: 0; -webkit-print-color-adjust: exact; }
@@ -219,13 +216,12 @@ async function generateTestPDF(examType) {
                 </style>
             </head>
             <body>
-                <!-- 🟢 Watermark HTML -->
+                <!-- 🟢 Watermark -->
                 <div class="watermark">HP EXAM PRO</div>
 
-                <!-- 🟢 WhatsApp Footer HTML (साफ़ चेतावनी के साथ) -->
+                <!-- 🟢 Copyright Footer (हर पेज के नीचे छपेगा) -->
                 <div class="pdf-footer">
-                    © 2026 HP EXAM PRO | Practice Mock Test <br>
-                    💬 <b>For Support & Queries, WhatsApp Only (Strictly No Calls): +91 86289-11975</b>
+                    © 2026 HP EXAM PRO | Practice Mock Test
                 </div>
 
                 <div style="text-align: right; margin-bottom: 10px;">
@@ -262,6 +258,11 @@ async function generateTestPDF(examType) {
                 <h3 style="margin-top: 30px; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">💡 Detailed Explanations</h3>
                 <div>
                     ${explanationsHTML || '<p style="font-size: 12px; color: #64748b;">No specific explanations provided for this set.</p>'}
+                </div>
+
+                <!-- 🟢 WhatsApp Support (सिर्फ एकदम आखिरी पेज के अंत में छपेगा) -->
+                <div style="margin-top: 40px; padding-top: 15px; border-top: 1px dashed #cbd5e1; text-align: center; font-size: 13px; color: #1e293b;">
+                    💬 <b>For Support & Queries, WhatsApp Only (Strictly No Calls): +91 86289-11975</b>
                 </div>
 
                 <script>
