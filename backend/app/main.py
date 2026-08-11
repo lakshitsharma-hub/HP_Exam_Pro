@@ -36,6 +36,7 @@ app.add_middleware(
 # --- PYDANTIC MODELS (Data Validation Models) ---
 class ScoreSubmission(BaseModel):
     user_id: str
+    display_name: str = "Unknown"
     exam_type: str
     score: int
     correct_answers: int
