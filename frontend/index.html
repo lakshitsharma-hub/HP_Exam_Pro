@@ -235,7 +235,14 @@
     </div>
 
   <div id="active-quiz-view" style="display: none; background: #1e293b; padding: 25px; border-radius: 12px; color: white; max-width: 700px; margin: 0 auto; max-height: 85vh; overflow-y: auto; box-sizing: border-box;">
-
+      <!-- TCS Style Language Selector -->
+<div class="lang-toggle-box" style="float: right; display: flex; align-items: center; gap: 8px; background: #0f172a; padding: 6px 12px; border-radius: 8px; border: 1px solid #334155;">
+    <span style="color: #94a3b8; font-size: 13px; font-weight: 600;">🌐 View In:</span>
+    <select id="langSelect" onchange="changeLanguage(this.value)" style="background: #1e293b; color: #38bdf8; border: 1px solid #475569; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; outline: none;">
+        <option value="hi" selected>Hindi (अ)</option>
+        <option value="en">English (A)</option>
+    </select>
+</div>
         <div class="quiz-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 15px;">
             <h3 id="quiz-exam-title">Exam Mode</h3>
             <div style="background: #ef4444; padding: 5px 12px; border-radius: 20px; font-weight: bold;">
