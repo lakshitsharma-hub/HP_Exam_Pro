@@ -27,7 +27,27 @@
   "url": "https://hp-exam-pro.vercel.app/"
 }
 </script>
-
+<!-- 🌟 GOLDEN SHINE ANIMATION CSS -->
+    <style>
+        @keyframes golden-pulse {
+            0% { 
+                box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); 
+                border-color: #d97706; 
+            }
+            50% { 
+                box-shadow: 0 0 20px rgba(251, 191, 36, 0.9), inset 0 0 8px rgba(245, 158, 11, 0.3); 
+                border-color: #fcd34d; 
+            }
+            100% { 
+                box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); 
+                border-color: #d97706; 
+            }
+        }
+        
+        .golden-shine-effect {
+            animation: golden-pulse 1.5s infinite alternate ease-in-out;
+        }
+    </style>
     <style id="modern-ux-theme">
     /* 1. Frosted Glass Effect (Apple Style) */
     #standard-sidebar-content .info-card {
