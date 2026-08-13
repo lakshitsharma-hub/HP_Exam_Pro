@@ -1699,3 +1699,5 @@ function renderTrophyCabinet(unlockedBadgeIds = []) {
         }
     });
 }
+// पेज लोड होते ही मशीन को चालू करो (अभी जीते हुए बैज की लिस्ट खाली [] है)
+renderTrophyCabinet([]);
