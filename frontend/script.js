@@ -591,7 +591,7 @@ async function submitMockTest() {
     let correctCount = 0;
     let wrongCount = 0;
     
-        currentQuestions.forEach(q => {
+    currentQuestions.forEach(q => {
         const chosen = userAnswers[q.id];
         let correctKey = q.correct_option || q.answer || q.correct_answer || q.correct;
         
@@ -607,46 +607,58 @@ async function submitMockTest() {
         }
     });
 
+    // 🟢 NEW LOGIC: सिर्फ HP Police के लिए नेगेटिव मार्किंग (-0.25)
+    let finalScore = correctCount; // डिफ़ॉल्ट रूप से सही जवाबों की संख्या ही स्कोर होगी
     
-    document.getElementById('final-score').innerText = correctCount;
+    if (selectedExamType === 'hp_police') {
+        finalScore = correctCount - (wrongCount * 0.25);
+        // स्कोर को दशमलव के 2 अंकों तक फिक्स करने के लिए (जैसे 38.75)
+        finalScore = parseFloat(finalScore.toFixed(2));
+    }
+    
+    // स्क्रीन पर अपडेट करना
+    document.getElementById('final-score').innerText = finalScore;
     document.getElementById('stat-correct').innerText = correctCount;
     document.getElementById('stat-wrong').innerText = wrongCount;
     
     document.getElementById('active-quiz-view').style.display = 'none';
     document.getElementById('quiz-result-view').style.display = 'block';
+    
     // 🎯 टेस्ट सबमिट होते ही पैलेट हटाकर नॉर्मल साइडबार वापस लाएं
     if(document.getElementById('standard-sidebar-content')) document.getElementById('standard-sidebar-content').style.display = 'block';
     if(document.getElementById('quiz-navigation-palette')) document.getElementById('quiz-navigation-palette').style.display = 'none';
-        // 🧹 टेस्ट सबमिट होते ही रिव्यू डिब्बे को रीसेट कर दो, ताकि पुराना कचरा न दिखे
+    
+    // 🧹 टेस्ट सबमिट होते ही रिव्यू डिब्बे को रीसेट कर दो, ताकि पुराना कचरा न दिखे
     const reviewBox = document.getElementById('review-container');
     if (reviewBox) {
         reviewBox.style.display = 'none';
         reviewBox.innerHTML = '';
     }
+    
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
 
-        // 🟢 NAYA LOGIC: यूज़र का नाम स्क्रीन या प्रोफाइल से निकालें
-        const userNameEl = document.getElementById('display-name');
-        const userName = window.CURRENT_USER_PROFILE?.display_name || (userNameEl ? userNameEl.innerText : "Student");
+    // यूज़र का नाम स्क्रीन या प्रोफाइल से निकालें
+    const userNameEl = document.getElementById('display-name');
+    const userName = window.CURRENT_USER_PROFILE?.display_name || (userNameEl ? userNameEl.innerText : "Student");
 
-        try {
-            await fetch('https://hp-exam-pro-dixk.onrender.com/api/submit-score', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_id: userId,
-                    display_name: userName, // 👈 नाम यहाँ से बैकएंड को जाएगा
-                    exam_type: selectedExamType,
-                    score: correctCount,
-                    correct_answers: correctCount,
-                    wrong_answers: wrongCount,
-                    questions_snapshot: currentQuestions,
-                    user_responses: userAnswers
-                })
-            });
-        } catch (error) {
-            console.error("Data save karne mein error aaya:", error);
-        }
+    try {
+        await fetch('https://hp-exam-pro-dixk.onrender.com/api/submit-score', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: userId,
+                display_name: userName, // 👈 नाम यहाँ से बैकएंड को जाएगा
+                exam_type: selectedExamType,
+                score: finalScore, // 👈 यहाँ correctCount की जगह finalScore भेज रहे हैं
+                correct_answers: correctCount,
+                wrong_answers: wrongCount,
+                questions_snapshot: currentQuestions,
+                user_responses: userAnswers
+            })
+        });
+    } catch (error) {
+        console.error("Data save karne mein error aaya:", error);
+    }
 }
 
 function resetToSelection() {
