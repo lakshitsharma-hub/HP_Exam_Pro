@@ -1613,11 +1613,24 @@ function closeAchievementPopup() {
 }
 
 // 🟢 TEST FUNCTION: यह चेक करने के लिए कि सिस्टम काम कर रहा है
-// तुम इसे हटा सकते हो बाद में, अभी बस कन्सोल में चेक करने के लिए है
-function testBadge() {
-    showAchievementUnlock(
-        '🎯', 
-        'Accuracy Sniper', 
-        'शानदार! आपने इस टेस्ट में 90% से ज़्यादा एक्यूरेसी हासिल की है। आपका निशाना एकदम सटीक है!'
-    );
+// ==================== 🎯 ACHIEVEMENT CHECKER LOGIC ====================
+function checkAchievements(totalQuestions, attempted, correctAnswers) {
+    // 1. Accuracy Sniper Check 🎯 (90% से ज़्यादा सही जवाब)
+    if (attempted > 0) {
+        const accuracy = (correctAnswers / attempted) * 100;
+        
+        if (accuracy >= 90) {
+            // टेस्ट सबमिट होने के 1.5 सेकंड बाद पॉप-अप दिखाएंगे, ताकि पहले रिजल्ट दिख जाए
+            setTimeout(() => {
+                showAchievementUnlock(
+                    '🎯', 
+                    'Accuracy Sniper', 
+                    `शानदार! आपने ${attempted} में से ${correctAnswers} सही जवाब दिए (${accuracy.toFixed(1)}% Accuracy)। आपका निशाना एकदम सटीक है!`
+                );
+            }, 1500); 
+            
+            // TODO: बाद में यहाँ Supabase डेटाबेस में भी ये बैज सेव करने का कोड डालेंगे
+            return; 
+        }
+    }
 }
