@@ -608,11 +608,10 @@ async function submitMockTest() {
     });
 
     // 🟢 NEW LOGIC: सिर्फ HP Police के लिए नेगेटिव मार्किंग (-0.25)
-    let finalScore = correctCount; // डिफ़ॉल्ट रूप से सही जवाबों की संख्या ही स्कोर होगी
+    let finalScore = correctCount; 
     
     if (selectedExamType === 'hp_police') {
         finalScore = correctCount - (wrongCount * 0.25);
-        // स्कोर को दशमलव के 2 अंकों तक फिक्स करने के लिए (जैसे 38.75)
         finalScore = parseFloat(finalScore.toFixed(2));
     }
     
@@ -620,6 +619,14 @@ async function submitMockTest() {
     document.getElementById('final-score').innerText = finalScore;
     document.getElementById('stat-correct').innerText = correctCount;
     document.getElementById('stat-wrong').innerText = wrongCount;
+    
+    // =========================================================================
+    // 🏆 ACHIEVEMENT CHECK TRIGGER (NAYA CODE)
+    // =========================================================================
+    const totalQuestions = currentQuestions.length;
+    const attemptedQuestions = correctCount + wrongCount;
+    checkAchievements(totalQuestions, attemptedQuestions, correctCount);
+    // =========================================================================
     
     document.getElementById('active-quiz-view').style.display = 'none';
     document.getElementById('quiz-result-view').style.display = 'block';
@@ -647,9 +654,9 @@ async function submitMockTest() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 user_id: userId,
-                display_name: userName, // 👈 नाम यहाँ से बैकएंड को जाएगा
+                display_name: userName, 
                 exam_type: selectedExamType,
-                score: finalScore, // 👈 यहाँ correctCount की जगह finalScore भेज रहे हैं
+                score: finalScore, 
                 correct_answers: correctCount,
                 wrong_answers: wrongCount,
                 questions_snapshot: currentQuestions,
@@ -660,7 +667,6 @@ async function submitMockTest() {
         console.error("Data save karne mein error aaya:", error);
     }
 }
-
 function resetToSelection() {
     document.getElementById('quiz-result-view').style.display = 'none';
     document.getElementById('exam-selection-view').style.display = 'block';
