@@ -1409,9 +1409,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDailyQuestion();
 });
 // =============================================================================
+// ==================== 🏆 SMART LEADERBOARD SYSTEM (WITH DATABASE) ====================
 
-// ==================== 🏆 SMART LEADERBOARD SYSTEM ====================
-
+// 1. Ghost Users Data (Fixed Range: Police < 72, Patwari/JOA < 89)
 const ghostLeaderboards = {
     'hp_police': [
         { name: "rahul.sharma99", baseScore: 71.00 }, 
@@ -1426,28 +1426,28 @@ const ghostLeaderboards = {
         { name: "anjali.04", baseScore: 48.50 }
     ],
     'patwari': [
-        { name: "priya.s12", baseScore: 94.00 },      
-        { name: "sharma.aman", baseScore: 91.00 },
-        { name: "rahul.sharma99", baseScore: 88.00 }, 
-        { name: "pooja.rajput", baseScore: 85.00 },
-        { name: "vikas.k87", baseScore: 82.00 },      
-        { name: "kullu_boy", baseScore: 79.00 },
-        { name: "sunita.devi", baseScore: 75.00 },
-        { name: "manish.77", baseScore: 71.00 },
-        { name: "diksha.hp", baseScore: 68.00 },
-        { name: "vishal.kumar", baseScore: 65.00 }
+        { name: "priya.s12", baseScore: 88.00 },      
+        { name: "sharma.aman", baseScore: 86.00 },
+        { name: "rahul.sharma99", baseScore: 83.00 }, 
+        { name: "pooja.rajput", baseScore: 80.00 },
+        { name: "vikas.k87", baseScore: 78.00 },      
+        { name: "kullu_boy", baseScore: 75.00 },
+        { name: "sunita.devi", baseScore: 72.00 },
+        { name: "manish.77", baseScore: 68.00 },
+        { name: "diksha.hp", baseScore: 65.00 },
+        { name: "vishal.kumar", baseScore: 62.00 }
     ],
     'joa_it': [
-        { name: "vikas.k87", baseScore: 92.00 },      
-        { name: "tech.amit", baseScore: 89.00 },
-        { name: "rahul.sharma99", baseScore: 86.00 }, 
-        { name: "priya.s12", baseScore: 83.00 },      
-        { name: "ritika.sharma", baseScore: 80.00 },
-        { name: "kapil.dev", baseScore: 77.00 },
-        { name: "sumit.it", baseScore: 74.00 },
-        { name: "ashish.99", baseScore: 70.00 },
-        { name: "monika.thakur", baseScore: 67.00 },
-        { name: "nitin.kumar", baseScore: 64.00 }
+        { name: "vikas.k87", baseScore: 88.00 },      
+        { name: "tech.amit", baseScore: 85.00 },
+        { name: "rahul.sharma99", baseScore: 82.00 }, 
+        { name: "priya.s12", baseScore: 79.00 },      
+        { name: "ritika.sharma", baseScore: 76.00 },
+        { name: "kapil.dev", baseScore: 73.00 },
+        { name: "sumit.it", baseScore: 70.00 },
+        { name: "ashish.99", baseScore: 67.00 },
+        { name: "monika.thakur", baseScore: 64.00 },
+        { name: "nitin.kumar", baseScore: 61.00 }
     ]
 };
 
@@ -1461,36 +1461,75 @@ function getDailyScore(baseScore, name) {
     return Math.max(0, baseScore + fluctuation + fraction);
 }
 
-function renderLeaderboard(examType = 'hp_police', userScoreForThisExam = 0) {
+// 🟢 NAYA LOGIC: Async function jo backend se real data layega
+async function renderLeaderboard(examType = 'hp_police') {
     const container = document.getElementById('leaderboard-list');
     if (!container) return;
-
-    const realUserName = window.CURRENT_USER_PROFILE?.display_name || "Student (You)";
     
+    // Loading State
+    container.innerHTML = '<div style="text-align:center; padding: 20px; color:#94a3b8;">⏳ Loading Live Ranks...</div>';
+
+    const currentLoggedInName = window.CURRENT_USER_PROFILE?.display_name || "";
+    
+    // 1. Ghost Users लोड करें
     let allUsers = ghostLeaderboards[examType].map(user => ({
         name: user.name,
         score: getDailyScore(user.baseScore, user.name),
-        isReal: false
+        isReal: false,
+        isMe: false
     }));
-    
-    // 🛑 ADMIN HIDE FEATURE: अपनी ID छुपाने के लिए
-    const hideAdmin = true; 
-    const isAdminAccount = realUserName.includes('lakshitsharma976') || realUserName.includes('lakshitsharma8080');
 
-    if (userScoreForThisExam > 0) {
-        if (!(hideAdmin && isAdminAccount)) {
-            allUsers.push({ name: realUserName, score: userScoreForThisExam, isReal: true });
+    // 2. 🟢 DATABASE FETCH: Supabase से असली यूज़र्स का डेटा लाएं
+    try {
+        const { data: testResults } = await supabaseClient.from('test_results').select('user_id, score').eq('exam_type', examType);
+        const { data: profiles } = await supabaseClient.from('profiles').select('id, display_name');
+
+        if (testResults && profiles) {
+            // प्रोफाइल ID को नाम से जोड़ने के लिए एक मैप बनाएं
+            const profileMap = {};
+            profiles.forEach(p => profileMap[p.id] = p.display_name);
+
+            // हर यूज़र का सबसे हाईएस्ट स्कोर निकालें
+            const realUserMaxScores = {};
+            testResults.forEach(test => {
+                const userName = profileMap[test.user_id] || "Unknown Student";
+                if (!realUserMaxScores[userName] || test.score > realUserMaxScores[userName]) {
+                    realUserMaxScores[userName] = test.score;
+                }
+            });
+
+            const hideAdmin = true; 
+
+            // डेटाबेस वाले यूज़र्स को लिस्ट में जोड़ें
+            for (const [uName, maxScore] of Object.entries(realUserMaxScores)) {
+                const isAdminAccount = uName.includes('lakshitsharma976') || uName.includes('lakshitsharma8080');
+                
+                // अगर एडमिन है और छुपाना है, तो लिस्ट में मत डालो
+                if (hideAdmin && isAdminAccount) continue;
+
+                allUsers.push({ 
+                    name: uName, 
+                    score: maxScore, 
+                    isReal: true,
+                    isMe: (uName === currentLoggedInName) // जो बच्चा अभी साइट चला रहा है, उसे हाइलाइट करने के लिए
+                });
+            }
         }
+    } catch (error) {
+        console.error("Leaderboard DB Error:", error);
     }
 
+    // 3. सॉर्टिंग (ज़्यादा नंबर वाला ऊपर)
     allUsers.sort((a, b) => b.score - a.score);
+    
     container.innerHTML = '';
     let realUserRank = -1;
     let realUserHTML = '';
 
+    // 4. UI Generate करना
     allUsers.forEach((user, index) => {
         const rank = index + 1;
-        if (user.isReal) realUserRank = rank;
+        if (user.isMe) realUserRank = rank;
 
         let bgStyle = "background: #1e293b; border: 1px solid #334155;";
         let nameColor = "#f8fafc";
@@ -1509,14 +1548,19 @@ function renderLeaderboard(examType = 'hp_police', userScoreForThisExam = 0) {
             rankDisplay = `<span style="font-size: 18px; width: 30px;">🥉</span>`;
         }
 
-        if (user.isReal) {
+        // जो बच्चा अभी ऑनलाइन है, उसके कार्ड को नीला रंग (YOU badge) दो
+        if (user.isMe) {
             bgStyle = "background: rgba(37, 99, 235, 0.15); border: 1px solid #3b82f6;";
             nameColor = "#38bdf8";
             isMeBadge = `<span style="background: #2563eb; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">YOU</span>`;
+        } 
+        // बाकी असली बच्चों (जो डेटाबेस से आए हैं) के नाम के आगे एक छोटा सा 'Verified' टिक दिखा सकते हैं (Optional)
+        else if (user.isReal) {
+            isMeBadge = `<i class="fa-solid fa-circle-check" style="color: #10b981; font-size: 12px; margin-left: 6px;" title="Real Student"></i>`;
         }
 
         const htmlRow = `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-radius: 8px; ${bgStyle}">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-radius: 8px; ${bgStyle}; flex-shrink: 0;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     ${rankDisplay}
                     <span style="font-weight: 600; color: ${nameColor}; display: flex; align-items: center;">${user.name} ${isMeBadge}</span>
@@ -1527,7 +1571,7 @@ function renderLeaderboard(examType = 'hp_police', userScoreForThisExam = 0) {
 
         if (rank <= 10) {
             container.innerHTML += htmlRow;
-        } else if (user.isReal) {
+        } else if (user.isMe) {
             realUserHTML = htmlRow;
         }
     });
