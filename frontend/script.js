@@ -981,8 +981,7 @@ function showReview() {
         reviewContainer.appendChild(qCard);
     });
 }
-// Mock Test History Logic
-// 📜 यूज़र के अटेम्प्टेड टेस्ट्स की हिस्ट्री लोड करना
+// Mock Test History Logicा
 // 📜 यूज़र के अटेम्प्टेड टेस्ट्स की हिस्ट्री लोड करना
 async function loadAttemptedHistory() {
     const historyContainer = document.getElementById('attempt-history-container');
@@ -1189,6 +1188,103 @@ async function autoTranslate(text) {
     } catch (error) {
         console.error("Translation Error:", error);
         return text;
+    }
+}
+
+// 3. Render Leaderboard UI
+function renderLeaderboard(examType = 'hp_police', userScoreForThisExam = 0) {
+    const container = document.getElementById('leaderboard-list');
+    if (!container) return;
+
+    const realUserName = window.CURRENT_USER_PROFILE?.display_name || "Student (You)";
+    
+    // घोस्ट यूज़र्स के आज के (फ्लुक्टुएटेड) नंबर निकालो
+    let allUsers = ghostLeaderboards[examType].map(user => ({
+        name: user.name,
+        score: getDailyScore(user.baseScore, user.name),
+        isReal: false
+    }));
+    
+    // ========================================================================
+    // 🛑 ADMIN HIDE FEATURE: अपनी ID को लीडरबोर्ड से छुपाने का कंट्रोल
+    // अगर तुम खुद को छुपाना चाहते हो, तो इसे true रहने दो।
+    // अगर तुम लीडरबोर्ड पर अपना नाम देखना चाहते हो, तो इसे false कर दो।
+    const hideAdmin = true; 
+    
+    // यहाँ तुम्हारी दोनों IDs चेक होंगी
+    const isAdminAccount = realUserName.includes('lakshitsharma976') || realUserName.includes('lakshitsharma8080');
+    // ========================================================================
+
+    // असली यूज़र की एंट्री
+    if (userScoreForThisExam > 0) {
+        if (hideAdmin && isAdminAccount) {
+            // तुम एडमिन हो और Hide सेटिंग ON है, इसलिए तुम्हारा नाम लिस्ट में नहीं जाएगा (Ghost Mode) 👻
+        } else {
+            // कोई आम बच्चा है या तुमने Hide सेटिंग OFF कर दी है, तो लिस्ट में डाल दो
+            allUsers.push({ name: realUserName, score: userScoreForThisExam, isReal: true });
+        }
+    }
+
+    // सॉर्टिंग (ज़्यादा नंबर वाला ऊपर)
+    allUsers.sort((a, b) => b.score - a.score);
+
+    container.innerHTML = '';
+    let realUserRank = -1;
+    let realUserHTML = '';
+
+    allUsers.forEach((user, index) => {
+        const rank = index + 1;
+        if (user.isReal) realUserRank = rank;
+
+        // UI Design Logic
+        let bgStyle = "background: #1e293b; border: 1px solid #334155;";
+        let nameColor = "#f8fafc";
+        let rankDisplay = `<span style="color: #94a3b8; font-weight: bold; width: 30px;">#${rank}</span>`;
+        let isMeBadge = "";
+
+        if (rank === 1) {
+            bgStyle = "background: linear-gradient(90deg, rgba(245, 158, 11, 0.1) 0%, #1e293b 100%); border: 1px solid #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);";
+            rankDisplay = `<span style="font-size: 18px; width: 30px;">👑</span>`;
+            nameColor = "#f59e0b";
+        } else if (rank === 2) {
+            bgStyle = "background: linear-gradient(90deg, rgba(203, 213, 225, 0.1) 0%, #1e293b 100%); border: 1px solid #cbd5e1;";
+            rankDisplay = `<span style="font-size: 18px; width: 30px;">🥈</span>`;
+        } else if (rank === 3) {
+            bgStyle = "background: linear-gradient(90deg, rgba(217, 119, 6, 0.1) 0%, #1e293b 100%); border: 1px solid #d97706;";
+            rankDisplay = `<span style="font-size: 18px; width: 30px;">🥉</span>`;
+        }
+
+        // असली यूज़र का प्रीमियम हाईलाइट
+        if (user.isReal) {
+            bgStyle = "background: rgba(37, 99, 235, 0.15); border: 1px solid #3b82f6;";
+            nameColor = "#38bdf8";
+            isMeBadge = `<span style="background: #2563eb; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">YOU</span>`;
+        }
+
+        const htmlRow = `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-radius: 8px; ${bgStyle}">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    ${rankDisplay}
+                    <span style="font-weight: 600; color: ${nameColor}; display: flex; align-items: center;">${user.name} ${isMeBadge}</span>
+                </div>
+                <div style="font-weight: bold; color: #10b981;">${user.score}</div>
+            </div>
+        `;
+
+        // टॉप 10 को प्रिंट करो
+        if (rank <= 10) {
+            container.innerHTML += htmlRow;
+        } 
+        // अगर असली यूज़र टॉप 10 से बाहर है, तो उसे सेव कर लो (पिन करने के लिए)
+        else if (user.isReal) {
+            realUserHTML = htmlRow;
+        }
+    });
+
+    // Pinned Bottom Logic: अगर बच्चा टॉप 10 में नहीं है, तो उसे सबसे नीचे चिपका दो
+    if (realUserRank > 10) {
+        container.innerHTML += `<div style="text-align: center; color: #475569; font-size: 20px; line-height: 10px; margin: 5px 0;">⋮</div>`;
+        container.innerHTML += realUserHTML;
     }
 }
 
