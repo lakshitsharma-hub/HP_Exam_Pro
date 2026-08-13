@@ -1625,7 +1625,7 @@ function checkAchievements(totalQuestions, attempted, correctAnswers) {
     if (attempted > 0) {
         const accuracy = (correctAnswers / attempted) * 100;
         
-        if (accuracy >= 90) {
+        if (accuracy >= 0) {
             // टेस्ट सबमिट होने के 1.5 सेकंड बाद पॉप-अप दिखाएंगे, ताकि पहले रिजल्ट दिख जाए
             setTimeout(() => {
                 showAchievementUnlock(
