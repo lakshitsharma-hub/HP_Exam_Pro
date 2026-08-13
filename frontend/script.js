@@ -1625,7 +1625,7 @@ function checkAchievements(totalQuestions, attempted, correctAnswers) {
     if (attempted > 0) {
         const accuracy = (correctAnswers / attempted) * 100;
         
-        if (accuracy >= 0) {
+        if (accuracy >= 90) {
             // टेस्ट सबमिट होने के 1.5 सेकंड बाद पॉप-अप दिखाएंगे, ताकि पहले रिजल्ट दिख जाए
             setTimeout(() => {
                 showAchievementUnlock(
@@ -1639,4 +1639,63 @@ function checkAchievements(totalQuestions, attempted, correctAnswers) {
             return; 
         }
     }
+}
+
+// ==================== 🏆 ALL 15 ACHIEVEMENTS LIST ====================
+const ALL_BADGES = [
+    // 🟢 Consistency
+    { id: 'ice_breaker', icon: '🧊', title: 'Ice Breaker', desc: 'पहला मॉक टेस्ट सबमिट किया।' },
+    { id: '1_week_warrior', icon: '⚔️', title: '1-Week Warrior', desc: 'लगातार 7 दिन टेस्ट दिया।' },
+    { id: '30_day_legend', icon: '👑', title: '30-Day Legend', desc: 'लगातार 30 दिन की स्ट्रीक।' },
+    { id: 'weekend_hustler', icon: '📅', title: 'Weekend Hustler', desc: 'शनिवार और रविवार दोनों दिन टेस्ट दिया।' },
+    
+    // 🟢 Performance
+    { id: 'grandmaster', icon: '📜', title: 'Grandmaster', desc: 'फुल-सिलेबस टेस्ट कम्पलीट किया।' },
+    { id: 'accuracy_sniper', icon: '🎯', title: 'Accuracy Sniper', desc: 'टेस्ट में 90%+ एक्यूरेसी हासिल की।' },
+    { id: 'khaki_pride', icon: '👮‍♂️', title: 'Khaki Pride', desc: 'HP Police में टॉप 10% स्कोर।' },
+    { id: 'patwari_elite', icon: '✍️', title: 'Patwari Elite', desc: 'पटवारी टेस्ट में 100+ स्कोर।' },
+    { id: 'speed_demon', icon: '⚡', title: 'Speed Demon', desc: 'पेपर समय से 20 मिनट पहले पूरा किया।' },
+    
+    // 🟢 Subject-Specific
+    { id: 'hp_gk_scholar', icon: '🏔️', title: 'HP GK Scholar', desc: 'हिमाचल GK में 100% स्कोर।' },
+    { id: 'vyakaran_guru', icon: '📚', title: 'Vyakaran Guru', desc: 'हिंदी/इंग्लिश ग्रामर में फुल मार्क्स।' },
+    { id: 'logic_master', icon: '🧠', title: 'Logic Master', desc: 'रीज़निंग में कोई गलती नहीं।' },
+    
+    // 🟢 Quirky / Fun
+    { id: 'night_owl', icon: '🦉', title: 'Night Owl', desc: 'रात 12 बजे के बाद टेस्ट सबमिट किया।' },
+    { id: 'early_bird', icon: '🌅', title: 'Early Bird', desc: 'सुबह 6 बजे से पहले टेस्ट दिया।' },
+    { id: 'comeback_king', icon: '🥊', title: 'Comeback King', desc: 'पिछले टेस्ट से स्कोर में भारी उछाल।' }
+];
+
+// ==================== 🛠️ RENDER TROPHY CABINET ====================
+// यह फंक्शन डेटाबेस से जीते हुए बैज की लिस्ट लेगा और ग्रिड में भर देगा
+function renderTrophyCabinet(unlockedBadgeIds = []) {
+    const grid = document.getElementById('badges-grid');
+    if (!grid) return;
+    
+    grid.innerHTML = ''; // पुराना कचरा साफ़ करो
+    
+    ALL_BADGES.forEach(badge => {
+        const isUnlocked = unlockedBadgeIds.includes(badge.id);
+        
+        if (isUnlocked) {
+            // 🔓 UNLOCKED STYLE (रंगीन और चमकता हुआ)
+            grid.innerHTML += `
+                <div style="background: linear-gradient(145deg, #1e293b, #0f172a); padding: 15px 10px; border-radius: 10px; border: 1px solid #f59e0b; box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);" title="${badge.desc}">
+                    <div style="font-size: 32px; margin-bottom: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">${badge.icon}</div>
+                    <div style="color: #f8fafc; font-size: 12px; font-weight: bold;">${badge.title}</div>
+                    <div style="color: #10b981; font-size: 10px; margin-top: 4px;">Unlocked</div>
+                </div>
+            `;
+        } else {
+            // 🔒 LOCKED STYLE (ब्लैक एंड वाइट और धुंधला)
+            grid.innerHTML += `
+                <div style="background: #1e293b; padding: 15px 10px; border-radius: 10px; border: 1px solid #334155; filter: grayscale(100%); opacity: 0.4;" title="${badge.desc}">
+                    <div style="font-size: 32px; margin-bottom: 8px;">${badge.icon}</div>
+                    <div style="color: #94a3b8; font-size: 12px; font-weight: bold;">${badge.title}</div>
+                    <div style="color: #64748b; font-size: 10px; margin-top: 4px;"><i class="fa-solid fa-lock"></i> Locked</div>
+                </div>
+            `;
+        }
+    });
 }
