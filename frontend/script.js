@@ -1555,9 +1555,6 @@ async function renderLeaderboard(examType = 'hp_police') {
             isMeBadge = `<span style="background: #2563eb; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">YOU</span>`;
         } 
         // बाकी असली बच्चों (जो डेटाबेस से आए हैं) के नाम के आगे एक छोटा सा 'Verified' टिक दिखा सकते हैं (Optional)
-        else if (user.isReal) {
-            isMeBadge = `<i class="fa-solid fa-circle-check" style="color: #10b981; font-size: 12px; margin-left: 6px;" title="Real Student"></i>`;
-        }
 
         const htmlRow = `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-radius: 8px; ${bgStyle}; flex-shrink: 0;">
