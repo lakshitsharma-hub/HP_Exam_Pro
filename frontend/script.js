@@ -1135,6 +1135,27 @@ supabaseClient.auth.onAuthStateChange(async (event, session) => {
     }
 });
 
+// 🟢 1. TCS Style Language State & Change Handler
+let currentLanguage = 'hi';
+
+async function changeLanguage(lang) {
+    currentLanguage = lang;
+    await displayQuestion(); // भाषा बदलते ही नया सवाल लोड होगा
+}
+
+// 🟢 2. Auto-Translation Helper (MyMemory API - No CORS Issues)
+async function autoTranslate(text) {
+    if (!text || currentLanguage === 'hi') return text;
+    try {
+        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=hi|en`);
+        const data = await res.json();
+        return data.responseData ? data.responseData.translatedText : text;
+    } catch (error) {
+        console.error("Translation Error:", error);
+        return text;
+    }
+}
+
 // ==================== ❓ DAILY QUESTION OF THE DAY LOGIC ====================
 
 // 1. Dynamic Confetti Script Loader (Hawaiyan udane ke liye library automatically load hogi)
