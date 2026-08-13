@@ -1687,7 +1687,7 @@ function renderTrophyCabinet(unlockedBadgeIds = []) {
         if (isUnlocked) {
             // 🔓 UNLOCKED STYLE (रंगीन और चमकता हुआ)
             grid.innerHTML += `
-                <div style="background: linear-gradient(145deg, #1e293b, #0f172a); padding: 15px 10px; border-radius: 10px; border: 1px solid #f59e0b; box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);" title="${badge.desc}">
+                <div class="golden-shine-effect" style="background: linear-gradient(145deg, #1e293b, #0f172a); padding: 15px 10px; border-radius: 10px; border: 1px solid #f59e0b; transition: transform 0.2s;" title="${badge.desc}">
                     <div style="font-size: 32px; margin-bottom: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">${badge.icon}</div>
                     <div style="color: #f8fafc; font-size: 12px; font-weight: bold;">${badge.title}</div>
                     <div style="color: #10b981; font-size: 10px; margin-top: 4px;">Unlocked</div>
