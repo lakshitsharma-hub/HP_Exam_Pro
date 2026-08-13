@@ -1661,10 +1661,16 @@ const ALL_BADGES = [
     { id: 'vyakaran_guru', icon: '📚', title: 'Vyakaran Guru', desc: 'हिंदी/इंग्लिश ग्रामर में फुल मार्क्स।' },
     { id: 'logic_master', icon: '🧠', title: 'Logic Master', desc: 'रीज़निंग में कोई गलती नहीं।' },
     
-    // 🟢 Quirky / Fun
+    // 🟢 Quirky / Fun / Gen-Z Vibe
     { id: 'night_owl', icon: '🦉', title: 'Night Owl', desc: 'रात 12 बजे के बाद टेस्ट सबमिट किया।' },
     { id: 'early_bird', icon: '🌅', title: 'Early Bird', desc: 'सुबह 6 बजे से पहले टेस्ट दिया।' },
-    { id: 'comeback_king', icon: '🥊', title: 'Comeback King', desc: 'पिछले टेस्ट से स्कोर में भारी उछाल।' }
+    { id: 'comeback_king', icon: '🥊', title: 'Comeback King', desc: 'पिछले टेस्ट से स्कोर में भारी उछाल।' },
+    
+    // 👇 यहाँ से नए Gen-Z बैज शुरू 👇
+    { id: 'let_him_cook', icon: '🔥', title: 'Let Him Cook', desc: 'स्कोर लगातार इम्प्रूव हो रहा है। The Cooking Master , let him cook!' },
+    { id: 'touch_grass', icon: '🌱', title: 'Touch Grass', desc: 'एक दिन में 4 टेस्ट दे दिए। अब थोड़ा फोन छोड़कर बाहर घूम आओ ब्रो!' },
+    { id: 'massive_w', icon: '🏆', title: 'Massive W', desc: 'No Cap 🧢! तुम्हारा स्कोर एकदम FIRE है। Absolute W!' },
+    { id: 'exam_op', icon: '🎮', title: 'Exam OP', desc: 'OverPowered Ekdum Overpowered (OP) थी!' }
 ];
 
 // ==================== 🛠️ RENDER TROPHY CABINET ====================
@@ -1700,4 +1706,41 @@ function renderTrophyCabinet(unlockedBadgeIds = []) {
     });
 }
 // पेज लोड होते ही मशीन को चालू करो (अभी जीते हुए बैज की लिस्ट खाली [] है)
-renderTrophyCabinet([]);
+// ==================== 📡 FETCH ACHIEVEMENTS FROM SUPABASE ====================
+async function loadUserAchievements() {
+    // यूज़र की ID निकालें (ताकि पता चले कि किसका डेटा लाना है)
+    const userId = window.CURRENT_USER_PROFILE?.id || (typeof currentUserId !== 'undefined' ? currentUserId : null);
+    
+    // अगर यूज़र लॉग-इन नहीं है, तो सब लॉक कर दो
+    if (!userId) {
+        renderTrophyCabinet([]);
+        return;
+    }
+
+    try {
+        // Supabase के profiles टेबल से unlocked_badges कॉलम लाएं
+        const { data, error } = await supabaseClient
+            .from('profiles')
+            .select('unlocked_badges')
+            .eq('id', userId)
+            .single();
+
+        if (error) throw error;
+
+        // अगर यूज़र के पास जीते हुए बैज हैं, तो उन्हें मशीन में डालो
+        if (data && data.unlocked_badges) {
+            renderTrophyCabinet(data.unlocked_badges);
+        } else {
+            // अगर एक भी बैज नहीं जीता है, तो खाली लिस्ट भेज दो
+            renderTrophyCabinet([]);
+        }
+    } catch (err) {
+        console.error("बैज लोड करने में दिक्कत हुई:", err);
+        renderTrophyCabinet([]); // एरर आने पर सब लॉक दिखा दो
+    }
+}
+
+// पेज लोड होते ही डेटाबेस से असली बैज चेक करो
+setTimeout(() => {
+    loadUserAchievements();
+}, 1000); // 1 सेकंड का डिले ताकि Supabase पहले लोड हो जाए
