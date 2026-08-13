@@ -758,23 +758,29 @@ function switchTab(pageId) {
     });
 
     const targetPage = document.getElementById(pageId);
-if (targetPage) {
-    targetPage.classList.add('active');
-    
-    // 🎯 FIX: Agar dashboard khul rha hai toh 'flex' layout do, baaki sabko 'block'
-    if (pageId.includes('dashboard')) {
-        targetPage.style.display = 'flex';
-    } else {
-        targetPage.style.display = 'block';
-    }
-
+    if (targetPage) {
+        targetPage.classList.add('active');
         
+        // 🎯 FIX: Agar dashboard khul rha hai toh 'flex' layout do, baaki sabko 'block'
+        if (pageId.includes('dashboard')) {
+            targetPage.style.display = 'flex';
+        } else {
+            targetPage.style.display = 'block';
+        }
+
         if (pageId === 'analytics-page') {
             loadAnalyticsData();
             // 🟢 टेस्ट हिस्ट्री लोड करने का ट्रिगर 
             if (typeof loadAttemptedHistory === 'function') {
                 loadAttemptedHistory();
             }
+        }
+        
+        // 🟢 NAYA CODE: जब बच्चा लीडरबोर्ड पेज खोलेगा, तो लिस्ट तुरंत लोड हो जाएगी
+        if (pageId === 'leaderboard-page') {
+            const dropdown = document.getElementById('leaderboard-exam-select');
+            const selectedExam = dropdown ? dropdown.value : 'hp_police';
+            renderLeaderboard(selectedExam, 0); 
         }
         
         if (pageId === 'mock-tests-page') {
@@ -784,7 +790,6 @@ if (targetPage) {
         }
     }
 }
-
 window.toggleMenu = function() {
     const mobileSidebar = document.getElementById('mobile-sidebar');
     if (mobileSidebar) {
