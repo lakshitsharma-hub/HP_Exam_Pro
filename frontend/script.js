@@ -780,7 +780,7 @@ function switchTab(pageId) {
         if (pageId === 'leaderboard-page') {
             const dropdown = document.getElementById('leaderboard-exam-select');
             const selectedExam = dropdown ? dropdown.value : 'hp_police';
-            renderLeaderboard(selectedExam, 0); 
+            renderLeaderboard(selectedExam); 
         }
         
         if (pageId === 'mock-tests-page') {
