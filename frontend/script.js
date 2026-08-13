@@ -1409,3 +1409,131 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDailyQuestion();
 });
 // =============================================================================
+
+// ==================== 🏆 SMART LEADERBOARD SYSTEM ====================
+
+const ghostLeaderboards = {
+    'hp_police': [
+        { name: "rahul.sharma99", baseScore: 71.00 }, 
+        { name: "priya.s12", baseScore: 68.25 },      
+        { name: "vikas.k87", baseScore: 65.50 },      
+        { name: "amitkumar_87", baseScore: 64.00 },
+        { name: "neha_verma23", baseScore: 61.25 },
+        { name: "suresh.hp", baseScore: 59.75 },
+        { name: "pankaj.99", baseScore: 56.50 },
+        { name: "kiran.bala", baseScore: 54.00 },
+        { name: "rohit.thakur", baseScore: 51.25 },
+        { name: "anjali.04", baseScore: 48.50 }
+    ],
+    'patwari': [
+        { name: "priya.s12", baseScore: 94.00 },      
+        { name: "sharma.aman", baseScore: 91.00 },
+        { name: "rahul.sharma99", baseScore: 88.00 }, 
+        { name: "pooja.rajput", baseScore: 85.00 },
+        { name: "vikas.k87", baseScore: 82.00 },      
+        { name: "kullu_boy", baseScore: 79.00 },
+        { name: "sunita.devi", baseScore: 75.00 },
+        { name: "manish.77", baseScore: 71.00 },
+        { name: "diksha.hp", baseScore: 68.00 },
+        { name: "vishal.kumar", baseScore: 65.00 }
+    ],
+    'joa_it': [
+        { name: "vikas.k87", baseScore: 92.00 },      
+        { name: "tech.amit", baseScore: 89.00 },
+        { name: "rahul.sharma99", baseScore: 86.00 }, 
+        { name: "priya.s12", baseScore: 83.00 },      
+        { name: "ritika.sharma", baseScore: 80.00 },
+        { name: "kapil.dev", baseScore: 77.00 },
+        { name: "sumit.it", baseScore: 74.00 },
+        { name: "ashish.99", baseScore: 70.00 },
+        { name: "monika.thakur", baseScore: 67.00 },
+        { name: "nitin.kumar", baseScore: 64.00 }
+    ]
+};
+
+function getDailyScore(baseScore, name) {
+    const today = new Date();
+    const day = today.getDate();
+    const seed = name.length + day; 
+    let fluctuation = (seed % 5) - 2; 
+    const fractionMap = [0, 0.25, 0.50, 0.75];
+    let fraction = fractionMap[seed % 4];
+    return Math.max(0, baseScore + fluctuation + fraction);
+}
+
+function renderLeaderboard(examType = 'hp_police', userScoreForThisExam = 0) {
+    const container = document.getElementById('leaderboard-list');
+    if (!container) return;
+
+    const realUserName = window.CURRENT_USER_PROFILE?.display_name || "Student (You)";
+    
+    let allUsers = ghostLeaderboards[examType].map(user => ({
+        name: user.name,
+        score: getDailyScore(user.baseScore, user.name),
+        isReal: false
+    }));
+    
+    // 🛑 ADMIN HIDE FEATURE: अपनी ID छुपाने के लिए
+    const hideAdmin = true; 
+    const isAdminAccount = realUserName.includes('lakshitsharma976') || realUserName.includes('lakshitsharma8080');
+
+    if (userScoreForThisExam > 0) {
+        if (!(hideAdmin && isAdminAccount)) {
+            allUsers.push({ name: realUserName, score: userScoreForThisExam, isReal: true });
+        }
+    }
+
+    allUsers.sort((a, b) => b.score - a.score);
+    container.innerHTML = '';
+    let realUserRank = -1;
+    let realUserHTML = '';
+
+    allUsers.forEach((user, index) => {
+        const rank = index + 1;
+        if (user.isReal) realUserRank = rank;
+
+        let bgStyle = "background: #1e293b; border: 1px solid #334155;";
+        let nameColor = "#f8fafc";
+        let rankDisplay = `<span style="color: #94a3b8; font-weight: bold; width: 30px;">#${rank}</span>`;
+        let isMeBadge = "";
+
+        if (rank === 1) {
+            bgStyle = "background: linear-gradient(90deg, rgba(245, 158, 11, 0.1) 0%, #1e293b 100%); border: 1px solid #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);";
+            rankDisplay = `<span style="font-size: 18px; width: 30px;">👑</span>`;
+            nameColor = "#f59e0b";
+        } else if (rank === 2) {
+            bgStyle = "background: linear-gradient(90deg, rgba(203, 213, 225, 0.1) 0%, #1e293b 100%); border: 1px solid #cbd5e1;";
+            rankDisplay = `<span style="font-size: 18px; width: 30px;">🥈</span>`;
+        } else if (rank === 3) {
+            bgStyle = "background: linear-gradient(90deg, rgba(217, 119, 6, 0.1) 0%, #1e293b 100%); border: 1px solid #d97706;";
+            rankDisplay = `<span style="font-size: 18px; width: 30px;">🥉</span>`;
+        }
+
+        if (user.isReal) {
+            bgStyle = "background: rgba(37, 99, 235, 0.15); border: 1px solid #3b82f6;";
+            nameColor = "#38bdf8";
+            isMeBadge = `<span style="background: #2563eb; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">YOU</span>`;
+        }
+
+        const htmlRow = `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-radius: 8px; ${bgStyle}">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    ${rankDisplay}
+                    <span style="font-weight: 600; color: ${nameColor}; display: flex; align-items: center;">${user.name} ${isMeBadge}</span>
+                </div>
+                <div style="font-weight: bold; color: #10b981;">${user.score}</div>
+            </div>
+        `;
+
+        if (rank <= 10) {
+            container.innerHTML += htmlRow;
+        } else if (user.isReal) {
+            realUserHTML = htmlRow;
+        }
+    });
+
+    if (realUserRank > 10) {
+        container.innerHTML += `<div style="text-align: center; color: #475569; font-size: 20px; line-height: 10px; margin: 5px 0;">⋮</div>`;
+        container.innerHTML += realUserHTML;
+    }
+}
