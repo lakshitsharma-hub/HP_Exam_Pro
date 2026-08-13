@@ -481,13 +481,38 @@ function startQuizTimer() {
     }, 1000);
 }
 
-function displayQuestion() {
+async function displayQuestion() {
     if (!currentQuestions || currentQuestions.length === 0) return;
 
     const currentQ = currentQuestions[currentQuestionIndex];
-    
+
+    // 🚀 SMART TRANSLATION LOGIC: चेक करें कि इंग्लिश सेलेक्टेड है और पहले से ट्रांसलेटेड तो नहीं है?
+    if (currentLanguage === 'en' && !currentQ.translated_en) {
+        document.getElementById('quiz-question-text').innerText = `⏳ Translating to English...`;
+        
+        // एक बार ट्रांसलेट करके सवाल के डेटा में ही सेव कर लेंगे, ताकि क्लिक करने पर डिले न हो
+        currentQ.translated_en = {
+            question: await autoTranslate(currentQ.question_text || currentQ.question),
+            opt1: currentQ.opt1 ? await autoTranslate(currentQ.opt1) : "",
+            opt2: currentQ.opt2 ? await autoTranslate(currentQ.opt2) : "",
+            opt3: currentQ.opt3 ? await autoTranslate(currentQ.opt3) : "",
+            opt4: currentQ.opt4 ? await autoTranslate(currentQ.opt4) : ""
+        };
+    }
+
+    // 🎯 तय करें कि स्क्रीन पर कौन सी भाषा दिखानी है
+    const displayText = currentLanguage === 'en' && currentQ.translated_en 
+        ? currentQ.translated_en 
+        : {
+            question: currentQ.question_text || currentQ.question,
+            opt1: currentQ.opt1,
+            opt2: currentQ.opt2,
+            opt3: currentQ.opt3,
+            opt4: currentQ.opt4
+        };
+
     document.getElementById('current-q-num').innerText = currentQuestionIndex + 1;
-    document.getElementById('quiz-question-text').innerText = currentQ.question_text || currentQ.question;
+    document.getElementById('quiz-question-text').innerText = displayText.question;
 
     const progressPercent = ((currentQuestionIndex + 1) / currentQuestions.length) * 100;
     document.getElementById('quiz-progress-fill').style.width = `${progressPercent}%`;
@@ -496,7 +521,7 @@ function displayQuestion() {
     optionsWrapper.innerHTML = ""; 
 
     for (let i = 1; i <= 4; i++) {
-        const optionText = currentQ[`opt${i}`];
+        const optionText = displayText[`opt${i}`];
         if (!optionText) continue;
 
         const optionKey = `opt${i}`;
@@ -504,7 +529,7 @@ function displayQuestion() {
 
         const optionButton = document.createElement('button');
         
-        // 🎨 बटन्स की फॉर्मेटिंग को सीधा जावास्क्रिप्ट से कड़क डार्क मोड लुक दे दिया है
+        // 🎨 बटन्स की फॉर्मेटिंग (तुम्हारा ओरिजिनल डार्क मोड लुक)
         optionButton.style.cssText = `
             padding: 14px; 
             border: 1px solid ${isSelected ? '#60a5fa' : '#334155'}; 
@@ -521,7 +546,6 @@ function displayQuestion() {
             width: 100%;
         `;
         
-        // नंबर काउंट के लिए सुंदर ब्लू स्क्वायर बैज
         optionButton.innerHTML = `<span style="background: #1e293b; padding: 2px 8px; border-radius: 4px; font-weight: bold; color: #38bdf8;">${i}</span> <span class="opt-text">${optionText}</span>`;
         
         optionButton.onclick = () => {
