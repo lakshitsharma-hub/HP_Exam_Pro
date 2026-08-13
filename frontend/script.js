@@ -1451,13 +1451,20 @@ const ghostLeaderboards = {
     ]
 };
 
-function getDailyScore(baseScore, name) {
+// 🟢 NAYA LOGIC: सिर्फ Police में दशमलव, बाकी में पूरे नंबर
+function getDailyScore(baseScore, name, examType) {
     const today = new Date();
     const day = today.getDate();
     const seed = name.length + day; 
     let fluctuation = (seed % 5) - 2; 
-    const fractionMap = [0, 0.25, 0.50, 0.75];
-    let fraction = fractionMap[seed % 4];
+    
+    let fraction = 0;
+    // अगर एग्जाम पुलिस का है, तभी दशमलव जोड़ें
+    if (examType === 'hp_police') {
+        const fractionMap = [0, 0.25, 0.50, 0.75];
+        fraction = fractionMap[seed % 4];
+    }
+    
     return Math.max(0, baseScore + fluctuation + fraction);
 }
 
