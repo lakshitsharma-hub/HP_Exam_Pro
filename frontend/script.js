@@ -1585,3 +1585,39 @@ async function renderLeaderboard(examType = 'hp_police') {
         container.innerHTML += realUserHTML;
     }
 }
+
+// ==================== 🎉 ACHIEVEMENT POPUP CONTROLLER ====================
+
+// पॉप-अप दिखाने वाला फंक्शन
+function showAchievementUnlock(icon, title, description) {
+    // HTML में बैज की डिटेल्स सेट करो
+    document.getElementById('ach-icon').innerText = icon;
+    document.getElementById('ach-title').innerText = title;
+    document.getElementById('ach-desc').innerText = description;
+
+    // पॉप-अप को स्क्रीन पर लाओ (Flex layout के साथ)
+    const popup = document.getElementById('achievement-popup');
+    popup.style.display = 'flex';
+    
+    // छोटा सा बाउंस एनीमेशन इफ़ेक्ट
+    const popupBox = popup.querySelector('div');
+    popupBox.style.transform = 'scale(0.8)';
+    setTimeout(() => {
+        popupBox.style.transform = 'scale(1)';
+    }, 50);
+}
+
+// पॉप-अप बंद करने वाला फंक्शन
+function closeAchievementPopup() {
+    document.getElementById('achievement-popup').style.display = 'none';
+}
+
+// 🟢 TEST FUNCTION: यह चेक करने के लिए कि सिस्टम काम कर रहा है
+// तुम इसे हटा सकते हो बाद में, अभी बस कन्सोल में चेक करने के लिए है
+function testBadge() {
+    showAchievementUnlock(
+        '🎯', 
+        'Accuracy Sniper', 
+        'शानदार! आपने इस टेस्ट में 90% से ज़्यादा एक्यूरेसी हासिल की है। आपका निशाना एकदम सटीक है!'
+    );
+}
