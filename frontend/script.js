@@ -1903,3 +1903,93 @@ async function checkAchievements({
         awardBadgeToUser('exam_op', '🎮', 'Exam OP', '100% Perfect Score! Overpowered vibes only.');
     }
 }
+
+
+// =========================================================================
+// 🔥 DAILY STREAK ENGINE (AUTO-SYNC WITH SUPABASE)
+// =========================================================================
+async function processUserStreak() {
+    const userId = currentUserId || window.CURRENT_USER_PROFILE?.id;
+    if (!userId || userId === "test-user-123") return 1;
+
+    try {
+        // 1. Supabase से पुरानी स्ट्रीक और लास्ट टेस्ट डेट लाओ
+        const { data: profile, error } = await supabaseClient
+            .from('profiles')
+            .select('streak_count, last_test_date')
+            .eq('id', userId)
+            .single();
+
+        if (error) {
+            console.error("Streak fetch error:", error);
+            return 1;
+        }
+
+        const today = new Date();
+        const todayDateStr = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+        
+        let currentStreak = profile?.streak_count || 0;
+        const lastDateStr = profile?.last_test_date ? new Date(profile.last_test_date).toISOString().split('T')[0] : null;
+
+        // 2. कैलकुलेट करो कि कितने दिन का अंतर है
+        if (!lastDateStr) {
+            // पहला टेस्ट
+            currentStreak = 1;
+        } else if (lastDateStr === todayDateStr) {
+            // आज ही दोबारा टेस्ट दिया है -> स्ट्रीक वही रहेगी
+            return currentStreak;
+        } else {
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayDateStr = yesterday.toISOString().split('T')[0];
+
+            if (lastDateStr === yesterdayDateStr) {
+                // कल टेस्ट दिया था -> 🔥 स्ट्रीक + 1
+                currentStreak += 1;
+            } else {
+                // 1 दिन से ज़्यादा का गैप हो गया -> रीसेट होकर 1
+                currentStreak = 1;
+            }
+        }
+
+        // 3. Supabase में नई स्ट्रीक और आज का टाइमस्टैम्प सेव करो
+        await supabaseClient
+            .from('profiles')
+            .update({
+                streak_count: currentStreak,
+                last_test_date: new Date().toISOString()
+            })
+            .eq('id', userId);
+
+        // 4. अगर स्ट्रीक 7 या 30 दिन पहुँची तो संबंधित बैज ऑटोमैटिक अनलॉक करो
+        if (currentStreak >= 7) {
+            awardBadgeToUser('week_warrior', '⚔️', '1-Week Warrior', '7-day test streak completed! Absolute consistency.');
+        }
+        if (currentStreak >= 30) {
+            awardBadgeToUser('month_legend', '👑', '30-Day Legend', '30 Days of non-stop prep! Legendary discipline.');
+        }
+
+        // 5. अगर स्क्रीन पर स्ट्रीक दिखाने वाला एलिमेंट मौजूद है तो उसे लाइव अपडेट कर दो
+        const streakEl = document.getElementById('user-streak-display');
+        if (streakEl) {
+            streakEl.innerHTML = `🔥 ${currentStreak} Days Streak`;
+        }
+
+        return currentStreak;
+
+    } catch (err) {
+        console.error("Streak process error:", err);
+        return 1;
+    }
+}
+
+// 🎯 टेस्ट सबमिट होते ही स्ट्रीक को ऑटो-ट्रिगर करने के लिए एक छोटा सा हुक
+(function autoHookStreak() {
+    const originalSubmit = window.submitMockTest;
+    if (typeof originalSubmit === 'function') {
+        window.submitMockTest = async function() {
+            processUserStreak(); // बैकग्राउंड में स्ट्रीक प्रोसेस होगी
+            return originalSubmit.apply(this, arguments);
+        };
+    }
+})();
