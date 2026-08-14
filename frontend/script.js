@@ -1996,21 +1996,49 @@ async function processUserStreak() {
 }
 
 // ==================== 🖥️ RENDER & SYNC STREAK ON UI ====================
+// ==================== 🖥️ DYNAMIC STREAK EMOJI & UI ====================
 function renderStreakUI(streakCount) {
     const streakDisplay = document.getElementById('user-streak-display');
     const streakCountEl = document.getElementById('streak-days-count');
+    const streakEmojiEl = document.getElementById('streak-emoji');
     
+    const count = parseInt(streakCount) || 0;
+
+    // 1. नंबर अपडेट करो
     if (streakCountEl) {
-        streakCountEl.innerText = streakCount || 0;
+        streakCountEl.innerText = count;
     }
     
-    // अगर स्ट्रीक 3 से ज्यादा हो तो एक्स्ट्रा फ्लेम ग्लो
-    if (streakDisplay && streakCount >= 3) {
-        streakDisplay.style.boxShadow = "0 0 12px rgba(255, 107, 0, 0.4)";
-        streakDisplay.style.borderColor = "#ff6b00";
+    // 2. स्ट्रीक के हिसाब से इमोजी और ग्लो का रंग चुनो
+    let emoji = '🔥'; // 1-6 Days
+    let glowColor = 'rgba(255, 107, 0, 0.4)';
+    let borderColor = '#ff6b00';
+
+    if (count >= 30) {
+        emoji = '👑'; // 30+ Days (Legend)
+        glowColor = 'rgba(234, 179, 8, 0.6)';
+        borderColor = '#eab308';
+    } else if (count >= 14) {
+        emoji = '⚡'; // 14-29 Days (Lightning)
+        glowColor = 'rgba(56, 189, 248, 0.6)';
+        borderColor = '#38bdf8';
+    } else if (count >= 7) {
+        emoji = '💥'; // 7-13 Days (Warrior)
+        glowColor = 'rgba(239, 68, 68, 0.5)';
+        borderColor = '#ef4444';
+    }
+
+    // 3. इमोजी स्क्रीन पर बदलो
+    if (streakEmojiEl) {
+        streakEmojiEl.innerText = emoji;
+    }
+
+    // 4. बॉर्डर और ग्लो स्टाइल लागू करो
+    if (streakDisplay && count >= 3) {
+        streakDisplay.style.boxShadow = `0 0 12px ${glowColor}`;
+        streakDisplay.style.borderColor = borderColor;
     }
 }
-
 // 🔄 पेज लोड होते ही Supabase से असली स्ट्रीक लाओ
 async function syncStreakOnPageLoad() {
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id;
