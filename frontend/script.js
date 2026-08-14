@@ -1906,17 +1906,12 @@ async function checkAchievements({
     }
 }
 
-
 // =========================================================================
-// 🔥 DAILY STREAK ENGINE (AUTO-SYNC WITH SUPABASE)
-// =========================================================================
-// =========================================================================
-// 🔥 DAILY STREAK ENGINE (DEBUG VERSION)
+// 🔥 DAILY STREAK ENGINE (FIXED COLUMN NAMES)
 // =========================================================================
 async function processUserStreak() {
     console.log("🔥 [Streak] processUserStreak trigger hua!");
 
-    // 1. User ID चेक करो
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id;
     console.log("🔥 [Streak] Current User ID mila:", userId);
 
@@ -1926,10 +1921,10 @@ async function processUserStreak() {
     }
 
     try {
-        // 2. Supabase से पुरानी स्ट्रीक लाओ
+        // 1. Supabase से current_streak और last_test_date लाओ
         const { data: profile, error } = await supabaseClient
             .from('profiles')
-            .select('streak_count, last_test_date')
+            .select('current_streak, last_test_date')
             .eq('id', userId)
             .single();
 
@@ -1943,53 +1938,53 @@ async function processUserStreak() {
         const today = new Date();
         const todayDateStr = today.toISOString().split('T')[0];
         
-        let currentStreak = profile?.streak_count || 0;
+        let streak = profile?.current_streak || 0;
         const lastDateStr = profile?.last_test_date ? new Date(profile.last_test_date).toISOString().split('T')[0] : null;
 
         if (!lastDateStr) {
-            currentStreak = 1;
+            streak = 1;
         } else if (lastDateStr === todayDateStr) {
             console.log("🔥 [Streak] Aaj hi test diya hai pehle bhi, streak same rahegi.");
-            return currentStreak;
+            return streak;
         } else {
             const yesterday = new Date(today);
             yesterday.setDate(yesterday.getDate() - 1);
             const yesterdayDateStr = yesterday.toISOString().split('T')[0];
 
             if (lastDateStr === yesterdayDateStr) {
-                currentStreak += 1;
+                streak += 1;
             } else {
-                currentStreak = 1;
+                streak = 1;
             }
         }
 
-        console.log(`🔥 [Streak] Nayi streak calculate hui: ${currentStreak}. Ab database update kar rahe hain...`);
+        console.log(`🔥 [Streak] Updating database with current_streak: ${streak}...`);
 
-        // 3. Supabase में अपडेट करो
-        const { data: updateData, error: updateErr } = await supabaseClient
+        // 2. Supabase में सही कॉलम (current_streak) अपडेट करो
+        const { error: updateErr } = await supabaseClient
             .from('profiles')
             .update({
-                streak_count: currentStreak,
+                current_streak: streak,
                 last_test_date: new Date().toISOString()
             })
             .eq('id', userId);
 
         if (updateErr) {
-            console.error("❌ [Streak] Supabase update fail hua (RLS issue ho sakta hai):", updateErr);
+            console.error("❌ [Streak] Supabase update fail hua:", updateErr);
             return;
         }
 
         console.log("✅ [Streak] Database mein kamyabi se update ho gaya!");
 
-        // 4. Badges check
-        if (currentStreak >= 7) {
+        // 3. Badges check
+        if (streak >= 7) {
             awardBadgeToUser('week_warrior', '⚔️', '1-Week Warrior', '7-day test streak completed! Absolute consistency.');
         }
-        if (currentStreak >= 30) {
+        if (streak >= 30) {
             awardBadgeToUser('month_legend', '👑', '30-Day Legend', '30 Days of non-stop prep! Legendary discipline.');
         }
 
-        return currentStreak;
+        return streak;
 
     } catch (err) {
         console.error("❌ [Streak] Unexpected crash error:", err);
