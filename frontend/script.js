@@ -2014,3 +2014,24 @@ function renderStreakUI(streakCount) {
 if (window.CURRENT_USER_PROFILE?.current_streak) {
     renderStreakUI(window.CURRENT_USER_PROFILE.current_streak);
 }
+
+// ==================== 🔥 SHOW STREAK TOAST ====================
+function showStreakToast(days) {
+    const toast = document.getElementById('streak-toast');
+    const daysEl = document.getElementById('toast-streak-days');
+    
+    if (!toast) return;
+    
+    if (daysEl) daysEl.innerText = days;
+    
+    toast.style.display = 'flex';
+    
+    // 3.5 सेकंड बाद अपने-आप गायब हो जाएगा
+    setTimeout(() => {
+        toast.style.animation = 'slideInToast 0.4s ease-in reverse';
+        setTimeout(() => {
+            toast.style.display = 'none';
+            toast.style.animation = 'slideInToast 0.4s ease-out';
+        }, 380);
+    }, 3500);
+}
