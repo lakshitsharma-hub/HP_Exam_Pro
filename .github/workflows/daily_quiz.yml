@@ -30,5 +30,6 @@ jobs:
         SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHANNEL: ${{ secrets.TELEGRAM_CHANNEL }}
+        TELEGRAM_GROUP: ${{ secrets.TELEGRAM_GROUP }}  # 🟢 BAS YEH NAYI LINE ADD HUI HAI
       run: |
         python telegram-quiz-bot/bot.py
