@@ -644,22 +644,6 @@ async function submitMockTest() {
         streakDays: 1, 
         previousTestScore: null
     });
-    const totalQuestions = currentQuestions.length;
-    const attemptedQuestions = correctCount + wrongCount;
-    
-    checkAchievements({
-        totalQuestions: totalQuestions,
-        attempted: attemptedQuestions,
-        correctAnswers: correctCount,
-        examCategory: selectedExamType || '', // HP Police या Patwari डिटेक्ट करने के लिए
-        
-        // (अगर तुमने टाइमर या स्ट्रीक का लॉजिक अभी नहीं बनाया है, तो ये डिफ़ॉल्ट वैल्यूज़ यूज़ कर लेगा)
-        timeTakenSeconds: 0, 
-        totalAllowedSeconds: 0,
-        dailyTestsCountToday: 1, 
-        streakDays: 1, 
-        previousTestScore: null
-    });
     // =========================================================================
     // =========================================================================
     
