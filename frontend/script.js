@@ -1977,7 +1977,8 @@ async function processUserStreak() {
         console.log("✅ [Streak] Database mein kamyabi se update ho gaya!");
         // स्क्रीन पर लाइव स्ट्रीक नंबर अपडेट करो
         renderStreakUI(streak);
-
+        // स्क्रीन पर स्ट्रीक पॉप-अप दिखाओ
+        showStreakToast(streak);
         // 3. Badges check
         if (streak >= 7) {
             awardBadgeToUser('week_warrior', '⚔️', '1-Week Warrior', '7-day test streak completed! Absolute consistency.');
