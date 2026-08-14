@@ -1618,29 +1618,6 @@ function closeAchievementPopup() {
     document.getElementById('achievement-popup').style.display = 'none';
 }
 
-// 🟢 TEST FUNCTION: यह चेक करने के लिए कि सिस्टम काम कर रहा है
-// ==================== 🎯 ACHIEVEMENT CHECKER LOGIC ====================
-function checkAchievements(totalQuestions, attempted, correctAnswers) {
-    // 1. Accuracy Sniper Check 🎯 (90% से ज़्यादा सही जवाब)
-    if (attempted > 0) {
-        const accuracy = (correctAnswers / attempted) * 100;
-        
-        if (accuracy >= 90) {
-            // टेस्ट सबमिट होने के 1.5 सेकंड बाद पॉप-अप दिखाएंगे, ताकि पहले रिजल्ट दिख जाए
-            setTimeout(() => {
-                showAchievementUnlock(
-                    '🎯', 
-                    'Accuracy Sniper', 
-                    `शानदार! आपने ${attempted} में से ${correctAnswers} सही जवाब दिए (${accuracy.toFixed(1)}% Accuracy)। आपका निशाना एकदम सटीक है!`
-                );
-            }, 1500); 
-            
-            // TODO: बाद में यहाँ Supabase डेटाबेस में भी ये बैज सेव करने का कोड डालेंगे
-            return; 
-        }
-    }
-}
-
 // ==================== 🏆 ALL 15 ACHIEVEMENTS LIST ====================
 const ALL_BADGES = [
     // 🟢 Consistency
@@ -1744,3 +1721,168 @@ async function loadUserAchievements() {
 setTimeout(() => {
     loadUserAchievements();
 }, 1000); // 1 सेकंड का डिले ताकि Supabase पहले लोड हो जाए
+
+// ==================== 💾 SAVE BADGE TO SUPABASE ====================
+async function awardBadgeToUser(badgeId, icon, title, description) {
+    const userId = currentUserId || window.CURRENT_USER_PROFILE?.id;
+    if (!userId || userId === "test-user-123") return;
+
+    try {
+        // 1. Fetch user profile from Supabase
+        const { data: profile, error: fetchErr } = await supabaseClient
+            .from('profiles')
+            .select('unlocked_badges')
+            .eq('id', userId)
+            .single();
+
+        if (fetchErr) {
+            console.error("Error fetching badges:", fetchErr);
+            return;
+        }
+
+        let existingBadges = profile?.unlocked_badges || [];
+        
+        // Don't award if already unlocked
+        if (existingBadges.includes(badgeId)) {
+            return;
+        }
+
+        // 2. Add new badge to list
+        existingBadges.push(badgeId);
+
+        // 3. Update database
+        const { error: updateErr } = await supabaseClient
+            .from('profiles')
+            .update({ unlocked_badges: existingBadges })
+            .eq('id', userId);
+
+        if (updateErr) {
+            console.error("Database update failed:", updateErr);
+            return;
+        }
+
+        // 4. Trigger Celebration Pop-up & Update Grid live
+        showAchievementUnlock(icon, title, description);
+        renderTrophyCabinet(existingBadges);
+
+    } catch (err) {
+        console.error("Award badge error:", err);
+    }
+}
+
+// ==================== 🎯 FULL 19-BADGES CHECKER LOGIC ====================
+async function checkAchievements({
+    totalQuestions = 0,
+    attempted = 0,
+    correctAnswers = 0,
+    examCategory = '',
+    timeTakenSeconds = 0,
+    totalAllowedSeconds = 0,
+    sectionStats = {},
+    dailyTestsCountToday = 1,
+    streakDays = 1,
+    previousTestScore = null
+}) {
+    const accuracy = attempted > 0 ? (correctAnswers / attempted) * 100 : 0;
+    const scorePercent = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
+    const currentHour = new Date().getHours();
+    const currentDay = new Date().getDay();
+
+    // 🟢 1. Consistency & Streaks
+    // 🧊 Ice Breaker
+    awardBadgeToUser('ice_breaker', '🧊', 'Ice Breaker', 'First mock test submitted! Welcome to the grind.');
+
+    // ⚔️ 1-Week Warrior
+    if (streakDays >= 7) {
+        awardBadgeToUser('week_warrior', '⚔️', '1-Week Warrior', '7-day test streak completed! Absolute consistency.');
+    }
+
+    // 👑 30-Day Legend
+    if (streakDays >= 30) {
+        awardBadgeToUser('month_legend', '👑', '30-Day Legend', '30 Days of non-stop prep! Legendary discipline.');
+    }
+
+    // 📅 Weekend Hustler
+    if (currentDay === 0 || currentDay === 6) {
+        awardBadgeToUser('weekend_hustler', '📅', 'Weekend Hustler', 'No chill on weekends! Pure dedication.');
+    }
+
+    // 🟢 2. High Performance & Speed
+    // 📜 Grandmaster
+    if (totalQuestions >= 100) {
+        awardBadgeToUser('grandmaster', '📜', 'Grandmaster', 'Completed a full 100-question marathon test!');
+    }
+
+    // 🎯 Accuracy Sniper
+    if (attempted >= 10 && accuracy >= 90) {
+        awardBadgeToUser('accuracy_sniper', '🎯', 'Accuracy Sniper', `${accuracy.toFixed(1)}% accuracy! Precision on point.`);
+    }
+
+    // 👮‍♂️ Khaki Pride
+    if (examCategory.toLowerCase().includes('police') && scorePercent >= 80) {
+        awardBadgeToUser('khaki_pride', '👮‍♂️', 'Khaki Pride', 'Crushed the HP Police test with 80%+ score!');
+    }
+
+    // ✍️ Patwari Elite
+    if (examCategory.toLowerCase().includes('patwari') && scorePercent >= 85) {
+        awardBadgeToUser('patwari_elite', '✍️', 'Patwari Elite', '85%+ in Patwari mock! Elite tier performance.');
+    }
+
+    // ⚡ Speed Demon
+    const timeSavedSeconds = totalAllowedSeconds - timeTakenSeconds;
+    if (totalAllowedSeconds > 0 && timeSavedSeconds >= 1200 && scorePercent >= 70) {
+        awardBadgeToUser('speed_demon', '⚡', 'Speed Demon', 'Finished 20 mins early with 70%+ score. Fast & Furious!');
+    }
+
+    // 🟢 3. Subject Mastery
+    // 🏔️ HP GK Scholar
+    if (sectionStats.hp_gk && sectionStats.hp_gk.total >= 10 && sectionStats.hp_gk.correct === sectionStats.hp_gk.total) {
+        awardBadgeToUser('hp_gk_scholar', '🏔️', 'HP GK Scholar', '100% correct in HP GK! Himachal GK boss.');
+    }
+
+    // 📚 Vyakaran Guru
+    if (sectionStats.vyakaran && sectionStats.vyakaran.total >= 10 && sectionStats.vyakaran.correct === sectionStats.vyakaran.total) {
+        awardBadgeToUser('vyakaran_guru', '📚', 'Vyakaran Guru', 'Full marks in grammar section! Pure mastery.');
+    }
+
+    // 🧠 Logic Master
+    if (sectionStats.reasoning && sectionStats.reasoning.total >= 10 && sectionStats.reasoning.correct === sectionStats.reasoning.total) {
+        awardBadgeToUser('logic_master', '🧠', 'Logic Master', 'Flawless reasoning score! 100% brain power.');
+    }
+
+    // 🟢 4. Gen-Z & Quirky Badges
+    // 🦉 Night Owl
+    if (currentHour >= 0 && currentHour < 4) {
+        awardBadgeToUser('night_owl', '🦉', 'Night Owl', 'Testing at 2 AM? Late night hustle hits different.');
+    }
+
+    // 🌅 Early Bird
+    if (currentHour >= 4 && currentHour < 6) {
+        awardBadgeToUser('early_bird', '🌅', 'Early Bird', 'Morning grind before sunrise! True sigma mode.');
+    }
+
+    // 🥊 Comeback King
+    if (previousTestScore !== null && (scorePercent - previousTestScore >= 20)) {
+        awardBadgeToUser('comeback_king', '🥊', 'Comeback King', 'Jumped +20% score from last test. Huge comeback!');
+    }
+
+    // 🔥 Let Him Cook
+    if (scorePercent >= 75) {
+        awardBadgeToUser('let_him_cook', '🔥', 'Let Him Cook', 'Score is heating up. Don\'t disturb, let him cook!');
+    }
+
+    // 🌱 Touch Grass
+    if (dailyTestsCountToday >= 4) {
+        awardBadgeToUser('touch_grass', '🌱', 'Touch Grass', '4 tests today? Bhai ab thoda bahar ghoom ke fresh air le lo!');
+    }
+
+    // 🏆 Massive W
+    if (scorePercent >= 80) {
+        awardBadgeToUser('massive_w', '🏆', 'Massive W', '80%+ score unlocked! No Cap 🧢, absolute W.');
+    }
+
+    // 🎮 Exam OP
+    if (totalQuestions >= 10 && correctAnswers === totalQuestions) {
+        awardBadgeToUser('exam_op', '🎮', 'Exam OP', '100% Perfect Score! Overpowered vibes only.');
+    }
+}
