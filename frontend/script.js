@@ -1910,12 +1910,23 @@ async function checkAchievements({
 // =========================================================================
 // 🔥 DAILY STREAK ENGINE (AUTO-SYNC WITH SUPABASE)
 // =========================================================================
+// =========================================================================
+// 🔥 DAILY STREAK ENGINE (DEBUG VERSION)
+// =========================================================================
 async function processUserStreak() {
+    console.log("🔥 [Streak] processUserStreak trigger hua!");
+
+    // 1. User ID चेक करो
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id;
-    if (!userId || userId === "test-user-123") return 1;
+    console.log("🔥 [Streak] Current User ID mila:", userId);
+
+    if (!userId || userId === "test-user-123") {
+        console.warn("⚠️ [Streak] User ID nahi mili ya test-user hai, aborting update.");
+        return 1;
+    }
 
     try {
-        // 1. Supabase से पुरानी स्ट्रीक और लास्ट टेस्ट डेट लाओ
+        // 2. Supabase से पुरानी स्ट्रीक लाओ
         const { data: profile, error } = await supabaseClient
             .from('profiles')
             .select('streak_count, last_test_date')
@@ -1923,22 +1934,22 @@ async function processUserStreak() {
             .single();
 
         if (error) {
-            console.error("Streak fetch error:", error);
+            console.error("❌ [Streak] Fetch profile error from Supabase:", error);
             return 1;
         }
 
+        console.log("🔥 [Streak] Purana profile data mila:", profile);
+
         const today = new Date();
-        const todayDateStr = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+        const todayDateStr = today.toISOString().split('T')[0];
         
         let currentStreak = profile?.streak_count || 0;
         const lastDateStr = profile?.last_test_date ? new Date(profile.last_test_date).toISOString().split('T')[0] : null;
 
-        // 2. कैलकुलेट करो कि कितने दिन का अंतर है
         if (!lastDateStr) {
-            // पहला टेस्ट
             currentStreak = 1;
         } else if (lastDateStr === todayDateStr) {
-            // आज ही दोबारा टेस्ट दिया है -> स्ट्रीक वही रहेगी
+            console.log("🔥 [Streak] Aaj hi test diya hai pehle bhi, streak same rahegi.");
             return currentStreak;
         } else {
             const yesterday = new Date(today);
@@ -1946,16 +1957,16 @@ async function processUserStreak() {
             const yesterdayDateStr = yesterday.toISOString().split('T')[0];
 
             if (lastDateStr === yesterdayDateStr) {
-                // कल टेस्ट दिया था -> 🔥 स्ट्रीक + 1
                 currentStreak += 1;
             } else {
-                // 1 दिन से ज़्यादा का गैप हो गया -> रीसेट होकर 1
                 currentStreak = 1;
             }
         }
 
-        // 3. Supabase में नई स्ट्रीक और आज का टाइमस्टैम्प सेव करो
-        await supabaseClient
+        console.log(`🔥 [Streak] Nayi streak calculate hui: ${currentStreak}. Ab database update kar rahe hain...`);
+
+        // 3. Supabase में अपडेट करो
+        const { data: updateData, error: updateErr } = await supabaseClient
             .from('profiles')
             .update({
                 streak_count: currentStreak,
@@ -1963,7 +1974,14 @@ async function processUserStreak() {
             })
             .eq('id', userId);
 
-        // 4. अगर स्ट्रीक 7 या 30 दिन पहुँची तो संबंधित बैज ऑटोमैटिक अनलॉक करो
+        if (updateErr) {
+            console.error("❌ [Streak] Supabase update fail hua (RLS issue ho sakta hai):", updateErr);
+            return;
+        }
+
+        console.log("✅ [Streak] Database mein kamyabi se update ho gaya!");
+
+        // 4. Badges check
         if (currentStreak >= 7) {
             awardBadgeToUser('week_warrior', '⚔️', '1-Week Warrior', '7-day test streak completed! Absolute consistency.');
         }
@@ -1971,17 +1989,10 @@ async function processUserStreak() {
             awardBadgeToUser('month_legend', '👑', '30-Day Legend', '30 Days of non-stop prep! Legendary discipline.');
         }
 
-        // 5. अगर स्क्रीन पर स्ट्रीक दिखाने वाला एलिमेंट मौजूद है तो उसे लाइव अपडेट कर दो
-        const streakEl = document.getElementById('user-streak-display');
-        if (streakEl) {
-            streakEl.innerHTML = `🔥 ${currentStreak} Days Streak`;
-        }
-
         return currentStreak;
 
     } catch (err) {
-        console.error("Streak process error:", err);
+        console.error("❌ [Streak] Unexpected crash error:", err);
         return 1;
     }
 }
-
