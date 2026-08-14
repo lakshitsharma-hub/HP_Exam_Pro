@@ -110,7 +110,7 @@ async def send_daily_quiz():
             chat_id=CHANNEL_USERNAME,
             question=question_text,
             options=options,
-            is_anonymous=False,
+            is_anonymous=True,
             type="quiz",
             correct_option_id=correct_idx,
             explanation=explanation
