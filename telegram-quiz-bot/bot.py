@@ -118,11 +118,11 @@ async def send_daily_quiz():
         
         # 7. नीचे वेबसाइट लिंक का नोट भेजना
         note_message = (
-            "📢 <b>Note:</b> Roz aise hi premium himachal exams (Patwari, JOA IT) ke mock test dene ke liye "
-            "aur apni state rank check karne ke liye abhi humari official website par visit karen:\n\n"
-            "🌐 <b><a href='https://hp-exam-pro.vercel.app'>👉 Yahan Click Karen: HP Exam Pro</a></b>"
+            "🚀 <b>Ready to crack your next Himachal Govt Exam?</b>\n\n"
+            "Don't just guess, test yourself! Attempt full-length mock tests, track your daily streak, "
+            "and compete on the live State Leaderboard.\n\n"
+            "🌐 <b><a href='https://hp-exam-pro.vercel.app'>👉 Join HP Exam Pro Now</a></b>"
         )
-
         print("🔗 वेबसाइट लिंक का नोट भेज रहे हैं...")
         await bot.send_message(
             chat_id=CHANNEL_USERNAME,
