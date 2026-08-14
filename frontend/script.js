@@ -206,6 +206,13 @@ async function setupUserProfile(user) {
         const userInitialEl = document.getElementById('user-initial');
         if (displayNameEl) displayNameEl.innerText = profile.display_name;
         if (userInitialEl) userInitialEl.innerText = profile.display_name[0].toUpperCase();
+        // UI Updates (Mobile)
+        document.querySelectorAll('.mobile-user-name').forEach(el => {
+            el.innerText = profile.display_name;
+        });
+        document.querySelectorAll('.mobile-avatar').forEach(el => {
+            el.innerText = profile.display_name[0].toUpperCase();
+        });
 
         if (messagesDiv && messagesDiv.innerHTML.trim() === "") {
             appendMessage(`नमस्ते ${profile.display_name}! आज हम हिमाचल की किस परीक्षा (Patwari, HPAS या Allied) की तैयारी करें?`, 'ai');
