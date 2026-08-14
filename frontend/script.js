@@ -1995,50 +1995,56 @@ async function processUserStreak() {
     }
 }
 
-// ==================== 🖥️ RENDER & SYNC STREAK ON UI ====================
-// ==================== 🖥️ DYNAMIC STREAK EMOJI & UI ====================
+// ==================== 🖥️ DYNAMIC STREAK EMOJI & UI (LAPTOP + MOBILE) ====================
 function renderStreakUI(streakCount) {
-    const streakDisplay = document.getElementById('user-streak-display');
-    const streakCountEl = document.getElementById('streak-days-count');
-    const streakEmojiEl = document.getElementById('streak-emoji');
-    
     const count = parseInt(streakCount) || 0;
 
-    // 1. नंबर अपडेट करो
-    if (streakCountEl) {
-        streakCountEl.innerText = count;
-    }
-    
-    // 2. स्ट्रीक के हिसाब से इमोजी और ग्लो का रंग चुनो
-    let emoji = '🔥'; // 1-6 Days
+    // 1. स्ट्रीक के हिसाब से इमोजी और ग्लो का रंग चुनो
+    let emoji = '🔥'; 
     let glowColor = 'rgba(255, 107, 0, 0.4)';
     let borderColor = '#ff6b00';
 
     if (count >= 30) {
-        emoji = '👑'; // 30+ Days (Legend)
+        emoji = '👑'; 
         glowColor = 'rgba(234, 179, 8, 0.6)';
         borderColor = '#eab308';
     } else if (count >= 14) {
-        emoji = '⚡'; // 14-29 Days (Lightning)
+        emoji = '⚡'; 
         glowColor = 'rgba(56, 189, 248, 0.6)';
         borderColor = '#38bdf8';
     } else if (count >= 7) {
-        emoji = '💥'; // 7-13 Days (Warrior)
+        emoji = '💥'; 
         glowColor = 'rgba(239, 68, 68, 0.5)';
         borderColor = '#ef4444';
     }
 
-    // 3. इमोजी स्क्रीन पर बदलो
-    if (streakEmojiEl) {
-        streakEmojiEl.innerText = emoji;
+    // 💻 2. DESKTOP UI UPDATE (लैपटॉप के लिए)
+    const deskCountEl = document.getElementById('streak-days-count');
+    const deskEmojiEl = document.getElementById('streak-emoji');
+    const deskDisplay = document.getElementById('user-streak-display');
+    
+    if (deskCountEl) deskCountEl.innerText = count;
+    if (deskEmojiEl) deskEmojiEl.innerText = emoji;
+    if (deskDisplay && count >= 3) {
+        deskDisplay.style.boxShadow = `0 0 12px ${glowColor}`;
+        deskDisplay.style.borderColor = borderColor;
     }
 
-    // 4. बॉर्डर और ग्लो स्टाइल लागू करो
-    if (streakDisplay && count >= 3) {
-        streakDisplay.style.boxShadow = `0 0 12px ${glowColor}`;
-        streakDisplay.style.borderColor = borderColor;
-    }
+    // 📱 3. MOBILE UI UPDATE (मोबाइल के लिए नया कोड)
+    document.querySelectorAll('.streak-text-target').forEach(el => {
+        el.innerText = `${count} Day Streak`;
+    });
+    
+    document.querySelectorAll('.user-streak-badge').forEach(badge => {
+        if (count >= 3) {
+            badge.style.boxShadow = `0 0 12px ${glowColor}`;
+            badge.style.borderColor = borderColor;
+        }
+        const emojiSpan = badge.querySelector('span:first-child');
+        if (emojiSpan) emojiSpan.innerText = emoji;
+    });
 }
+
 // 🔄 पेज लोड होते ही Supabase से असली स्ट्रीक लाओ
 async function syncStreakOnPageLoad() {
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id;
