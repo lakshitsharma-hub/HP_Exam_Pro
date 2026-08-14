@@ -1985,13 +1985,3 @@ async function processUserStreak() {
     }
 }
 
-// 🎯 टेस्ट सबमिट होते ही स्ट्रीक को ऑटो-ट्रिगर करने के लिए एक छोटा सा हुक
-(function autoHookStreak() {
-    const originalSubmit = window.submitMockTest;
-    if (typeof originalSubmit === 'function') {
-        window.submitMockTest = async function() {
-            processUserStreak(); // बैकग्राउंड में स्ट्रीक प्रोसेस होगी
-            return originalSubmit.apply(this, arguments);
-        };
-    }
-})();
