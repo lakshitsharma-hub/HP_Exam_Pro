@@ -623,9 +623,26 @@ async function submitMockTest() {
     // =========================================================================
     // 🏆 ACHIEVEMENT CHECK TRIGGER (NAYA CODE)
     // =========================================================================
+    // =========================================================================
+    // 🏆 ACHIEVEMENT CHECK TRIGGER (NAYA CODE)
+    // =========================================================================
     const totalQuestions = currentQuestions.length;
     const attemptedQuestions = correctCount + wrongCount;
-    checkAchievements(totalQuestions, attemptedQuestions, correctCount);
+    
+    checkAchievements({
+        totalQuestions: totalQuestions,
+        attempted: attemptedQuestions,
+        correctAnswers: correctCount,
+        examCategory: selectedExamType || '', // HP Police या Patwari डिटेक्ट करने के लिए
+        
+        // (अगर तुमने टाइमर या स्ट्रीक का लॉजिक अभी नहीं बनाया है, तो ये डिफ़ॉल्ट वैल्यूज़ यूज़ कर लेगा)
+        timeTakenSeconds: 0, 
+        totalAllowedSeconds: 0,
+        dailyTestsCountToday: 1, 
+        streakDays: 1, 
+        previousTestScore: null
+    });
+    // =========================================================================
     // =========================================================================
     
     document.getElementById('active-quiz-view').style.display = 'none';
