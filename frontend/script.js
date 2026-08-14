@@ -626,6 +626,24 @@ async function submitMockTest() {
     // =========================================================================
     // 🏆 ACHIEVEMENT CHECK TRIGGER (NAYA CODE)
     // =========================================================================
+    // 🔥 Process & Update Daily Streak
+    processUserStreak();
+
+    // 🏆 ACHIEVEMENT CHECK TRIGGER
+    const totalQuestions = currentQuestions.length;
+    const attemptedQuestions = correctCount + wrongCount;
+    
+    checkAchievements({
+        totalQuestions: totalQuestions,
+        attempted: attemptedQuestions,
+        correctAnswers: correctCount,
+        examCategory: selectedExamType || '',
+        timeTakenSeconds: 0, 
+        totalAllowedSeconds: 0,
+        dailyTestsCountToday: 1, 
+        streakDays: 1, 
+        previousTestScore: null
+    });
     const totalQuestions = currentQuestions.length;
     const attemptedQuestions = correctCount + wrongCount;
     
