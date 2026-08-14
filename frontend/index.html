@@ -116,25 +116,38 @@
     </div>
 </nav>
 
-        <div id="mobile-sidebar" class="mobile-sidebar">
-        <div style="padding: 15px 20px; border-bottom: 1px solid #334155; margin-bottom: 10px;">
-            <h3 style="color: white; margin: 0; font-size: 18px;">Menu</h3>
-        </div>
-        
-        <a href="#" onclick="switchTab('dashboard-page'); toggleMenu();"><i class="fa-solid fa-house" style="width: 25px; color: #94a3b8;"></i> Dashboard</a>
-        <a href="#" onclick="switchTab('mock-tests-page'); toggleMenu();"><i class="fa-solid fa-pen-to-square" style="width: 25px; color: #94a3b8;"></i> Mock Tests</a>
-        <a href="#" onclick="switchTab('analytics-page'); toggleMenu();"><i class="fa-solid fa-chart-line" style="width: 25px; color: #94a3b8;"></i> Analytics</a>
-            <a href="#" class="nav-item" onclick="switchTab('leaderboard-page'); return false;">
-    <i class="fa-solid fa-ranking-star" style="color: #f59e0b;"></i>
-    <span>Leaderboard</span>
-</a>
-        <a href="#" style="color: #f59e0b !important; font-weight: bold; background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b;" onclick="switchTab('pro-access-page'); toggleMenu();"><i class="fa-solid fa-crown" style="width: 25px;"></i> Get Pro Access</a>
-        <a href="admin.html" id="admin-link" style="display: none;"><i class="fa-solid fa-user-shield" style="width: 25px; color: #94a3b8;"></i> Admin Panel</a>
-        <a href="mailto:hpexamproai@gmail.com?subject=HP Exam Pro Feedback/Query"><i class="fa-solid fa-envelope" style="width: 25px; color: #94a3b8;"></i> Contact Support</a>
-
+        <div id="mobile-sidebar" class="mobile-sidebar" style="display: flex; flex-direction: column; justify-content: space-between; height: 100vh; box-sizing: border-box; overflow-y: auto;">
+        <div>
+            <div style="padding: 15px 20px; border-bottom: 1px solid #334155; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="color: white; margin: 0; font-size: 18px;">Menu</h3>
+                <span onclick="toggleMenu()" style="color: #94a3b8; font-size: 24px; cursor: pointer; line-height: 1;">&times;</span>
+            </div>
             
+            <a href="#" onclick="switchTab('dashboard-page'); toggleMenu();"><i class="fa-solid fa-house" style="width: 25px; color: #94a3b8;"></i> Dashboard</a>
+            <a href="#" onclick="switchTab('mock-tests-page'); toggleMenu();"><i class="fa-solid fa-pen-to-square" style="width: 25px; color: #94a3b8;"></i> Mock Tests</a>
+            <a href="#" onclick="switchTab('analytics-page'); toggleMenu();"><i class="fa-solid fa-chart-line" style="width: 25px; color: #94a3b8;"></i> Analytics</a>
+            <a href="#" class="nav-item" onclick="switchTab('leaderboard-page'); toggleMenu(); return false;"><i class="fa-solid fa-ranking-star" style="width: 25px; color: #f59e0b;"></i> Leaderboard</a>
+            <a href="#" style="color: #f59e0b !important; font-weight: bold; background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b;" onclick="switchTab('pro-access-page'); toggleMenu();"><i class="fa-solid fa-crown" style="width: 25px;"></i> Get Pro Access</a>
+            <a href="admin.html" id="admin-link" style="display: none;"><i class="fa-solid fa-user-shield" style="width: 25px; color: #94a3b8;"></i> Admin Panel</a>
+            <a href="mailto:hpexamproai@gmail.com?subject=HP Exam Pro Feedback/Query"><i class="fa-solid fa-envelope" style="width: 25px; color: #94a3b8;"></i> Contact Support</a>
+            <a href="#" onclick="handleLogout()" style="color: #ef4444; margin-top: 10px; border-top: 1px dashed #334155; padding-top: 12px;"><i class="fa-solid fa-right-from-bracket" style="width: 25px;"></i> Logout</a>
+        </div>
 
-        <a href="#" onclick="handleLogout()" style="color: #ef4444; margin-top: 20px; border-top: 1px dashed #334155; padding-top: 15px;"><i class="fa-solid fa-right-from-bracket" style="width: 25px;"></i> Logout</a>
+        <!-- 📱 Mobile Profile & Streak Section -->
+        <div style="padding: 15px 20px; border-top: 1px solid #334155; background: #0f172a; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                <div class="avatar-small mobile-avatar" style="width: 38px; height: 38px; background: #f59e0b; color: #000; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px;">L</div>
+                <div>
+                    <div class="mobile-user-name" style="color: white; font-weight: bold; font-size: 13px;">User</div>
+                    <small style="color: #94a3b8; font-size: 11px;">Active Profile</small>
+                </div>
+            </div>
+            
+            <!-- 🔥 Streak Capsule for Mobile -->
+            <div class="user-streak-badge" style="display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(255, 107, 0, 0.12); border: 1.5px solid #ff6b00; color: #ff8c00; padding: 8px 12px; border-radius: 25px; font-size: 13px; font-weight: 700;">
+                <span>🔥</span> <span class="streak-text-target">1 Day Streak</span>
+            </div>
+        </div>
     </div>
 
     <div id="auth-overlay" class="auth-overlay">
