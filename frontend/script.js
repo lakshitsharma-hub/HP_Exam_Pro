@@ -1995,7 +1995,7 @@ async function processUserStreak() {
     }
 }
 
-// ==================== 🖥️ RENDER STREAK ON UI ====================
+// ==================== 🖥️ RENDER & SYNC STREAK ON UI ====================
 function renderStreakUI(streakCount) {
     const streakDisplay = document.getElementById('user-streak-display');
     const streakCountEl = document.getElementById('streak-days-count');
@@ -2011,10 +2011,28 @@ function renderStreakUI(streakCount) {
     }
 }
 
-// जब प्रोफाइल लोड हो तो स्क्रीन पर स्ट्रीक दिखाओ
-if (window.CURRENT_USER_PROFILE?.current_streak) {
-    renderStreakUI(window.CURRENT_USER_PROFILE.current_streak);
+// 🔄 पेज लोड होते ही Supabase से असली स्ट्रीक लाओ
+async function syncStreakOnPageLoad() {
+    const userId = currentUserId || window.CURRENT_USER_PROFILE?.id;
+    if (!userId || userId === "test-user-123") return;
+
+    try {
+        const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('current_streak')
+            .eq('id', userId)
+            .single();
+
+        if (profile && profile.current_streak !== undefined) {
+            renderStreakUI(profile.current_streak);
+        }
+    } catch (e) {
+        console.error("Streak sync error:", e);
+    }
 }
+
+// पेज लोड होने के 1.5 सेकंड बाद ऑटोमैटिक सिंक
+setTimeout(syncStreakOnPageLoad, 1500);
 
 // ==================== 🔥 SHOW STREAK TOAST ====================
 function showStreakToast(days) {
