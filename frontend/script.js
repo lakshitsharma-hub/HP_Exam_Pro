@@ -1975,6 +1975,8 @@ async function processUserStreak() {
         }
 
         console.log("✅ [Streak] Database mein kamyabi se update ho gaya!");
+        // स्क्रीन पर लाइव स्ट्रीक नंबर अपडेट करो
+        renderStreakUI(streak);
 
         // 3. Badges check
         if (streak >= 7) {
@@ -1990,4 +1992,25 @@ async function processUserStreak() {
         console.error("❌ [Streak] Unexpected crash error:", err);
         return 1;
     }
+}
+
+// ==================== 🖥️ RENDER STREAK ON UI ====================
+function renderStreakUI(streakCount) {
+    const streakDisplay = document.getElementById('user-streak-display');
+    const streakCountEl = document.getElementById('streak-days-count');
+    
+    if (streakCountEl) {
+        streakCountEl.innerText = streakCount || 0;
+    }
+    
+    // अगर स्ट्रीक 3 से ज्यादा हो तो एक्स्ट्रा फ्लेम ग्लो
+    if (streakDisplay && streakCount >= 3) {
+        streakDisplay.style.boxShadow = "0 0 12px rgba(255, 107, 0, 0.4)";
+        streakDisplay.style.borderColor = "#ff6b00";
+    }
+}
+
+// जब प्रोफाइल लोड हो तो स्क्रीन पर स्ट्रीक दिखाओ
+if (window.CURRENT_USER_PROFILE?.current_streak) {
+    renderStreakUI(window.CURRENT_USER_PROFILE.current_streak);
 }
