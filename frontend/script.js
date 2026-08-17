@@ -2101,18 +2101,24 @@ function showStreakToast(days) {
     }, 3500);
 }
 
-// 💾 टेस्ट को बैकग्राउंड में सेव करने वाला फंक्शन
-function saveMockTestState(currentQuestionIndex, userAnswers, remainingTime) {
-    const testState = {
-        index: currentQuestionIndex,   // बच्चा किस सवाल पर था
-        answers: userAnswers,          // उसने अब तक क्या-क्या टिक किया है
-        time: remainingTime            // कितना टाइम बचा था
-    };
-    // इसे फोन की इंटरनल मेमोरी (localStorage) में सेव कर दो
-    localStorage.setItem('hp_exam_pro_saved_test', JSON.stringify(testState));
+// ==================== 💾 AUTO-SAVE & RESUME ENGINE ====================
+
+// 1. टेस्ट को बैकग्राउंड में सेव करने वाला फंक्शन
+function saveMockTestState() {
+    // सिर्फ तभी सेव करो जब सवाल लोड हो चुके हों
+    if (currentQuestions && currentQuestions.length > 0) {
+        const testState = {
+            index: currentQuestionIndex,
+            answers: userAnswers,
+            time: totalQuizTimeSeconds,
+            questions: currentQuestions,   // 🟢 सवाल भी सेव करने पड़ेंगे वरना रिफ्रेश पर उड़ जाएंगे!
+            examType: selectedExamType     
+        };
+        localStorage.setItem('hp_exam_pro_saved_test', JSON.stringify(testState));
+    }
 }
 
-// 🔄 चेक करो कि क्या कोई अधूरा टेस्ट फोन में सेव है?
+// 2. वापस आने पर टेस्ट चेक और चालू करने वाला फंक्शन
 function checkSavedTest() {
     const savedData = localStorage.getItem('hp_exam_pro_saved_test');
     
@@ -2123,9 +2129,23 @@ function checkSavedTest() {
         const userWantsToResume = confirm("⚠️ आपका एक अधूरा मॉक टेस्ट मिला है! क्या आप टेस्ट वहीं से शुरू करना चाहते हैं जहाँ आपने छोड़ा था?");
         
         if (userWantsToResume) {
-            // यहाँ अपने टेस्ट को स्टार्ट करने वाला कोड लगाओ और state के डेटा से टेस्ट सेट कर दो
-            console.log("Resuming test from question:", state.index);
-            // resumeTest(state.index, state.answers, state.time); // (तुम्हारे फंक्शन के हिसाब से इसे सेट कर लेना)
+            // 🟢 सेव किया हुआ डेटा वापस ओरिजिनल वेरिएबल्स में डालो
+            currentQuestionIndex = state.index;
+            userAnswers = state.answers;
+            totalQuizTimeSeconds = state.time;
+            currentQuestions = state.questions;
+            selectedExamType = state.examType;
+            
+            // 🟢 स्क्रीन सेट करो (डैशबोर्ड छुपाओ, टेस्ट स्क्रीन दिखाओ)
+            document.getElementById('exam-selection-view').style.display = 'none';
+            document.getElementById('active-quiz-view').style.display = 'block';
+            
+            if(document.getElementById('standard-sidebar-content')) document.getElementById('standard-sidebar-content').style.display = 'none';
+            if(document.getElementById('quiz-navigation-palette')) document.getElementById('quiz-navigation-palette').style.display = 'block';
+            
+            // 🟢 टाइमर और सवाल दोबारा चालू करो
+            startQuizTimer();
+            displayQuestion();
         } else {
             // अगर बच्चा 'Cancel' कर दे, तो सेव किया हुआ पुराना टेस्ट उड़ा दो
             localStorage.removeItem('hp_exam_pro_saved_test');
