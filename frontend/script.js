@@ -630,9 +630,6 @@ async function submitMockTest() {
     // =========================================================================
     // 🏆 ACHIEVEMENT CHECK TRIGGER (NAYA CODE)
     // =========================================================================
-    // =========================================================================
-    // 🏆 ACHIEVEMENT CHECK TRIGGER (NAYA CODE)
-    // =========================================================================
     // 🔥 Process & Update Daily Streak
     processUserStreak();
 
@@ -652,7 +649,6 @@ async function submitMockTest() {
         previousTestScore: null
     });
     // =========================================================================
-    // =========================================================================
     
     document.getElementById('active-quiz-view').style.display = 'none';
     document.getElementById('quiz-result-view').style.display = 'block';
@@ -667,6 +663,12 @@ async function submitMockTest() {
         reviewBox.style.display = 'none';
         reviewBox.innerHTML = '';
     }
+
+    // 💾 ======================================================================
+    // 🧹 NEW: टेस्ट सबमिट होते ही पुरानी मेमोरी (localStorage) को उड़ा दो 
+    // =========================================================================
+    localStorage.removeItem('hp_exam_pro_saved_test');
+    // =========================================================================
     
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
 
@@ -693,6 +695,7 @@ async function submitMockTest() {
         console.error("Data save karne mein error aaya:", error);
     }
 }
+
 function resetToSelection() {
     document.getElementById('quiz-result-view').style.display = 'none';
     document.getElementById('exam-selection-view').style.display = 'block';
