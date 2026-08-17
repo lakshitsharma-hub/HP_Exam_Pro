@@ -298,6 +298,48 @@
                     </div>
                 </section>
             </div>
+            <!-- ==================== ⚔️ 1v1 BATTLE LOBBY (SKELETON) ==================== -->
+<div id="battle-lobby-page" class="page-content" style="display: none; padding: 20px;">
+    
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="color: #38bdf8; font-size: 28px; font-weight: 900; text-transform: uppercase;">
+            <i class="fa-solid fa-khanda"></i> 1v1 Battle Arena
+        </h2>
+        <p style="color: #94a3b8; font-size: 14px;">Challenge real players and build your Aura!</p>
+    </div>
+
+    <!-- 🔮 Player Profile Preview -->
+    <div style="display: flex; justify-content: center; margin-bottom: 40px;">
+        <div class="player-card" id="lobby-user-card" style="text-align: center;">
+            <!-- Placeholder Avatar (बिना एनिमेशन के) -->
+            <div id="lobby-avatar" style="width: 100px; height: 100px; border-radius: 50%; background-color: #1e293b; background-image: url('https://i.pinimg.com/736x/8f/c3/7b/8fc37b7ca78eb591fbcfaf118a38dbcb.jpg'); background-size: cover; margin: 0 auto;"></div>
+            
+            <div id="lobby-user-name" style="color: #f8fafc; margin-top: 15px; font-weight: bold; font-size: 18px;">Loading...</div>
+            <div id="lobby-user-rank" style="color: #94a3b8; font-size: 12px; font-weight: bold; margin-top: 5px;">Checking XP...</div>
+        </div>
+    </div>
+
+    <!-- 🎯 Subject Selection -->
+    <div style="background: #1e293b; padding: 20px; border-radius: 12px; max-width: 400px; margin: 0 auto;">
+        <label style="color: #cbd5e1; font-size: 14px; font-weight: bold; margin-bottom: 10px; display: block;">Select Battle Subject:</label>
+        
+        <select id="battle-subject" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #475569; color: white; margin-bottom: 20px;">
+            <option value="hp_gk">Himachal GK (10 Questions)</option>
+            <option value="history">Indian History (10 Questions)</option>
+            <option value="hindi">Hindi Vyakaran (10 Questions)</option>
+            <option value="mixed">Mixed Mega Battle (15 Questions)</option>
+        </select>
+
+        <button onclick="startMatchmaking()" style="width: 100%; padding: 14px; background: #ef4444; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
+            <i class="fa-solid fa-bolt"></i> Find Opponent
+        </button>
+        
+        <button onclick="inviteFriend()" style="width: 100%; padding: 12px; background: transparent; color: #38bdf8; border: 1px solid #38bdf8; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer;">
+            <i class="fa-brands fa-whatsapp"></i> Invite a Friend
+        </button>
+    </div>
+
+</div>
             <div id="mock-tests-page" class="page-content" style="display: none; padding: 20px;">
 
     <div id="exam-selection-view">
