@@ -2166,3 +2166,56 @@ function checkSavedTest() {
 }
 // वेबसाइट खुलते ही इसे चला दो
 checkSavedTest();
+
+
+// =========================================================================
+// ⚔️ 1v1 BATTLE LOBBY LOGIC
+// =========================================================================
+
+function loadLobbyProfile() {
+    // 1. यूज़र का नाम और XP निकालो
+    const userName = window.CURRENT_USER_PROFILE?.display_name || "Guest Student";
+    let userXP = window.CURRENT_USER_PROFILE?.xp_points || 0; 
+    
+    const nameText = document.getElementById('lobby-user-name');
+    const rankText = document.getElementById('lobby-user-rank');
+
+    if (!nameText || !rankText) return; // अगर पेज लोड नहीं हुआ है तो एरर से बचने के लिए
+
+    // 2. 👑 THE GOD MAKER CHECK (Admin Only)
+    if (userName === "lakshitsharma976" || userName === "lakshitsharma8080") {
+        nameText.innerText = `[THE GOD MAKER]`;
+        nameText.style.color = "#fef08a"; 
+        nameText.style.textShadow = "0 0 10px #eab308"; // हल्की सी सुनहरी चमक
+
+        rankText.innerText = "XP: ∞ (Limit Exceeded)";
+        rankText.style.color = "#fef08a";
+        rankText.style.fontWeight = "900";
+    } 
+    // 3. 👥 NORMAL PLAYERS LOGIC
+    else {
+        nameText.innerText = userName;
+        nameText.style.color = "#f8fafc";
+        
+        if (userXP < 500) {
+            rankText.innerText = `Rookie (${userXP} XP)`;
+        } else if (userXP < 1500) {
+            rankText.innerText = `Pro Challenger (${userXP} XP)`;
+        } else if (userXP < 3000) {
+            rankText.innerText = `Elite Scholar (${userXP} XP)`;
+        } else {
+            rankText.innerText = `State Conqueror (${userXP} XP)`;
+        }
+    }
+}
+
+// जब बच्चा 'Find Opponent' बटन दबाएगा
+function startMatchmaking() {
+    const subject = document.getElementById('battle-subject').value;
+    alert(`Searching for an opponent for ${subject.toUpperCase()}... \n\n(VS Arena Glitch Screen will load here soon! 💀)`);
+}
+
+// जब बच्चा 'Invite' बटन दबाएगा
+function inviteFriend() {
+    alert("WhatsApp Invite Link functionality will be added here.");
+}
