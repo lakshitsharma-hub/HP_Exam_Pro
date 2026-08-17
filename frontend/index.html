@@ -305,47 +305,102 @@
                     </div>
                 </section>
             </div>
-            <!-- ==================== ⚔️ 1v1 BATTLE LOBBY (SKELETON) ==================== -->
-<div id="battle-lobby-page" class="page-content" style="display: none; padding: 20px;">
+      <!-- ==================== ⚔️ 1v1 BATTLE LOBBY & ARENA (NEW) ==================== -->
+<div id="battle-lobby-page" class="page-content" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #030712; z-index: 1000; flex-direction: column; overflow-y: auto;">
     
-    <div style="text-align: center; margin-bottom: 30px;">
-        <h2 style="color: #38bdf8; font-size: 28px; font-weight: 900; text-transform: uppercase;">
-            <i class="fa-solid fa-crosshairs"></i> 1v1 Battle Arena
-        </h2>
-        <p style="color: #94a3b8; font-size: 14px;">Challenge real players and build your Aura!</p>
-    </div>
-
-    <!-- 🔮 Player Profile Preview -->
-    <div style="display: flex; justify-content: center; margin-bottom: 40px;">
-        <div class="player-card" id="lobby-user-card" style="text-align: center;">
-            <!-- Placeholder Avatar (बिना एनिमेशन के) -->
-            <div id="lobby-avatar" style="width: 100px; height: 100px; border-radius: 50%; background-color: #1e293b; background-image: url('https://i.pinimg.com/736x/8f/c3/7b/8fc37b7ca78eb591fbcfaf118a38dbcb.jpg'); background-size: cover; margin: 0 auto;"></div>
+    <!-- 📱 1. LOBBY / ROOM CREATOR VIEW -->
+    <div id="lobby-view" style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid #334155; border-radius: 24px; padding: 40px; max-width: 520px; width: 100%; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.8);">
             
-            <div id="lobby-user-name" style="color: #f8fafc; margin-top: 15px; font-weight: bold; font-size: 18px;">Loading...</div>
-            <div id="lobby-user-rank" style="color: #94a3b8; font-size: 12px; font-weight: bold; margin-top: 5px;">Checking XP...</div>
+            <!-- क्लोज़ बटन (वापस डैशबोर्ड जाने के लिए) -->
+            <button onclick="document.getElementById('battle-lobby-page').style.display='none'; switchTab('dashboard-page');" style="position: absolute; top: 20px; right: 25px; background: transparent; border: none; color: #ef4444; font-size: 24px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+
+            <i class="fa-solid fa-gamepad" style="font-size: 45px; color: #38bdf8; margin-bottom: 15px;"></i>
+            <h2 style="font-size: 26px; font-weight: 900; color: #38bdf8; margin-bottom: 10px; text-transform: uppercase;">1v1 GK Battle Room</h2>
+            <p style="color: #94a3b8; font-size: 14px; line-height: 1.5;">Challenge your friends in real-time Himachal Pradesh GK duel! Share the code below on WhatsApp.</p>
+
+            <!-- Room Code Box -->
+            <div style="background: #020617; border: 2px dashed #38bdf8; border-radius: 16px; padding: 20px; margin: 25px 0; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                <span style="font-size: 12px; color: #94a3b8; font-weight: 800; text-transform: uppercase;">Your Battle Room Code</span>
+                <div id="room-code" style="font-family: monospace; font-size: 36px; font-weight: 900; color: #facc15; letter-spacing: 6px; text-shadow: 0 0 15px rgba(250, 204, 21, 0.5);">HP-849201</div>
+            </div>
+
+            <!-- Share & Action Buttons -->
+            <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <a id="whatsapp-share-btn" href="#" target="_blank" style="background: #22c55e; color: white; border-radius: 12px; padding: 16px; font-size: 16px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i class="fa-brands fa-whatsapp" style="font-size: 22px;"></i> Share Challenge on WhatsApp
+                </a>
+                <button onclick="copyRoomCode()" style="background: #1e293b; color: #e2e8f0; border: 1px solid #475569; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fa-regular fa-copy"></i> <span id="copy-text">Copy Code & Link</span>
+                </button>
+                <button onclick="enterBattleArena()" style="background: linear-gradient(90deg, #2563eb, #38bdf8); color: white; border: none; border-radius: 12px; padding: 16px; font-size: 16px; font-weight: 900; text-transform: uppercase; cursor: pointer; margin-top: 10px;">
+                    <i class="fa-solid fa-bolt"></i> Start Battle Arena
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- 🎯 Subject Selection -->
-    <div style="background: #1e293b; padding: 20px; border-radius: 12px; max-width: 400px; margin: 0 auto;">
-        <label style="color: #cbd5e1; font-size: 14px; font-weight: bold; margin-bottom: 10px; display: block;">Select Battle Subject:</label>
-        
-        <select id="battle-subject" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #475569; color: white; margin-bottom: 20px;">
-            <option value="hp_gk">Himachal GK (10 Questions)</option>
-            <option value="history">Indian History (10 Questions)</option>
-            <option value="hindi">Hindi Vyakaran (10 Questions)</option>
-            <option value="mixed">Mixed Mega Battle (15 Questions)</option>
-        </select>
-
-        <button onclick="startMatchmaking()" style="width: 100%; padding: 14px; background: #ef4444; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
-            <i class="fa-solid fa-bolt"></i> Find Opponent
-        </button>
-        
-        <button onclick="inviteFriend()" style="width: 100%; padding: 12px; background: transparent; color: #38bdf8; border: 1px solid #38bdf8; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer;">
-            <i class="fa-brands fa-whatsapp"></i> Invite a Friend
-        </button>
+    <!-- ⚔️ 2. FULL SCREEN TOP HUD (Shown in Match) -->
+    <div class="battle-hud" id="match-hud">
+        <div class="hud-player">
+            <div class="hud-avatar-wrapper" id="god-avatar-wrapper"><div class="hud-avatar god-hud-aura">🪐</div></div>
+            <div class="hud-info">
+                <div class="hud-meta-row">
+                    <div class="hud-name" style="color: #fef08a;">THE GOD MAKER 👑</div>
+                    <div class="hud-rank-tag" style="color: #facc15;">XP: ∞ (Limit Exceeded)</div>
+                </div>
+                <div class="progress-track"><div id="god-progress" class="progress-bar-god"></div></div>
+            </div>
+        </div>
+        <div class="hud-center">
+            <div id="timer-box" class="timer-circle">10</div>
+            <div id="round-label" class="round-tag">Q 1/5</div>
+            <button class="rewards-btn" onclick="openRoadmap()"><i class="fa-solid fa-trophy"></i> Aura Roadmap</button>
+        </div>
+        <div class="hud-player opponent">
+            <div class="hud-avatar-wrapper"><div class="hud-avatar opp-hud-aura">🔥</div></div>
+            <div class="hud-info">
+                <div class="hud-meta-row" style="flex-direction: row-reverse;">
+                    <div class="hud-name" style="color: #f87171;">Rahul Sharma</div>
+                    <div class="hud-rank-tag" style="color: #fca5a5;">State Conqueror (4,500 XP)</div>
+                </div>
+                <div class="progress-track"><div id="opp-progress" class="progress-bar-opp"></div></div>
+            </div>
+        </div>
     </div>
 
+    <!-- 🎯 3. MAIN ARENA (Shown in Match) -->
+    <div class="arena-body" id="match-arena">
+        <div class="question-card">
+            <div id="reality-override">
+                <div class="override-title"><i class="fa-solid fa-triangle-exclamation"></i> REALITY REWRITTEN BY THE GOD MAKER</div>
+                <div class="override-terminal">
+                    &gt; [SYSTEM PROTOCOL 0x00_OVERRIDE_SUCCESSFUL]<br>
+                    &gt; MISTAKES CANNOT EXIST IN THE CREATOR'S REALM.<br>
+                    <span style="color: #facc15; font-weight: 800;">&gt; TIMELINE RECONFIGURED TO ABSOLUTE TRUTH.</span>
+                </div>
+            </div>
+            <div id="q-text" class="question-text">Loading question...</div>
+            <div class="options-grid" id="options-container"></div>
+        </div>
+    </div>
+
+    <!-- 📜 XP REWARDS ROADMAP MODAL -->
+    <div id="roadmap-modal">
+        <div class="roadmap-card">
+            <div class="roadmap-header">
+                <h3 style="color: #38bdf8; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-award"></i> Aura Ranks & XP Rewards</h3>
+                <button onclick="closeRoadmap()" style="background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="roadmap-item"><div class="item-icon" style="border: 2px solid #475569;">🥷</div><div class="item-details"><h4 style="color: #94a3b8;">Rookie</h4><p>The journey begins.</p></div><div class="xp-badge" style="color: #94a3b8;">0 - 499 XP</div></div>
+            <div class="roadmap-item"><div class="item-icon" style="border: 2px solid #eab308;">⚡</div><div class="item-details"><h4 style="color: #facc15;">Pro Challenger</h4><p>Yellow Pulse unlocked.</p></div><div class="xp-badge" style="color: #facc15;">500+ XP</div></div>
+            <div class="roadmap-item"><div class="item-icon" style="border: 2px solid #a855f7;">🔮</div><div class="item-details"><h4 style="color: #c084fc;">Elite Scholar</h4><p>Purple Plasma unlocked.</p></div><div class="xp-badge" style="color: #c084fc;">1,500+ XP</div></div>
+            <div class="roadmap-item"><div class="item-icon" style="border: 2px solid #ef4444;">🔥</div><div class="item-details"><h4 style="color: #f87171;">State Conqueror</h4><p>Blazing Fire aura unlocked.</p></div><div class="xp-badge" style="color: #f87171;">3,000+ XP</div></div>
+            <div class="roadmap-item mystery-mode"><div class="item-icon" style="border: 2px solid #ef4444; animation: godModePulse 1.5s infinite;">💀</div><div class="item-details"><h4 style="color: #ef4444;">[CLASSIFIED] THE GOD MODE</h4><p style="color: #fca5a5;">Requires legendary win streak.</p></div><div class="xp-badge" style="color: #ef4444; background: rgba(239, 68, 68, 0.2);">🔒 10k+ XP</div></div>
+        </div>
+    </div>
+
+</div>
 </div>
             <div id="mock-tests-page" class="page-content" style="display: none; padding: 20px;">
 
