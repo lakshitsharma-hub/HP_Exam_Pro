@@ -713,3 +713,26 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-app); 
     line-height: 1.8;
     text-shadow: 0 0 8px #22c55e;
 }
+/* ================= 📜 XP REWARDS ROADMAP MODAL ================= */
+#roadmap-modal {
+    display: none; /* यह बहुत ज़रूरी है, वरना यह हमेशा खुला रहेगा! */
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 999999; /* Z-index बहुत ज्यादा रखा है ताकि यह सबसे ऊपर आए */
+    align-items: center;
+    justify-content: center;
+}
+
+.roadmap-card {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px; /* चौड़ाई थोड़ी कम की है */
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 25px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.9);
+}
