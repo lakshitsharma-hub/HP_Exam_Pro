@@ -2095,3 +2095,38 @@ function showStreakToast(days) {
         }, 380);
     }, 3500);
 }
+
+// 💾 टेस्ट को बैकग्राउंड में सेव करने वाला फंक्शन
+function saveMockTestState(currentQuestionIndex, userAnswers, remainingTime) {
+    const testState = {
+        index: currentQuestionIndex,   // बच्चा किस सवाल पर था
+        answers: userAnswers,          // उसने अब तक क्या-क्या टिक किया है
+        time: remainingTime            // कितना टाइम बचा था
+    };
+    // इसे फोन की इंटरनल मेमोरी (localStorage) में सेव कर दो
+    localStorage.setItem('hp_exam_pro_saved_test', JSON.stringify(testState));
+}
+
+// 🔄 चेक करो कि क्या कोई अधूरा टेस्ट फोन में सेव है?
+function checkSavedTest() {
+    const savedData = localStorage.getItem('hp_exam_pro_saved_test');
+    
+    if (savedData) {
+        const state = JSON.parse(savedData);
+        
+        // एक पॉप-अप दिखाकर पूछो
+        const userWantsToResume = confirm("⚠️ आपका एक अधूरा मॉक टेस्ट मिला है! क्या आप टेस्ट वहीं से शुरू करना चाहते हैं जहाँ आपने छोड़ा था?");
+        
+        if (userWantsToResume) {
+            // यहाँ अपने टेस्ट को स्टार्ट करने वाला कोड लगाओ और state के डेटा से टेस्ट सेट कर दो
+            console.log("Resuming test from question:", state.index);
+            // resumeTest(state.index, state.answers, state.time); // (तुम्हारे फंक्शन के हिसाब से इसे सेट कर लेना)
+        } else {
+            // अगर बच्चा 'Cancel' कर दे, तो सेव किया हुआ पुराना टेस्ट उड़ा दो
+            localStorage.removeItem('hp_exam_pro_saved_test');
+        }
+    }
+}
+
+// वेबसाइट खुलते ही इसे चला दो
+checkSavedTest();
