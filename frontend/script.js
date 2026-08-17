@@ -557,6 +557,7 @@ async function displayQuestion() {
         
         optionButton.onclick = () => {
             userAnswers[currentQ.id] = optionKey;
+            saveMockTestState(); // 💾 ट्रिगर: जैसे ही ऑप्शन चुना, बैकग्राउंड में सेव!
             displayQuestion(); 
         };
         
