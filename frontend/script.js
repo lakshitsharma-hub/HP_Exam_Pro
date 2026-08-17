@@ -2125,25 +2125,37 @@ function checkSavedTest() {
     if (savedData) {
         const state = JSON.parse(savedData);
         
-        // एक पॉप-अप दिखाकर पूछो
         const userWantsToResume = confirm("⚠️ आपका एक अधूरा मॉक टेस्ट मिला है! क्या आप टेस्ट वहीं से शुरू करना चाहते हैं जहाँ आपने छोड़ा था?");
         
         if (userWantsToResume) {
-            // 🟢 सेव किया हुआ डेटा वापस ओरिजिनल वेरिएबल्स में डालो
+            // 🟢 1. डेटा रिस्टोर करो
             currentQuestionIndex = state.index;
             userAnswers = state.answers;
             totalQuizTimeSeconds = state.time;
             currentQuestions = state.questions;
             selectedExamType = state.examType;
             
-            // 🟢 स्क्रीन सेट करो (डैशबोर्ड छुपाओ, टेस्ट स्क्रीन दिखाओ)
+            // 🟢 2. BUG FIX: सबसे पहले बाकी सारे पेजों (Dashboard) को छुपा दो!
+            document.querySelectorAll('.page-content').forEach(page => {
+                page.classList.remove('active');
+                page.style.display = 'none';
+            });
+
+            // 🟢 3. अब सिर्फ Mock Test वाले मेन पेज को एक्टिवेट करो
+            const mockTestPage = document.getElementById('mock-tests-page');
+            if (mockTestPage) {
+                mockTestPage.classList.add('active');
+                mockTestPage.style.display = 'block';
+            }
+            
+            // 🟢 4. स्क्रीन सेट करो (Selection छुपाओ, टेस्ट दिखाओ)
             document.getElementById('exam-selection-view').style.display = 'none';
             document.getElementById('active-quiz-view').style.display = 'block';
             
             if(document.getElementById('standard-sidebar-content')) document.getElementById('standard-sidebar-content').style.display = 'none';
             if(document.getElementById('quiz-navigation-palette')) document.getElementById('quiz-navigation-palette').style.display = 'block';
             
-            // 🟢 टाइमर और सवाल दोबारा चालू करो
+            // 🟢 5. टाइमर और सवाल दोबारा चालू करो
             startQuizTimer();
             displayQuestion();
         } else {
@@ -2152,6 +2164,5 @@ function checkSavedTest() {
         }
     }
 }
-
 // वेबसाइट खुलते ही इसे चला दो
 checkSavedTest();
