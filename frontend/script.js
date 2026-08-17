@@ -590,6 +590,7 @@ function navigateQuestion(direction) {
     if (currentQuestionIndex < 0) currentQuestionIndex = 0;
     if (currentQuestionIndex >= currentQuestions.length) currentQuestionIndex = currentQuestions.length - 1;
     
+    saveMockTestState(); // 💾 ट्रिगर: सवाल बदला, तो भी सेव!
     displayQuestion();
 }
 
