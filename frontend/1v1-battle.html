@@ -214,25 +214,25 @@
                 <option value="polity">⚖️ Indian Polity</option>
             </select>
 
-            <!-- ⏳ WAITING BOX (Host clicks WhatsApp) -->
+            <!-- ⏳ WAITING BOX (Host State) -->
             <div id="friend-waiting-box" style="display: none; background: #020617; border: 2px dashed #22c55e; border-radius: 16px; padding: 20px; margin: 15px 0;">
                 <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 32px; color: #22c55e; margin-bottom: 10px;"></i>
                 <div style="font-weight: 800; color: #f8fafc; font-size: 16px;">Link Shared on WhatsApp!</div>
-                <div style="font-size: 12px; color: #94a3b8; margin: 6px 0 15px 0;">Waiting for your opponent to open the link & accept challenge...</div>
+                <div style="font-size: 12px; color: #94a3b8; margin: 6px 0 15px 0;">Waiting for friend to accept challenge... (Auto-starting when joined)</div>
                 
                 <button type="button" onclick="startBotMatch()" class="action-btn" style="background: #334155; color: white; padding: 10px; font-size: 13px;">
                     <i class="fa-solid fa-robot"></i> Friend taking time? Play with Bot
                 </button>
             </div>
 
-            <!-- ⚔️ ACCEPT CHALLENGE BOX (For Friend from URL Link) -->
+            <!-- ⚔️ ACCEPT CHALLENGE BOX (Opponent State) -->
             <div id="join-challenge-box" style="display: none; margin: 15px 0;">
                 <button type="button" onclick="acceptFriendChallenge()" class="action-btn" style="background: linear-gradient(90deg, #ef4444, #f97316); color: white; font-size: 17px; box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);">
                     <i class="fa-solid fa-bolt"></i> Accept Challenge & Enter Arena
                 </button>
             </div>
 
-            <!-- 🕹️ DEFAULT ACTION BUTTONS (For Room Creator) -->
+            <!-- 🕹️ DEFAULT ACTION BUTTONS -->
             <div id="default-btn-group" style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
                 <button type="button" onclick="shareOnWhatsApp()" class="action-btn" style="background: #22c55e; color: white;">
                     <i class="fa-brands fa-whatsapp" style="font-size: 20px;"></i> Invite Friend on WhatsApp
@@ -357,7 +357,6 @@
 
     <!-- ⚙️ SCRIPT -->
     <script>
-        // 1. Detect URL Parameters First
         const urlParams = new URLSearchParams(window.location.search);
         const invitedRoom = urlParams.get('room');
         const invitedSubject = urlParams.get('subject');
@@ -369,6 +368,7 @@
         let qIdx = 0, time = 10, timer = null, myScore = 0, oppScore = 0;
         let isBotMatch = false;
         let supabaseClient = null;
+        let roomChannel = null;
 
         try {
             if (window.supabase && typeof window.supabase.createClient === 'function') {
@@ -385,7 +385,6 @@
             const el = document.getElementById('room-code');
             if (el) el.innerText = currentRoomCode;
 
-            // If coming from friend's invite link
             if (invitedRoom) {
                 const label = document.getElementById('room-code-label');
                 if (label) label.innerText = "CHALLENGE ROOM CODE";
@@ -404,11 +403,34 @@
             }
         }
 
+        // 📡 1. SETUP REALTIME SYNC CHANNEL
+        function setupRealtimeRoom() {
+            if (!supabaseClient) return;
+
+            roomChannel = supabaseClient.channel(`battle_${currentRoomCode}`, {
+                config: { broadcast: { self: false } }
+            });
+
+            // Listen for opponent join event
+            roomChannel.on('broadcast', { event: 'player_joined' }, async (payload) => {
+                const opponentName = payload?.payload?.name || "Friend";
+                const opponentRank = payload?.payload?.rank || "Challenger (1,000 XP)";
+                
+                // Start battle immediately for Host!
+                const selectedSubject = document.getElementById('battle-subject').value || 'mix';
+                await fetchQuestions(selectedSubject);
+                startLiveMatch(opponentName, opponentRank);
+            });
+
+            roomChannel.subscribe();
+        }
+
         window.toggleBadgesModal = function(show) {
             const modal = document.getElementById('badges-modal');
             if (modal) modal.style.display = show ? 'flex' : 'none';
         };
 
+        // 📱 2. HOST SENDS INVITE & LISTENS
         window.shareOnWhatsApp = function() {
             const subjectSelect = document.getElementById('battle-subject');
             const selectedSubject = subjectSelect ? subjectSelect.value : 'mix';
@@ -424,15 +446,47 @@
             const defaultGroup = document.getElementById('default-btn-group');
             if (waitingBox) waitingBox.style.display = 'block';
             if (defaultGroup) defaultGroup.style.display = 'none';
+
+            // Ensure Realtime listener is ready
+            setupRealtimeRoom();
         };
 
+        // ⚔️ 3. OPPONENT CLICKS ACCEPT & SENDS SIGNAL TO HOST
         window.acceptFriendChallenge = async function() {
             const sub = invitedSubject || document.getElementById('battle-subject').value || 'mix';
             const btn = event?.currentTarget;
             if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Entering Arena...`;
+
+            // Broadcast join signal to Host
+            if (supabaseClient) {
+                const tempChannel = supabaseClient.channel(`battle_${currentRoomCode}`);
+                await tempChannel.subscribe();
+                await tempChannel.send({
+                    type: 'broadcast',
+                    event: 'player_joined',
+                    payload: {
+                        name: userStats?.display_name || 'Opponent',
+                        rank: `${userStats?.aura_rank || 'Rookie'} (${userStats?.xp || 0} XP)`
+                    }
+                });
+            }
+
             await fetchQuestions(sub);
-            startBotMatch();
+            startLiveMatch("Host Player", "Elite Challenger");
         };
+
+        function startLiveMatch(oppName, oppRank) {
+            isBotMatch = true; // Bot engine handles simulated progression if needed
+            document.getElementById('lobby-view').style.display = 'none';
+            document.getElementById('match-hud').style.display = 'flex';
+            document.getElementById('match-arena').style.display = 'flex';
+
+            document.getElementById('opp-name').innerText = oppName;
+            document.getElementById('opp-rank').innerText = oppRank;
+
+            startGodMatrix();
+            loadQuestion();
+        }
 
         window.startMatchmaking = async function() {
             const btn = document.getElementById('find-opp-btn');
@@ -490,18 +544,7 @@
         }
 
         function startBotMatch() {
-            isBotMatch = true;
-            document.getElementById('lobby-view').style.display = 'none';
-            document.getElementById('match-hud').style.display = 'flex';
-            document.getElementById('match-arena').style.display = 'flex';
-
-            const botNames = ["Rohit Sharma", "Priya Thakur", "Aman Verma", "Neha Rajput", "Sahil Rana"];
-            const botRanks = ["Pro Challenger (850 XP)", "Elite Scholar (2,100 XP)", "State Conqueror (4,200 XP)"];
-            document.getElementById('opp-name').innerText = botNames[Math.floor(Math.random() * botNames.length)];
-            document.getElementById('opp-rank').innerText = botRanks[Math.floor(Math.random() * botRanks.length)];
-
-            startGodMatrix();
-            loadQuestion();
+            startLiveMatch("Aman Verma", "Elite Scholar (2,100 XP)");
         }
 
         function startGodMatrix() {
@@ -692,6 +735,7 @@
 
         renderRoomCode();
         loadSupabaseUserData();
+        setupRealtimeRoom();
     </script>
 </body>
 </html>
