@@ -583,33 +583,60 @@
             document.getElementById('options-container').innerHTML = "";
         }
 
-        // 🎖️ Fetch and Render User Stats on Lobby Card
+        // 🎖️ Fetch or Auto-Create User Record via UPSERT
         async function loadSupabaseUserData() {
             if (!supabaseClient) return;
             try {
                 const { data: { user } } = await supabaseClient.auth.getUser();
-                if (user) {
-                    currentUser = user;
-                    let { data: stats } = await supabaseClient.from('user_battle_stats').select('*').eq('user_id', user.id).maybeSingle();
-                    if (stats) {
-                        userStats = stats;
-                        const rankName = userStats.aura_rank || 'Rookie';
-                        const xpVal = userStats.xp || 0;
-                        const winsVal = userStats.battles_won || 0;
+                
+                // Fallback ID if opened in standalone mode without auth
+                const targetUserId = user ? user.id : (localStorage.getItem('hp_guest_user_id') || 'guest_' + Math.random().toString(36).substring(2, 9));
+                localStorage.setItem('hp_guest_user_id', targetUserId);
 
-                        // Lobby UI
-                        document.getElementById('lobby-user-name').innerText = (userStats.display_name || user.email.split('@')[0]).toUpperCase();
-                        document.getElementById('lobby-user-badge').innerHTML = `<i class="fa-solid fa-medal"></i> <span>${rankName}</span>`;
-                        document.getElementById('lobby-user-xp').innerText = `${xpVal} XP`;
-                        document.getElementById('lobby-user-wins').innerText = winsVal;
+                const targetEmail = user ? user.email : 'guest_challenger@hpexam.pro';
+                const targetName = user ? (user.user_metadata?.full_name || user.email.split('@')[0]) : 'Challenger';
 
-                        // HUD UI
-                        const nameEl = document.getElementById('user-display-name');
-                        const xpEl = document.getElementById('user-xp-tag');
-                        if (nameEl) nameEl.innerText = (userStats.display_name || 'PLAYER').toUpperCase() + ' 👑';
-                        if (xpEl) xpEl.innerText = `${rankName} (${xpVal} XP)`;
-                    }
+                // First check if record exists
+                let { data: stats } = await supabaseClient.from('user_battle_stats').select('*').eq('user_id', targetUserId).maybeSingle();
+
+                // If not found, create the initial row in Supabase
+                if (!stats) {
+                    const { data: newStats } = await supabaseClient.from('user_battle_stats').upsert([{
+                        user_id: targetUserId,
+                        email: targetEmail,
+                        display_name: targetName,
+                        xp: 0,
+                        aura_rank: 'Rookie',
+                        battles_won: 0,
+                        updated_at: new Date()
+                    }], { onConflict: 'user_id' }).select().maybeSingle();
+                    stats = newStats;
                 }
+
+                userStats = stats || { display_name: targetName, aura_rank: 'Rookie', xp: 0, battles_won: 0, user_id: targetUserId };
+                currentUser = { id: targetUserId };
+
+                // Render in UI
+                const rankName = userStats.aura_rank || 'Rookie';
+                const xpVal = userStats.xp || 0;
+                const winsVal = userStats.battles_won || 0;
+
+                const nameEl = document.getElementById('lobby-user-name');
+                const badgeEl = document.getElementById('lobby-user-badge');
+                const xpEl = document.getElementById('lobby-user-xp');
+                const winsEl = document.getElementById('lobby-user-wins');
+
+                if (nameEl) nameEl.innerText = (userStats.display_name || 'PLAYER').toUpperCase();
+                if (badgeEl) badgeEl.innerHTML = `<i class="fa-solid fa-shield"></i> <span>${rankName}</span>`;
+                if (xpEl) xpEl.innerText = `${xpVal} XP`;
+                if (winsEl) winsEl.innerText = winsVal;
+
+                // Match HUD
+                const hudName = document.getElementById('user-display-name');
+                const hudXp = document.getElementById('user-xp-tag');
+                if (hudName) hudName.innerText = (userStats.display_name || 'PLAYER').toUpperCase() + ' 👑';
+                if (hudXp) hudXp.innerText = `${rankName} (${xpVal} XP)`;
+
             } catch(err) {
                 console.warn("User stats sync skipped:", err);
             }
