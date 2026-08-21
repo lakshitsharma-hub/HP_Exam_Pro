@@ -214,7 +214,17 @@
                 <option value="history">🏛️ History</option>
                 <option value="polity">⚖️ Indian Polity</option>
             </select>
-
+            <!-- ⏳ WAITING FOR OPPONENT STATE (Initially Hidden) -->
+            <div id="friend-waiting-box" style="display: none; background: #020617; border: 2px dashed #22c55e; border-radius: 16px; padding: 20px; margin: 15px 0;">
+                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 32px; color: #22c55e; margin-bottom: 10px;"></i>
+                <div style="font-weight: 800; color: #f8fafc; font-size: 16px;">Link Shared on WhatsApp!</div>
+                <div style="font-size: 12px; color: #94a3b8; margin: 6px 0 15px 0;">Waiting for your opponent to open the link & accept challenge...</div>
+                
+                <button type="button" onclick="startBotMatch()" class="action-btn" style="background: #334155; color: white; padding: 10px; font-size: 13px;">
+                    <i class="fa-solid fa-robot"></i> Friend taking time? Play with Bot
+                </button>
+            </div>
+            
             <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
                 <button type="button" onclick="shareOnWhatsApp()" class="action-btn" style="background: #22c55e; color: white;">
                     <i class="fa-brands fa-whatsapp" style="font-size: 20px;"></i> Invite Friend on WhatsApp
@@ -387,9 +397,24 @@
             const text = `⚔️ *1v1 BATTLE CHALLENGE!*\n\n📚 *Subject:* ${subjectText}\n🔑 *Room Code:* ${currentRoomCode}\n\n👉 *Accept Challenge:* ${inviteUrl}`;
             
             const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+            
+            // 1. Open WhatsApp in new tab
             window.open(waUrl, '_blank');
-        };
 
+            // 2. Pre-fetch questions in background
+            fetchQuestions(selectedSubject);
+
+            // 3. Switch UI to "Waiting for Friend" Screen
+            const waitingBox = document.getElementById('friend-waiting-box');
+            if (waitingBox) waitingBox.style.display = 'block';
+
+            // Disable buttons temporarily
+            const waBtn = event?.currentTarget;
+            if (waBtn) {
+                waBtn.style.opacity = '0.5';
+                waBtn.innerText = 'Invite Sent! Waiting...';
+            }
+        };
         window.startMatchmaking = async function() {
             const btn = document.getElementById('find-opp-btn');
             if (!btn) return;
