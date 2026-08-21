@@ -165,11 +165,20 @@
         let qIdx = 0, time = 10, timer = null, myScore = 0, oppScore = 0;
         let isBotMatch = false;
 
-        // 🔑 2. ROOM CODE & WHATSAPP LINK
-        const roomCode = "HP-" + Math.floor(100000 + Math.random() * 900000);
-        document.getElementById('room-code').innerText = roomCode;
-        document.getElementById('whatsapp-share-btn').href = `https://api.whatsapp.com/send?text=${encodeURIComponent(`⚔️ *1v1 HP GK BATTLE!*\n\nRoom Code: ${roomCode}\nJoin here: https://hp-exam-pro.vercel.app/1v1-battle.html?room=${roomCode}`)}`;
-
+        document.addEventListener('DOMContentLoaded', () => {
+    // Generate Room Code immediately
+    const roomCode = "HP-" + Math.floor(100000 + Math.random() * 900000);
+    const roomEl = document.getElementById('room-code');
+    const waBtn = document.getElementById('whatsapp-share-btn');
+    
+    if (roomEl) roomEl.innerText = roomCode;
+    if (waBtn) {
+        waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(`⚔️ *1v1 HP GK BATTLE!*\n\nRoom Code: ${roomCode}\nJoin here: https://hp-exam-pro.vercel.app/1v1-battle.html?room=${roomCode}`)}`;
+    }
+    
+    // Init Supabase stats
+    initBattleUser();
+});
         // 🔑 3. FETCH USER STATS
         async function initBattleUser() {
             const { data: { user } } = await supabase.auth.getUser();
