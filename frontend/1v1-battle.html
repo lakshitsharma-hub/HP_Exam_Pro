@@ -102,7 +102,7 @@
         .action-btn { border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; width: 100%; transition: 0.2s; }
         .action-btn:hover { transform: translateY(-2px); }
 
-        /* 📜 AURA RANKS MODAL */
+        /* 📜 EXACT SCREENSHOT AURA RANKS MODAL */
         .badge-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(10px);
@@ -218,7 +218,7 @@
             <div id="friend-waiting-box" style="display: none; background: #020617; border: 2px dashed #22c55e; border-radius: 16px; padding: 20px; margin: 15px 0;">
                 <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 32px; color: #22c55e; margin-bottom: 10px;"></i>
                 <div style="font-weight: 800; color: #f8fafc; font-size: 16px;">Link Shared on WhatsApp!</div>
-                <div style="font-size: 12px; color: #94a3b8; margin: 6px 0 15px 0;">Waiting for friend to accept challenge... (Auto-starting when joined)</div>
+                <div style="font-size: 12px; color: #94a3b8; margin: 6px 0 15px 0;">Waiting for opponent to accept challenge... (Starting automatically when joined)</div>
                 
                 <button type="button" onclick="startBotMatch()" class="action-btn" style="background: #334155; color: white; padding: 10px; font-size: 13px;">
                     <i class="fa-solid fa-robot"></i> Friend taking time? Play with Bot
@@ -325,7 +325,7 @@
             <div class="hud-info">
                 <div class="hud-meta-row">
                     <div class="hud-name" id="user-display-name" style="color: #fef08a;">THE GOD MAKER 👑</div>
-                    <div id="user-xp-tag" style="font-size:11px; font-weight:bold; color:#facc15;">Rookie (0 XP)</div>
+                    <div id="user-xp-tag" style="font-size:11px; font-weight:bold; color:#facc15;">XP: ∞</div>
                 </div>
                 <div class="progress-track"><div id="god-progress" class="progress-bar-god"></div></div>
             </div>
@@ -370,6 +370,14 @@
         let supabaseClient = null;
         let roomChannel = null;
 
+        // 👑 God Maker Email Identifier List
+        const GOD_MAKER_EMAILS = ['lakshitsharma976', 'lakshitsharma8080'];
+
+        function isGodUser(email, name) {
+            const str = ((email || '') + ' ' + (name || '')).toLowerCase();
+            return GOD_MAKER_EMAILS.some(id => str.includes(id));
+        }
+
         try {
             if (window.supabase && typeof window.supabase.createClient === 'function') {
                 supabaseClient = window.supabase.createClient(
@@ -403,7 +411,7 @@
             }
         }
 
-        // 📡 1. SETUP REALTIME SYNC CHANNEL
+        // 📡 1. Realtime Room Listener (Host receives Join & sends Sync Questions)
         function setupRealtimeRoom() {
             if (!supabaseClient) return;
 
@@ -411,15 +419,36 @@
                 config: { broadcast: { self: false } }
             });
 
-            // Listen for opponent join event
+            // Host receives join event from friend
             roomChannel.on('broadcast', { event: 'player_joined' }, async (payload) => {
                 const opponentName = payload?.payload?.name || "Friend";
                 const opponentRank = payload?.payload?.rank || "Challenger (1,000 XP)";
                 
-                // Start battle immediately for Host!
                 const selectedSubject = document.getElementById('battle-subject').value || 'mix';
                 await fetchQuestions(selectedSubject);
+
+                // Broadcast exact questions to Opponent
+                await roomChannel.send({
+                    type: 'broadcast',
+                    event: 'start_game_sync',
+                    payload: {
+                        questions: matchQuestions,
+                        hostName: isGodUser(userStats?.email, userStats?.display_name) ? "THE GOD MAKER 👑" : (userStats?.display_name || "Host Player"),
+                        hostRank: isGodUser(userStats?.email, userStats?.display_name) ? "THE GOD MAKER" : `${userStats?.aura_rank || 'Rookie'} (${userStats?.xp || 0} XP)`
+                    }
+                });
+
                 startLiveMatch(opponentName, opponentRank);
+            });
+
+            // Opponent listens for synced questions from Host
+            roomChannel.on('broadcast', { event: 'start_game_sync' }, (payload) => {
+                if (payload?.payload?.questions) {
+                    matchQuestions = payload.payload.questions;
+                    const hostName = payload.payload.hostName || "Host Player";
+                    const hostRank = payload.payload.hostRank || "Pro Challenger";
+                    startLiveMatch(hostName, hostRank);
+                }
             });
 
             roomChannel.subscribe();
@@ -430,7 +459,7 @@
             if (modal) modal.style.display = show ? 'flex' : 'none';
         };
 
-        // 📱 2. HOST SENDS INVITE & LISTENS
+        // 📱 2. Host Sends Invite & Waits
         window.shareOnWhatsApp = function() {
             const subjectSelect = document.getElementById('battle-subject');
             const selectedSubject = subjectSelect ? subjectSelect.value : 'mix';
@@ -441,42 +470,37 @@
             
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
 
-            // Switch to waiting state
             const waitingBox = document.getElementById('friend-waiting-box');
             const defaultGroup = document.getElementById('default-btn-group');
             if (waitingBox) waitingBox.style.display = 'block';
             if (defaultGroup) defaultGroup.style.display = 'none';
 
-            // Ensure Realtime listener is ready
             setupRealtimeRoom();
         };
 
-        // ⚔️ 3. OPPONENT CLICKS ACCEPT & SENDS SIGNAL TO HOST
+        // ⚔️ 3. Opponent Clicks Accept & Syncs with Host
         window.acceptFriendChallenge = async function() {
-            const sub = invitedSubject || document.getElementById('battle-subject').value || 'mix';
             const btn = event?.currentTarget;
-            if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Entering Arena...`;
+            if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Syncing Match with Host...`;
 
-            // Broadcast join signal to Host
-            if (supabaseClient) {
-                const tempChannel = supabaseClient.channel(`battle_${currentRoomCode}`);
-                await tempChannel.subscribe();
-                await tempChannel.send({
+            if (supabaseClient && roomChannel) {
+                await roomChannel.send({
                     type: 'broadcast',
                     event: 'player_joined',
                     payload: {
-                        name: userStats?.display_name || 'Opponent',
-                        rank: `${userStats?.aura_rank || 'Rookie'} (${userStats?.xp || 0} XP)`
+                        name: isGodUser(userStats?.email, userStats?.display_name) ? "THE GOD MAKER 👑" : (userStats?.display_name || 'Opponent'),
+                        rank: isGodUser(userStats?.email, userStats?.display_name) ? "THE GOD MAKER" : `${userStats?.aura_rank || 'Rookie'} (${userStats?.xp || 0} XP)`
                     }
                 });
+            } else {
+                const sub = invitedSubject || 'mix';
+                await fetchQuestions(sub);
+                startLiveMatch("Host Player", "Elite Challenger");
             }
-
-            await fetchQuestions(sub);
-            startLiveMatch("Host Player", "Elite Challenger");
         };
 
         function startLiveMatch(oppName, oppRank) {
-            isBotMatch = true; // Bot engine handles simulated progression if needed
+            isBotMatch = true; 
             document.getElementById('lobby-view').style.display = 'none';
             document.getElementById('match-hud').style.display = 'flex';
             document.getElementById('match-arena').style.display = 'flex';
@@ -640,21 +664,24 @@
         async function concludeMatch() {
             clearInterval(timer);
             const won = myScore >= oppScore;
+            const isGod = isGodUser(userStats?.email, userStats?.display_name);
 
             if (supabaseClient && currentUser && won) {
                 try {
-                    const newTotalXp = (userStats?.xp || 0) + 50;
+                    const newTotalXp = isGod ? 99999 : ((userStats?.xp || 0) + 50);
                     const newWins = (userStats?.battles_won || 0) + 1;
                     
-                    let newRank = 'Rookie';
-                    if (newTotalXp >= 10000) newRank = 'THE GOD MODE';
-                    else if (newTotalXp >= 3000) newRank = 'State Conqueror';
-                    else if (newTotalXp >= 1500) newRank = 'Elite Scholar';
-                    else if (newTotalXp >= 500) newRank = 'Pro Challenger';
+                    let newRank = isGod ? 'THE GOD MAKER' : 'Rookie';
+                    if (!isGod) {
+                        if (newTotalXp >= 10000) newRank = 'THE GOD MODE';
+                        else if (newTotalXp >= 3000) newRank = 'State Conqueror';
+                        else if (newTotalXp >= 1500) newRank = 'Elite Scholar';
+                        else if (newTotalXp >= 500) newRank = 'Pro Challenger';
+                    }
 
                     await supabaseClient.from('user_battle_stats').upsert({
                         user_id: currentUser.id,
-                        display_name: userStats.display_name || 'PLAYER',
+                        display_name: isGod ? 'LAKSHIT SHARMA' : (userStats.display_name || 'PLAYER'),
                         email: userStats.email || 'player@hpexam.pro',
                         xp: newTotalXp,
                         aura_rank: newRank,
@@ -693,40 +720,53 @@
 
                 let { data: stats } = await supabaseClient.from('user_battle_stats').select('*').eq('user_id', targetUserId).maybeSingle();
 
+                const isGod = isGodUser(targetEmail, targetName);
+
                 if (!stats) {
                     const { data: newStats } = await supabaseClient.from('user_battle_stats').upsert([{
                         user_id: targetUserId,
                         email: targetEmail,
-                        display_name: targetName,
-                        xp: 0,
-                        aura_rank: 'Rookie',
-                        battles_won: 0,
+                        display_name: isGod ? 'LAKSHIT SHARMA' : targetName,
+                        xp: isGod ? 99999 : 0,
+                        aura_rank: isGod ? 'THE GOD MAKER' : 'Rookie',
+                        battles_won: isGod ? 100 : 0,
                         updated_at: new Date()
                     }], { onConflict: 'user_id' }).select().maybeSingle();
                     stats = newStats;
                 }
 
-                userStats = stats || { display_name: targetName, aura_rank: 'Rookie', xp: 0, battles_won: 0, user_id: targetUserId };
+                userStats = stats || { 
+                    display_name: isGod ? 'LAKSHIT SHARMA' : targetName, 
+                    aura_rank: isGod ? 'THE GOD MAKER' : 'Rookie', 
+                    xp: isGod ? 99999 : 0, 
+                    battles_won: isGod ? 100 : 0, 
+                    user_id: targetUserId,
+                    email: targetEmail
+                };
                 currentUser = { id: targetUserId };
 
-                const rankName = userStats.aura_rank || 'Rookie';
-                const xpVal = userStats.xp || 0;
-                const winsVal = userStats.battles_won || 0;
+                let rankName = isGod ? 'THE GOD MAKER' : (userStats.aura_rank || 'Rookie');
+                let xpVal = isGod ? '∞' : (userStats.xp || 0);
+                let winsVal = userStats.battles_won || 0;
 
                 const nameEl = document.getElementById('lobby-user-name');
                 const badgeEl = document.getElementById('lobby-user-badge');
                 const xpEl = document.getElementById('lobby-user-xp');
                 const winsEl = document.getElementById('lobby-user-wins');
 
-                if (nameEl) nameEl.innerText = (userStats.display_name || 'PLAYER').toUpperCase();
-                if (badgeEl) badgeEl.innerHTML = `<i class="fa-solid fa-shield"></i> <span>${rankName}</span>`;
-                if (xpEl) xpEl.innerText = `${xpVal} XP`;
+                if (nameEl) nameEl.innerText = isGod ? 'LAKSHIT SHARMA' : (userStats.display_name || 'PLAYER').toUpperCase();
+                if (badgeEl) {
+                    badgeEl.innerHTML = isGod 
+                        ? `<i class="fa-solid fa-crown" style="color:#facc15;"></i> <span style="color:#fef08a; font-weight:900;">THE GOD MAKER</span>` 
+                        : `<i class="fa-solid fa-shield"></i> <span>${rankName}</span>`;
+                }
+                if (xpEl) xpEl.innerText = isGod ? 'XP: ∞' : `${xpVal} XP`;
                 if (winsEl) winsEl.innerText = winsVal;
 
                 const hudName = document.getElementById('user-display-name');
                 const hudXp = document.getElementById('user-xp-tag');
-                if (hudName) hudName.innerText = (userStats.display_name || 'PLAYER').toUpperCase() + ' 👑';
-                if (hudXp) hudXp.innerText = `${rankName} (${xpVal} XP)`;
+                if (hudName) hudName.innerText = isGod ? 'THE GOD MAKER 👑' : (userStats.display_name || 'PLAYER').toUpperCase() + ' 👑';
+                if (hudXp) hudXp.innerText = isGod ? 'THE GOD MAKER (XP: ∞)' : `${rankName} (${xpVal} XP)`;
 
             } catch(err) {
                 console.warn("User stats sync skipped:", err);
