@@ -158,17 +158,19 @@
 
     <script>
     // ⚡ 1. INSTANT ROOM CODE GENERATOR (Runs immediately before any network calls)
-    const randomRoomCode = "HP-" + Math.floor(100000 + Math.random() * 900000);
-    const roomEl = document.getElementById('room-code');
-    const waBtn = document.getElementById('whatsapp-share-btn');
+    window.addEventListener('DOMContentLoaded', () => {
+        const randomRoomCode = "HP-" + Math.floor(100000 + Math.random() * 900000);
+        const roomEl = document.getElementById('room-code');
+        const waBtn = document.getElementById('whatsapp-share-btn');
 
-    if (roomEl) roomEl.innerText = randomRoomCode;
-    if (waBtn) {
-        const inviteUrl = `https://hp-exam-pro.vercel.app/1v1-battle.html?room=${randomRoomCode}`;
-        waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(`⚔️ *1v1 HP GK BATTLE!*\n\nRoom Code: ${randomRoomCode}\nAccept Challenge: ${inviteUrl}`)}`;
-    }
+        if (roomEl) roomEl.innerText = randomRoomCode;
+        if (waBtn) {
+            const inviteUrl = `https://hp-exam-pro.vercel.app/1v1-battle.html?room=${randomRoomCode}`;
+            waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(`⚔️ *1v1 HP GK BATTLE!*\n\nRoom Code: ${randomRoomCode}\nAccept Challenge: ${inviteUrl}`)}`;
+        }
+    });
 
-    // 🔑 2. SUPABASE INITIALIZATION
+    // 🔑 SUPABASE INITIALIZATION
     const SUPABASE_URL = 'https://jitkmfqxojfppnpoxeff.supabase.co'; 
     const SUPABASE_ANON_KEY = 'sb_publishable_6H4ld2wexzzNexqTfOtvIw_xLkWKsif';
     let supabase = null;
