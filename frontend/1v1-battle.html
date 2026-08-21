@@ -224,7 +224,13 @@
                     <i class="fa-solid fa-robot"></i> Friend taking time? Play with Bot
                 </button>
             </div>
-            
+
+            <!-- ⚔️ ACCEPT CHALLENGE VIEW (Only visible when opened via Friend's Link) -->
+<div id="join-challenge-box" style="display: none; margin: 15px 0;">
+    <button type="button" onclick="acceptFriendChallenge()" class="action-btn" style="background: linear-gradient(90deg, #ef4444, #f97316); color: white; font-size: 17px; box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);">
+        <i class="fa-solid fa-swords"></i> Accept Challenge & Enter Arena
+    </button>
+</div>
             <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
                 <button type="button" onclick="shareOnWhatsApp()" class="action-btn" style="background: #22c55e; color: white;">
                     <i class="fa-brands fa-whatsapp" style="font-size: 20px;"></i> Invite Friend on WhatsApp
@@ -680,6 +686,39 @@
 
         renderRoomCode();
         loadSupabaseUserData();
+        // 🔗 URL CHECK FOR INVITED PLAYER
+        const urlParams = new URLSearchParams(window.location.search);
+        const invitedRoom = urlParams.get('room');
+        const invitedSubject = urlParams.get('subject');
+
+        if (invitedRoom) {
+            // Room code replace with Host's Code
+            currentRoomCode = invitedRoom;
+            renderRoomCode();
+
+            // Set subject sent by host
+            if (invitedSubject) {
+                const subSelect = document.getElementById('battle-subject');
+                if (subSelect) {
+                    subSelect.value = invitedSubject;
+                    subSelect.disabled = true; // Host locked the subject
+                }
+            }
+
+            // Hide Invite & Random buttons, Show Accept Challenge Button
+            const inviteBtnGroup = document.querySelector('#lobby-view .lobby-card > div[style*="flex-direction: column"]');
+            const joinBox = document.getElementById('join-challenge-box');
+            
+            if (inviteBtnGroup) inviteBtnGroup.style.display = 'none';
+            if (joinBox) joinBox.style.display = 'block';
+        }
+
+        // ⚔️ Start Match Directly when Opponent clicks Accept
+        window.acceptFriendChallenge = async function() {
+            const sub = invitedSubject || document.getElementById('battle-subject').value || 'mix';
+            await fetchQuestions(sub);
+            startBotMatch(); // Directly launches into arena
+        };
     </script>
 </body>
 </html>
