@@ -557,18 +557,29 @@
             if (supabaseClient && currentUser && won) {
                 try {
                     const newTotalXp = (userStats?.xp || 0) + 50;
+                    const newWins = (userStats?.battles_won || 0) + 1;
+                    
                     let newRank = 'Rookie';
                     if (newTotalXp >= 10000) newRank = 'THE GOD MODE';
                     else if (newTotalXp >= 3000) newRank = 'State Conqueror';
                     else if (newTotalXp >= 1500) newRank = 'Elite Scholar';
                     else if (newTotalXp >= 500) newRank = 'Pro Challenger';
 
-                    await supabaseClient.from('user_battle_stats').update({
+                    await supabaseClient.from('user_battle_stats').upsert({
+                        user_id: currentUser.id,
+                        display_name: userStats.display_name || 'PLAYER',
+                        email: userStats.email || 'player@hpexam.pro',
                         xp: newTotalXp,
                         aura_rank: newRank,
-                        battles_won: (userStats?.battles_won || 0) + 1,
+                        battles_won: newWins,
                         updated_at: new Date()
-                    }).eq('user_id', currentUser.id);
+                    }, { onConflict: 'user_id' });
+
+                    // Update local state
+                    userStats.xp = newTotalXp;
+                    userStats.aura_rank = newRank;
+                    userStats.battles_won = newWins;
+
                 } catch(e) {
                     console.error("XP save error:", e);
                 }
@@ -578,7 +589,7 @@
                 <div style="text-align:center">
                     <h1 style="color:#facc15; font-size:30px; margin-bottom:10px;">🏆 MATCH CONCLUDED</h1>
                     <p style="color:#94a3b8; font-size:16px;">THE GOD MAKER REIGNS SUPREME. ${won ? '<br><span style="color:#22c55e; font-weight:bold;">+50 XP & Victory Recorded!</span>' : ''}</p>
-                    <button onclick="window.location.href='index.html'" class="action-btn" style="margin:25px auto 0 auto; max-width:240px; background:#2563eb; color:white;">Exit to Workspace</button>
+                    <button onclick="window.location.href='1v1-battle.html'" class="action-btn" style="margin:25px auto 0 auto; max-width:240px; background:#2563eb; color:white;">Play Again</button>
                 </div>`;
             document.getElementById('options-container').innerHTML = "";
         }
