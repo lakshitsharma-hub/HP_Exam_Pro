@@ -24,7 +24,7 @@
         #lobby-view { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
         .lobby-card {
             background: rgba(15, 23, 42, 0.95); border: 1px solid #334155; border-radius: 24px; 
-            padding: 40px; max-width: 520px; width: 100%; text-align: center; 
+            padding: 35px; max-width: 520px; width: 100%; text-align: center; 
             box-shadow: 0 25px 60px rgba(0,0,0,0.8); position: relative;
         }
         .btn-close {
@@ -33,7 +33,14 @@
         }
         .btn-close:hover { transform: scale(1.1); text-shadow: 0 0 10px #ef4444; }
 
-        .room-code-box { background: #020617; border: 2px dashed #38bdf8; border-radius: 16px; padding: 20px; margin: 25px 0; }
+        .room-code-box { background: #020617; border: 2px dashed #38bdf8; border-radius: 16px; padding: 16px; margin: 18px 0; }
+
+        .subject-select {
+            width: 100%; padding: 14px 18px; border-radius: 12px; background: #0b1329;
+            color: #38bdf8; border: 2px solid #1e293b; font-size: 15px; font-weight: 800;
+            outline: none; margin-bottom: 20px; cursor: pointer; transition: 0.2s;
+        }
+        .subject-select:focus { border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
 
         /* ⚔️ BATTLE HUD */
         .battle-hud {
@@ -92,20 +99,32 @@
         <div class="lobby-card">
             <button onclick="window.location.href='index.html'" class="btn-close" title="Exit"><i class="fa-solid fa-right-from-bracket"></i></button>
 
-            <i class="fa-solid fa-gamepad" style="font-size: 45px; color: #38bdf8; margin-bottom: 15px;"></i>
-            <h2 style="font-size: 26px; font-weight: 900; color: #38bdf8; margin-bottom: 10px; text-transform: uppercase;">1v1 Battle Arena</h2>
+            <i class="fa-solid fa-gamepad" style="font-size: 42px; color: #38bdf8; margin-bottom: 12px;"></i>
+            <h2 style="font-size: 24px; font-weight: 900; color: #38bdf8; margin-bottom: 8px; text-transform: uppercase;">1v1 Battle Arena</h2>
             
             <div class="room-code-box">
-                <span style="font-size: 12px; color: #94a3b8; font-weight: 800;">YOUR BATTLE ROOM CODE</span>
-                <div id="room-code" style="font-family: monospace; font-size: 36px; font-weight: 900; color: #facc15; letter-spacing: 6px;">---</div>
+                <span style="font-size: 11px; color: #94a3b8; font-weight: 800;">YOUR BATTLE ROOM CODE</span>
+                <div id="room-code" style="font-family: monospace; font-size: 32px; font-weight: 900; color: #facc15; letter-spacing: 6px;">---</div>
             </div>
+
+            <!-- 🎯 SUBJECT SELECTOR -->
+            <label style="display:block; text-align:left; font-size:12px; color:#94a3b8; font-weight:bold; margin-bottom:6px;">SELECT BATTLE SUBJECT:</label>
+            <select id="battle-subject" class="subject-select">
+                <option value="mix">🔥 Mix (All Subjects)</option>
+                <option value="computer">💻 Computer</option>
+                <option value="hp_gk">🏔️ HP GK</option>
+                <option value="hindi">📖 Hindi</option>
+                <option value="english">🔤 English</option>
+                <option value="history">🏛️ History</option>
+                <option value="polity">⚖️ Indian Polity</option>
+            </select>
 
             <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button type="button" onclick="shareOnWhatsApp()" class="action-btn" style="background: #22c55e; color: white;">
                     <i class="fa-brands fa-whatsapp" style="font-size: 22px;"></i> Invite Friend on WhatsApp
                 </button>
                 
-                <div style="display: flex; align-items: center; gap: 15px; margin: 5px 0;">
+                <div style="display: flex; align-items: center; gap: 15px; margin: 4px 0;">
                     <div style="height: 1px; background: #334155; flex: 1;"></div>
                     <span style="color: #64748b; font-size: 12px; font-weight: bold;">OR</span>
                     <div style="height: 1px; background: #334155; flex: 1;"></div>
@@ -161,14 +180,7 @@
         const currentRoomCode = "HP-" + Math.floor(100000 + Math.random() * 900000);
         
         let currentUser = null, userStats = null;
-        let matchQuestions = [
-            { q: "हिमाचल प्रदेश का राज्य पक्षी कौन सा है?", opts: ["मोनाल", "पश्चिमी ट्रेगोपैन (जजुराना)", "चीड़ तीतर", "पहाड़ी कबूतर"], correct: 1 },
-            { q: "सतलुज नदी किस स्थान पर हिमाचल प्रदेश में प्रवेश करती है?", opts: ["तांदी", "शिपकी-ला", "तात्तापानी", "मिरथल"], correct: 1 },
-            { q: "पोंग बांध का निर्माण किस नदी पर किया गया है?", opts: ["व्यास", "रावी", "चिनाब", "यमुना"], correct: 0 },
-            { q: "हिमाचल प्रदेश की सबसे बड़ी प्राकृतिक झील कौन सी है?", opts: ["रेणुका झील", "रिवालसर झील", "खजियार झील", "पाराशर झील"], correct: 0 },
-            { q: "रोहतांग दर्रा किस जिले में स्थित है?", opts: ["किन्नौर", "कुल्लू", "लाहौल-स्पीति", "चंबा"], correct: 1 }
-        ];
-        
+        let matchQuestions = [];
         let qIdx = 0, time = 10, timer = null, myScore = 0, oppScore = 0;
         let isBotMatch = false;
         let supabaseClient = null;
@@ -182,30 +194,39 @@
                 );
             }
         } catch (e) {
-            console.warn("Supabase init error handled:", e);
+            console.warn("Supabase init handled:", e);
         }
 
-        // 3. Bind UI Updates Instantly
+        // 3. Render Room Code
         function renderRoomCode() {
             const el = document.getElementById('room-code');
             if (el) el.innerText = currentRoomCode;
         }
 
-        // 4. WhatsApp Share Function
+        // 4. WhatsApp Share Function with Selected Subject
         window.shareOnWhatsApp = function() {
-            const inviteUrl = "https://hp-exam-pro.vercel.app/1v1-battle.html?room=" + currentRoomCode;
-            const text = "⚔️ *1v1 HP GK BATTLE CHALLENGE!*\n\nRoom Code: " + currentRoomCode + "\nAccept Duel: " + inviteUrl;
-            const waUrl = "https://api.whatsapp.com/send?text=" + encodeURIComponent(text);
+            const subjectSelect = document.getElementById('battle-subject');
+            const selectedSubject = subjectSelect ? subjectSelect.value : 'mix';
+            const subjectText = subjectSelect ? subjectSelect.options[subjectSelect.selectedIndex].text : 'Mix Quiz';
+            
+            const inviteUrl = `https://hp-exam-pro.vercel.app/1v1-battle.html?room=${currentRoomCode}&subject=${selectedSubject}`;
+            const text = `⚔️ *1v1 BATTLE CHALLENGE!*\n\n📚 *Subject:* ${subjectText}\n🔑 *Room Code:* ${currentRoomCode}\n\n👉 *Accept Challenge:* ${inviteUrl}`;
+            
+            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
             window.open(waUrl, '_blank');
         };
 
         // 5. Matchmaking (10-Second Wait -> Bot)
-        window.startMatchmaking = function() {
+        window.startMatchmaking = async function() {
             const btn = document.getElementById('find-opp-btn');
             if (!btn) return;
             let timeLeft = 10;
             btn.disabled = true;
             btn.style.background = "#eab308";
+
+            // Load questions for selected subject
+            const selectedSubject = document.getElementById('battle-subject').value;
+            await fetchQuestions(selectedSubject);
 
             const searchInterval = setInterval(() => {
                 btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Searching Player... (${timeLeft}s)`;
@@ -217,6 +238,48 @@
                 }
             }, 1000);
         };
+
+        // 6. Fetch Questions based on Chosen Subject
+        async function fetchQuestions(subject = 'mix') {
+            if (supabaseClient) {
+                try {
+                    let query = supabaseClient.from('questions').select('question_text, opt1, opt2, opt3, opt4, correct_option');
+                    
+                    if (subject !== 'mix') {
+                        query = query.ilike('subject', `%${subject}%`);
+                    }
+                    
+                    const { data, error } = await query.limit(30);
+
+                    if (data && data.length > 0) {
+                        // Shuffle to get 5 random questions
+                        const shuffled = data.sort(() => 0.5 - Math.random()).slice(0, 5);
+                        
+                        matchQuestions = shuffled.map(item => {
+                            // Convert 1-based integer index (1, 2, 3, 4) to 0-based (0, 1, 2, 3)
+                            const correctIdx = Number(item.correct_option) >= 1 ? Number(item.correct_option) - 1 : 0;
+                            return {
+                                q: item.question_text,
+                                opts: [item.opt1, item.opt2, item.opt3, item.opt4],
+                                correct: correctIdx
+                            };
+                        });
+                        return;
+                    }
+                } catch(err) {
+                    console.warn("Questions fetch fallback active:", err);
+                }
+            }
+
+            // Fallback Questions if DB offline
+            matchQuestions = [
+                { q: "Which of the following is volatile memory?", opts: ["ROM", "RAM", "Flash Drive", "Hard Disk"], correct: 1 },
+                { q: "Who is known as the father of computer?", opts: ["Alan Turing", "Charles Babbage", "Bill Gates", "John von Neumann"], correct: 1 },
+                { q: "What is the smallest unit of data in computer?", opts: ["Nibble", "Pixel", "Byte", "Bit"], correct: 3 },
+                { q: "Which component of computer is considered as Brain?", opts: ["Motherboard", "RAM", "Hard Drive", "CPU"], correct: 3 },
+                { q: "What does ALU stand for?", opts: ["Application Logic", "Alternating Logic", "Array Logic Unit", "Arithmetic Logic Unit"], correct: 3 }
+            ];
+        }
 
         function startBotMatch() {
             isBotMatch = true;
@@ -251,7 +314,7 @@
             }, 100);
         }
 
-        // 6. Question Engine
+        // 7. Question & Timer Controller
         function loadQuestion() {
             if (qIdx >= matchQuestions.length) {
                 concludeMatch();
@@ -299,7 +362,7 @@
             }
         }
 
-        // 7. Select & Override
+        // 8. Select & God Mode Override
         function selectOpt(sel, cor, btn) {
             clearInterval(timer);
             document.querySelectorAll('.opt-btn').forEach(b => b.classList.add('disabled'));
@@ -325,7 +388,7 @@
             }
         }
 
-        // 8. Conclude & XP Save
+        // 9. Conclude & XP Save
         async function concludeMatch() {
             clearInterval(timer);
             const won = myScore >= oppScore;
@@ -346,7 +409,7 @@
                         updated_at: new Date()
                     }).eq('user_id', currentUser.id);
                 } catch(e) {
-                    console.error("XP update error:", e);
+                    console.error("XP save error:", e);
                 }
             }
 
@@ -359,8 +422,8 @@
             document.getElementById('options-container').innerHTML = "";
         }
 
-        // 9. Background DB Sync (Does not block UI)
-        async function loadSupabaseData() {
+        // 10. Load User Data
+        async function loadSupabaseUserData() {
             if (!supabaseClient) return;
             try {
                 const { data: { user } } = await supabaseClient.auth.getUser();
@@ -375,24 +438,14 @@
                         if (xpEl) xpEl.innerText = `${userStats.aura_rank || 'Rookie'} (${userStats.xp || 0} XP)`;
                     }
                 }
-                const { data: qData } = await supabaseClient.from('questions').select('*').limit(5);
-                if (qData && qData.length > 0) {
-                    matchQuestions = qData.map(item => ({
-                        q: item.question_text || item.question || item.q,
-                        opts: [item.option_a, item.option_b, item.option_c, item.option_d],
-                        correct: (item.correct_option === 'b' || item.correct_answer === 'b') ? 1 : 
-                                 (item.correct_option === 'c' || item.correct_answer === 'c') ? 2 : 
-                                 (item.correct_option === 'd' || item.correct_answer === 'd') ? 3 : 0
-                    }));
-                }
             } catch(err) {
-                console.warn("Async Supabase sync error:", err);
+                console.warn("Async Supabase user sync error:", err);
             }
         }
 
-        // Execute immediately
+        // Init
         renderRoomCode();
-        loadSupabaseData();
+        loadSupabaseUserData();
     </script>
 </body>
 </html>
