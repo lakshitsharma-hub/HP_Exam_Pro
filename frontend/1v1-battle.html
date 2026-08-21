@@ -33,7 +33,7 @@
         }
         .btn-close:hover { transform: scale(1.1); text-shadow: 0 0 10px #ef4444; }
 
-        /* 🎖️ PROFILE STATS CARD */
+        /* 👤 USER STATS STRIP */
         .user-stats-strip {
             background: #020617; border: 1px solid #1e293b; border-radius: 16px;
             padding: 12px 18px; margin-bottom: 15px; display: flex; align-items: center;
@@ -102,17 +102,78 @@
         .action-btn { border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; width: 100%; transition: 0.2s; }
         .action-btn:hover { transform: translateY(-2px); }
 
-        /* 📜 MODAL STYLES */
+        /* 📜 AURA RANKS MODAL */
         .badge-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+            background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(10px);
             align-items: center; justify-content: center; z-index: 100; padding: 20px;
         }
         .modal-content {
-            background: #0f172a; border: 1px solid #334155; border-radius: 20px;
-            max-width: 480px; width: 100%; padding: 25px; text-align: left;
+            background: #090f1d; border: 1px solid #1e293b; border-radius: 24px;
+            max-width: 680px; width: 100%; padding: 28px 32px; text-align: left;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.9); position: relative;
+            max-height: 90vh; overflow-y: auto;
         }
-        .badge-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1e293b; }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 22px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .modal-header h3 {
+            font-size: 18px; color: #38bdf8; font-weight: 900;
+            display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .modal-close-btn {
+            background: transparent; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; transition: 0.2s;
+        }
+        .modal-close-btn:hover { color: #ef4444; }
+
+        .ranks-list { display: flex; flex-direction: column; gap: 14px; }
+
+        .rank-card {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #0d1527; border: 1px solid #1e293b; border-radius: 16px;
+            padding: 16px 20px; gap: 18px; transition: transform 0.2s;
+        }
+        .rank-card:hover { transform: translateY(-2px); }
+
+        .rank-left { display: flex; align-items: center; gap: 16px; flex: 1; }
+        .rank-icon-wrapper {
+            width: 50px; height: 50px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+        }
+        .rank-title { font-size: 15px; font-weight: 800; margin-bottom: 3px; }
+        .rank-desc { font-size: 12px; color: #94a3b8; line-height: 1.4; }
+
+        .rank-pill {
+            padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 800;
+            white-space: nowrap; border: 1px solid transparent; font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Specific Card Themes */
+        .card-rookie .rank-icon-wrapper { background: #172033; border: 1px solid #334155; }
+        .card-rookie .rank-title { color: #93c5fd; }
+        .card-rookie .rank-pill { background: #172554; color: #bfdbfe; border-color: #1e3a8a; }
+
+        .card-challenger .rank-icon-wrapper { background: rgba(234, 179, 8, 0.1); border: 2px solid #eab308; color: #facc15; box-shadow: 0 0 15px rgba(234, 179, 8, 0.3); }
+        .card-challenger .rank-title { color: #facc15; }
+        .card-challenger .rank-pill { background: rgba(234, 179, 8, 0.1); color: #facc15; border-color: #ca8a04; }
+
+        .card-elite .rank-icon-wrapper { background: rgba(168, 85, 247, 0.1); border: 2px solid #a855f7; color: #c084fc; box-shadow: 0 0 15px rgba(168, 85, 247, 0.3); }
+        .card-elite .rank-title { color: #c084fc; }
+        .card-elite .rank-pill { background: rgba(168, 85, 247, 0.1); color: #c084fc; border-color: #9333ea; }
+
+        .card-conqueror .rank-icon-wrapper { background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; color: #f87171; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+        .card-conqueror .rank-title { color: #f87171; }
+        .card-conqueror .rank-pill { background: rgba(239, 68, 68, 0.1); color: #f87171; border-color: #dc2626; }
+
+        .card-god {
+            background: linear-gradient(135deg, #1c0a0a, #0d1527);
+            border: 1px dashed #ef4444 !important;
+            box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.15);
+        }
+        .card-god .rank-icon-wrapper { background: #2a0b0e; border: 2px solid #ef4444; color: #fecaca; }
+        .card-god .rank-title { color: #ef4444; letter-spacing: 0.5px; }
+        .card-god .rank-pill { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-color: #ef4444; display: flex; align-items: center; gap: 5px; }
     </style>
 </head>
 <body>
@@ -169,7 +230,7 @@
                     <i class="fa-solid fa-bolt"></i> Find Random Opponent
                 </button>
 
-                <!-- ℹ️ BADGES INFO BUTTON -->
+                <!-- ℹ️ VIEW AURA RANKS GUIDE -->
                 <button type="button" onclick="toggleBadgesModal(true)" style="background: transparent; border: none; color: #94a3b8; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 6px;">
                     <i class="fa-solid fa-circle-info"></i> View Rank & Badges Guide
                 </button>
@@ -177,52 +238,74 @@
         </div>
     </div>
 
-    <!-- 📜 BADGES INFO MODAL -->
+    <!-- 📜 AURA RANKS & XP REWARDS MODAL -->
     <div class="badge-modal" id="badges-modal">
         <div class="modal-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="font-size: 18px; color: #facc15; font-weight: 900;"><i class="fa-solid fa-medal"></i> Ranks & XP Guide</h3>
-                <button onclick="toggleBadgesModal(false)" style="background: transparent; border: none; color: #ef4444; font-size: 20px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-medal" style="color:#38bdf8;"></i> Aura Ranks & XP Rewards</h3>
+                <button class="modal-close-btn" onclick="toggleBadgesModal(false)"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <div class="badge-row">
-                <div style="font-size: 22px;">🥉</div>
-                <div>
-                    <div style="font-weight: 800; color: #f8fafc; font-size: 14px;">Rookie</div>
-                    <div style="font-size: 12px; color: #94a3b8;">0 – 499 XP</div>
+            <div class="ranks-list">
+                <!-- 1. Rookie -->
+                <div class="rank-card card-rookie">
+                    <div class="rank-left">
+                        <div class="rank-icon-wrapper">🥷</div>
+                        <div>
+                            <div class="rank-title">Rookie (Cadet Aura)</div>
+                            <div class="rank-desc">The journey begins. Unlock basic battle matchmaking.</div>
+                        </div>
+                    </div>
+                    <div class="rank-pill">0 – 499 XP</div>
                 </div>
-            </div>
-            <div class="badge-row">
-                <div style="font-size: 22px;">🥈</div>
-                <div>
-                    <div style="font-weight: 800; color: #38bdf8; font-size: 14px;">Pro Challenger</div>
-                    <div style="font-size: 12px; color: #94a3b8;">500 – 1,499 XP</div>
-                </div>
-            </div>
-            <div class="badge-row">
-                <div style="font-size: 22px;">🥇</div>
-                <div>
-                    <div style="font-weight: 800; color: #facc15; font-size: 14px;">Elite Scholar</div>
-                    <div style="font-size: 12px; color: #94a3b8;">1,500 – 2,999 XP</div>
-                </div>
-            </div>
-            <div class="badge-row">
-                <div style="font-size: 22px;">💎</div>
-                <div>
-                    <div style="font-weight: 800; color: #a855f7; font-size: 14px;">State Conqueror</div>
-                    <div style="font-size: 12px; color: #94a3b8;">3,000 – 9,999 XP</div>
-                </div>
-            </div>
-            <div class="badge-row" style="border-bottom: none;">
-                <div style="font-size: 22px;">👑</div>
-                <div>
-                    <div style="font-weight: 800; color: #f59e0b; font-size: 14px;">THE GOD MODE</div>
-                    <div style="font-size: 12px; color: #94a3b8;">10,000+ XP (Unstoppable)</div>
-                </div>
-            </div>
 
-            <div style="margin-top: 15px; padding: 10px; background: #020617; border-radius: 10px; font-size: 12px; color: #22c55e; text-align: center; font-weight: bold;">
-                ⚡ Every 1v1 Victory = +50 XP
+                <!-- 2. Pro Challenger -->
+                <div class="rank-card card-challenger">
+                    <div class="rank-left">
+                        <div class="rank-icon-wrapper"><i class="fa-solid fa-bolt"></i></div>
+                        <div>
+                            <div class="rank-title">Pro Challenger (Yellow Pulse)</div>
+                            <div class="rank-desc">Unlocks glowing yellow pulse & +10% bonus battle XP.</div>
+                        </div>
+                    </div>
+                    <div class="rank-pill">500+ XP</div>
+                </div>
+
+                <!-- 3. Elite Scholar -->
+                <div class="rank-card card-elite">
+                    <div class="rank-left">
+                        <div class="rank-icon-wrapper">🔮</div>
+                        <div>
+                            <div class="rank-title">Elite Scholar (Purple Plasma Ring)</div>
+                            <div class="rank-desc">Unlocks rotating plasma ring & custom badge in lobby.</div>
+                        </div>
+                    </div>
+                    <div class="rank-pill">1,500+ XP</div>
+                </div>
+
+                <!-- 4. State Conqueror -->
+                <div class="rank-card card-conqueror">
+                    <div class="rank-left">
+                        <div class="rank-icon-wrapper">🔥</div>
+                        <div>
+                            <div class="rank-title">State Conqueror (Blazing Fire)</div>
+                            <div class="rank-desc">Unlocks top 5% flaming aura & exclusive leaderboard tag.</div>
+                        </div>
+                    </div>
+                    <div class="rank-pill">3,000+ XP</div>
+                </div>
+
+                <!-- 5. The God Mode -->
+                <div class="rank-card card-god">
+                    <div class="rank-left">
+                        <div class="rank-icon-wrapper">💀</div>
+                        <div>
+                            <div class="rank-title">[CLASSIFIED] THE GOD MODE</div>
+                            <div class="rank-desc">Requires legendary win streak. Dark reality glitch & red lightning awaits.</div>
+                        </div>
+                    </div>
+                    <div class="rank-pill"><i class="fa-solid fa-lock" style="font-size: 10px; color:#facc15;"></i> 10,000+ XP</div>
+                </div>
             </div>
         </div>
     </div>
