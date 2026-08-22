@@ -1910,3 +1910,43 @@ function startMatchmaking() {
 function inviteFriend() {
     alert("WhatsApp Invite Link functionality will be added here.");
 }
+
+
+// ==================== 🌗 THEME TOGGLE ENGINE ====================
+
+function toggleTheme() {
+    const body = document.body;
+    const themeIcon = document.getElementById('theme-icon');
+    const themeText = document.getElementById('theme-text');
+    
+    // क्लास टॉगल करें
+    body.classList.toggle('light-theme');
+    
+    // चेक करें कि अब कौन सा मोड एक्टिव है
+    const isLight = body.classList.contains('light-theme');
+    
+    // बटन का डिज़ाइन बदलें
+    if (isLight) {
+        if(themeIcon) themeIcon.className = "fa-solid fa-moon";
+        if(themeText) themeText.innerText = "Dark Mode";
+        localStorage.setItem('hp_exam_theme', 'light');
+    } else {
+        if(themeIcon) themeIcon.className = "fa-solid fa-sun";
+        if(themeText) themeText.innerText = "Light Mode";
+        localStorage.setItem('hp_exam_theme', 'dark');
+    }
+}
+
+// 🔄 पेज लोड होते ही पुरानी थीम (Memory) चेक करें
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('hp_exam_theme');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeText = document.getElementById('theme-text');
+
+    // अगर यूज़र ने पहले लाइट मोड चुना था, तो उसे वही दिखाओ
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        if(themeIcon) themeIcon.className = "fa-solid fa-moon";
+        if(themeText) themeText.innerText = "Dark Mode";
+    }
+});
