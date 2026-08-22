@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>1v1 Battle Arena - HP Exam Pro</title>
-    <link rel="icon" type="image/png" href="favicon.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
@@ -103,7 +102,7 @@
         .action-btn { border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; width: 100%; transition: 0.2s; }
         .action-btn:hover { transform: translateY(-2px); }
 
-        /* 📜 EXACT SCREENSHOT AURA RANKS MODAL */
+        /* 📜 AURA RANKS MODAL */
         .badge-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(10px);
@@ -534,18 +533,35 @@
             }, 1000);
         };
 
+        // 🎯 Truly Random Questions from Entire Pool (Mix + Dedicated Subjects)
         async function fetchQuestions(subject = 'mix') {
             if (supabaseClient) {
                 try {
-                    let query = supabaseClient.from('questions').select('question_text, opt1, opt2, opt3, opt4, correct_option');
-                    
+                    // 1. Get exact total count for the selected subject
+                    let countQuery = supabaseClient.from('questions').select('id', { count: 'exact', head: true });
+                    if (subject !== 'mix') {
+                        countQuery = countQuery.ilike('subject', `%${subject}%`);
+                    }
+                    const { count } = await countQuery;
+                    const totalRows = count || 20;
+
+                    // 2. Pick a random start offset across the whole dataset of that subject
+                    const maxOffset = Math.max(0, totalRows - 25);
+                    const randomStart = Math.floor(Math.random() * maxOffset);
+
+                    // 3. Fetch 20 questions starting at the random offset
+                    let query = supabaseClient.from('questions')
+                        .select('question_text, opt1, opt2, opt3, opt4, correct_option')
+                        .range(randomStart, randomStart + 20);
+
                     if (subject !== 'mix') {
                         query = query.ilike('subject', `%${subject}%`);
                     }
-                    
-                    const { data } = await query.limit(30);
+
+                    const { data } = await query;
 
                     if (data && data.length > 0) {
+                        // 4. Randomly shuffle and extract 5 questions
                         const shuffled = data.sort(() => 0.5 - Math.random()).slice(0, 5);
                         matchQuestions = shuffled.map(item => ({
                             q: item.question_text,
@@ -555,10 +571,11 @@
                         return;
                     }
                 } catch(err) {
-                    console.warn("Questions fetch fallback:", err);
+                    console.warn("Random questions fetch error, using fallback:", err);
                 }
             }
 
+            // Fallback Questions
             matchQuestions = [
                 { q: "Which of the following is volatile memory?", opts: ["ROM", "RAM", "Flash Drive", "Hard Disk"], correct: 1 },
                 { q: "Who is known as the father of computer?", opts: ["Alan Turing", "Charles Babbage", "Bill Gates", "John von Neumann"], correct: 1 },
