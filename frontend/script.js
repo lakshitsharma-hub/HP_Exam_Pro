@@ -8,7 +8,7 @@ const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 
 // --- 2. GLOBAL VARIABLES ---
-let currentQuestions = [];  // 🔥 इसे ठीक कर दिया गया है    
+let currentQuestions = [];  
 let currentQuestionIndex = 0;   
 let userAnswers = {};           
 let quizTimerInterval = null;   
@@ -17,11 +17,8 @@ let selectedExamType = "";
 let currentUserId = ""; 
 
 // --- 3. AUTHENTICATION (Login/Signup) ---
-// ==================== NEW AUTH SYSTEM (Google, Tabs & Loader) ====================
-
 let currentAuthMode = 'login'; 
 
-// 1. Google Login
 async function loginWithGoogle() {
     const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
@@ -30,7 +27,6 @@ async function loginWithGoogle() {
     if (error) alert("Google Login Error: " + error.message);
 }
 
-// 2. Tab Switcher
 function switchAuthTab(mode) {
     currentAuthMode = mode;
     const btn = document.getElementById('main-auth-btn');
@@ -55,7 +51,6 @@ function switchAuthTab(mode) {
     }
 }
 
-// 3. Button Click Loader
 async function handleAuthAction() {
     const btn = document.getElementById('main-auth-btn');
     const errorMsg = document.getElementById('auth-error');
@@ -81,7 +76,6 @@ async function handleAuthAction() {
     }
 }
 
-// 4. Trigger Forgot Password
 function triggerForgotPassword() {
     const email = document.getElementById('auth-email').value.trim();
     if (!email) {
@@ -92,7 +86,7 @@ function triggerForgotPassword() {
     }
     handleForgotPassword(email); 
 }
-// =================================================================================
+
 async function handleSignup() {
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-pass').value.trim();
@@ -116,12 +110,9 @@ async function handleLogin() {
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
     if (error) {
-        // Checking if the password entered is incorrect
         if (error.message === "Invalid login credentials") {
             const askReset = confirm("❌ Incorrect password! Would you like to receive a secure password reset link on your registered email?");
-            
             if (askReset) {
-                // If user clicks OK, this will send the reset link
                 handleForgotPassword(email); 
             }
         } else {
@@ -140,12 +131,9 @@ async function handleLogout() {
     if (error) {
         alert("Logout Error: " + error.message);
     } else {
-        // लॉगआउट होते ही पेज को रिफ्रेश कर दो, ताकि वापस लॉगिन स्क्रीन आ जाए
         window.location.reload();
     }
 }
-
-
 
 async function checkUserSession() {
     const { data: { session } } = await supabaseClient.auth.getSession();
@@ -158,7 +146,7 @@ async function checkUserSession() {
 
 async function setupUserProfile(user) {
     if (!user) return;
-    currentUserId = user.id; // 🔥 यूजर आईडी सेट कर दी
+    currentUserId = user.id;
 
     let { data: profile, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle();
     const today = new Date().toDateString();
@@ -180,7 +168,6 @@ async function setupUserProfile(user) {
     if (profile) {
         window.CURRENT_USER_PROFILE = profile;
 
-        // Admin Check
         if (profile.is_admin === true) {
             const desktopAdminItem = document.querySelector('.nav-item[data-page="admin"]');
             const mobileAdminLink = document.querySelector('#mobile-sidebar a[href="admin.html"]');
@@ -195,10 +182,8 @@ async function setupUserProfile(user) {
             });
         }
 
-        // Pro Check
         checkProStatus(profile);
 
-        // UI Updates
         const welcomeText = document.getElementById('welcome-text');
         if (welcomeText) welcomeText.innerText = `नमस्ते, ${profile.display_name}`;
 
@@ -206,13 +191,16 @@ async function setupUserProfile(user) {
         const userInitialEl = document.getElementById('user-initial');
         if (displayNameEl) displayNameEl.innerText = profile.display_name;
         if (userInitialEl) userInitialEl.innerText = profile.display_name[0].toUpperCase();
-        // UI Updates (Mobile)
+        
         document.querySelectorAll('.mobile-user-name').forEach(el => {
             el.innerText = profile.display_name;
         });
         document.querySelectorAll('.mobile-avatar').forEach(el => {
             el.innerText = profile.display_name[0].toUpperCase();
         });
+
+        // 🔥 FIX 2: Profile load hote hi exact time par Badges fetch karo
+        loadUserAchievements();
 
         if (messagesDiv && messagesDiv.innerHTML.trim() === "") {
             appendMessage(`नमस्ते ${profile.display_name}! आज हम हिमाचल की किस परीक्षा (Patwari, HPAS या Allied) की तैयारी करें?`, 'ai');
@@ -240,10 +228,7 @@ function checkProStatus(profile) {
 // --- 4. NEWS & CHAT LOGIC ---
 window.onload = () => {
     checkUserSession();
-    const examDate = new Date("2026-06-07");
-    const diff = Math.ceil((examDate - new Date()) / (1000 * 60 * 60 * 24));
     const countdownEl = document.getElementById('patwari-countdown');
-    //if(countdownEl) countdownEl.innerText = diff > 0 ? diff + " Days Left" : "Exam Today!";
     if(countdownEl) countdownEl.innerText = "Coming Soon";
     loadRealNews();
 };
@@ -306,7 +291,6 @@ function appendMessage(text, sender) {
     const wrap = document.createElement('div');
     wrap.className = `message-wrapper ${sender}`;
     
-    // 🎯 FIX: AI अवतार को डार्क सर्कुलर बैकग्राउंड दिया गया है ताकि व्हाइट बेस गायब न हो
     const avatar = sender === 'user' 
         ? `<div class="avatar" style="background:#2563eb; color:white; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">${window.CURRENT_USER_PROFILE.display_name[0].toUpperCase()}</div>` 
         : `<div class="bot-avatar-container" style="background: #1e293b; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><div class="bot-avatar-logo" style="display: flex; flex-direction: column; align-items: center; transform: scale(0.85);"><div class="mountain-peak"></div><div class="book-base"></div></div></div>`;
@@ -323,7 +307,6 @@ function addLoader() {
     div.id = id; 
     div.className = 'message-wrapper ai';
     
-    // 🎯 FIX: यहाँ भी लोडर वाले लोगो को सेम डार्क थीम कंटेनर में रैप किया गया है
     const botLogo = `<div class="bot-avatar-container" style="background: #1e293b; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><div class="bot-avatar-logo" style="display: flex; flex-direction: column; align-items: center; transform: scale(0.85);"><div class="mountain-peak"></div><div class="book-base"></div></div></div>`;
     
     div.innerHTML = `${botLogo}<div class="bubble"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
@@ -331,7 +314,6 @@ function addLoader() {
     messagesDiv.scrollTop = messagesDiv.scrollHeight; 
     return id;
 }
-
 
 function removeLoader(id) { document.getElementById(id)?.remove(); }
 
@@ -348,19 +330,16 @@ document.getElementById('togglePassword').addEventListener('click', function () 
 
 // ==================== 5. LIVE QUIZ ENGINE & TIMED TEST ====================
 
-// A. बैकएंड से असली सवाल लेकर टेस्ट शुरू करना (प्रीमियम लोडिंग एनीमेशन के साथ)
 async function startMockTest(examType) {
     selectedExamType = examType;
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
     
-    // ⏳ 1. डबल क्लिक को रोकने के लिए एग्जाम कार्ड के बटन्स को तुरंत डिसेबल करें
     const examButtons = document.querySelectorAll('.exam-card button');
     examButtons.forEach(btn => {
         btn.disabled = true;
         btn.style.opacity = "0.5";
     });
     
-    // ⏳ 2. स्क्रीन पर एक खूबसूरत प्रीमियम ब्लर लोडिंग स्क्रीन इंजेक्ट करें
     const loaderOverlay = document.createElement('div');
     loaderOverlay.id = 'quiz-cloud-loader';
     loaderOverlay.style.cssText = `
@@ -390,29 +369,23 @@ async function startMockTest(examType) {
     try {
             let data = null;
 
-            // 🟢 NAYA LOGIC: चेक करें कि क्या यूज़र Re-attempt कर रहा है?
             if (window.reAttemptQuestions) {
                 data = window.reAttemptQuestions;
-                window.reAttemptQuestions = null; // इस्तेमाल के बाद इसे खाली कर दें
+                window.reAttemptQuestions = null; 
                 
-                // लोडिंग स्क्रीन हटाएं और बटन्स चालू करें (बिना Fetch किए)
                 if (document.getElementById('quiz-cloud-loader')) document.getElementById('quiz-cloud-loader').remove();
                 examButtons.forEach(btn => { btn.disabled = false; btn.style.opacity = "1"; });
             } 
             else {
-                // 🟢 PURANA LOGIC: अगर नया टेस्ट है, तो बैकएंड से फेच करें
                 const response = await fetch(`https://hp-exam-pro-dixk.onrender.com/api/questions/${examType}?user_id=${userId}&t=${Date.now()}`);
 
-                // डेटा आते ही लोडिंग ओवरले को स्क्रीन से तुरंत हटा दें
                 if (document.getElementById('quiz-cloud-loader')) document.getElementById('quiz-cloud-loader').remove();
 
-                // बटन्स को वापस नॉर्मल स्टेट में लाएं
                 examButtons.forEach(btn => {
                     btn.disabled = false;
                     btn.style.opacity = "1";
                 });
 
-                // Pro Feature (403 Error) चेकिंग
                 if (response.status === 403) {
                     const errorData = await response.json();
                     alert('👑 Pro Feature: ' + errorData.detail);
@@ -432,16 +405,15 @@ async function startMockTest(examType) {
                 data = await response.json();
             }
 
-            // 👇 (इसके ठीक नीचे तुम्हारी Line 407 वाली `if (data && data.length > 0) {` वैसी की वैसी ही रहेगी)
         if (data && data.length > 0) {
             currentQuestions = data; 
             currentQuestionIndex = 0;
             userAnswers = {};
             if (examType === 'hp_police') {
-    totalQuizTimeSeconds = 7200; // Police के लिए 120 मिनट
-} else {
-    totalQuizTimeSeconds = 5400; // Patwari और JOA IT के लिए 90 मिनट
-} 
+                totalQuizTimeSeconds = 7200; 
+            } else {
+                totalQuizTimeSeconds = 5400; 
+            } 
 
             document.getElementById('exam-selection-view').style.display = 'none';
             document.getElementById('active-quiz-view').style.display = 'block';
@@ -455,7 +427,6 @@ async function startMockTest(examType) {
             alert("Sawal load nahi ho paye. Kripya check karein!");
         }
     } catch (error) {
-        // 🧼 एरर आने की सूरत में भी लोडिंग स्क्रीन को साफ़ करें और बटन्स रीसेट करें
         if (document.getElementById('quiz-cloud-loader')) document.getElementById('quiz-cloud-loader').remove();
         examButtons.forEach(btn => {
             btn.disabled = false;
@@ -493,11 +464,9 @@ async function displayQuestion() {
 
     const currentQ = currentQuestions[currentQuestionIndex];
 
-    // 🚀 SMART TRANSLATION LOGIC: चेक करें कि इंग्लिश सेलेक्टेड है और पहले से ट्रांसलेटेड तो नहीं है?
     if (currentLanguage === 'en' && !currentQ.translated_en) {
         document.getElementById('quiz-question-text').innerText = `⏳ Translating to English...`;
         
-        // एक बार ट्रांसलेट करके सवाल के डेटा में ही सेव कर लेंगे, ताकि क्लिक करने पर डिले न हो
         currentQ.translated_en = {
             question: await autoTranslate(currentQ.question_text || currentQ.question),
             opt1: currentQ.opt1 ? await autoTranslate(currentQ.opt1) : "",
@@ -507,7 +476,6 @@ async function displayQuestion() {
         };
     }
 
-    // 🎯 तय करें कि स्क्रीन पर कौन सी भाषा दिखानी है
     const displayText = currentLanguage === 'en' && currentQ.translated_en 
         ? currentQ.translated_en 
         : {
@@ -536,7 +504,6 @@ async function displayQuestion() {
 
         const optionButton = document.createElement('button');
         
-        // 🎨 बटन्स की फॉर्मेटिंग (तुम्हारा ओरिजिनल डार्क मोड लुक)
         optionButton.style.cssText = `
             padding: 14px; 
             border: 1px solid ${isSelected ? '#60a5fa' : '#334155'}; 
@@ -557,7 +524,7 @@ async function displayQuestion() {
         
         optionButton.onclick = () => {
             userAnswers[currentQ.id] = optionKey;
-            saveMockTestState(); // 💾 ट्रिगर: जैसे ही ऑप्शन चुना, बैकग्राउंड में सेव!
+            saveMockTestState(); 
             displayQuestion(); 
         };
         
@@ -590,7 +557,7 @@ function navigateQuestion(direction) {
     if (currentQuestionIndex < 0) currentQuestionIndex = 0;
     if (currentQuestionIndex >= currentQuestions.length) currentQuestionIndex = currentQuestions.length - 1;
     
-    saveMockTestState(); // 💾 ट्रिगर: सवाल बदला, तो भी सेव!
+    saveMockTestState();
     displayQuestion();
 }
 
@@ -604,7 +571,6 @@ async function submitMockTest() {
         const chosen = userAnswers[q.id];
         let correctKey = q.correct_option || q.answer || q.correct_answer || q.correct;
         
-        // स्कोर कैलकुलेट करने के लिए भी वही स्मार्ट डिकोडिंग
         if (['1', '2', '3', '4', 1, 2, 3, 4].includes(correctKey)) {
             correctKey = 'opt' + correctKey;
         }
@@ -616,7 +582,6 @@ async function submitMockTest() {
         }
     });
 
-    // 🟢 NEW LOGIC: सिर्फ HP Police के लिए नेगेटिव मार्किंग (-0.25)
     let finalScore = correctCount; 
     
     if (selectedExamType === 'hp_police') {
@@ -624,14 +589,10 @@ async function submitMockTest() {
         finalScore = parseFloat(finalScore.toFixed(2));
     }
     
-    // स्क्रीन पर अपडेट करना
     document.getElementById('final-score').innerText = finalScore;
     document.getElementById('stat-correct').innerText = correctCount;
     document.getElementById('stat-wrong').innerText = wrongCount;
     
-    // =========================================================================
-    // 🏆 ACHIEVEMENT CHECK TRIGGER (NAYA CODE)
-    // =========================================================================
     // 🔥 Process & Update Daily Streak
     processUserStreak();
 
@@ -650,31 +611,22 @@ async function submitMockTest() {
         streakDays: 1, 
         previousTestScore: null
     });
-    // =========================================================================
     
     document.getElementById('active-quiz-view').style.display = 'none';
     document.getElementById('quiz-result-view').style.display = 'block';
     
-    // 🎯 टेस्ट सबमिट होते ही पैलेट हटाकर नॉर्मल साइडबार वापस लाएं
     if(document.getElementById('standard-sidebar-content')) document.getElementById('standard-sidebar-content').style.display = 'block';
     if(document.getElementById('quiz-navigation-palette')) document.getElementById('quiz-navigation-palette').style.display = 'none';
     
-    // 🧹 टेस्ट सबमिट होते ही रिव्यू डिब्बे को रीसेट कर दो, ताकि पुराना कचरा न दिखे
     const reviewBox = document.getElementById('review-container');
     if (reviewBox) {
         reviewBox.style.display = 'none';
         reviewBox.innerHTML = '';
     }
 
-    // 💾 ======================================================================
-    // 🧹 NEW: टेस्ट सबमिट होते ही पुरानी मेमोरी (localStorage) को उड़ा दो 
-    // =========================================================================
     localStorage.removeItem('hp_exam_pro_saved_test');
-    // =========================================================================
     
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
-
-    // यूज़र का नाम स्क्रीन या प्रोफाइल से निकालें
     const userNameEl = document.getElementById('display-name');
     const userName = window.CURRENT_USER_PROFILE?.display_name || (userNameEl ? userNameEl.innerText : "Student");
 
@@ -702,10 +654,8 @@ function resetToSelection() {
     document.getElementById('quiz-result-view').style.display = 'none';
     document.getElementById('exam-selection-view').style.display = 'block';
     
-    // 🎯 पुराना साइडबार वापस दिखाएं और पैलेट छुपाएं
     if(document.getElementById('standard-sidebar-content')) document.getElementById('standard-sidebar-content').style.display = 'block';
     if(document.getElementById('quiz-navigation-palette')) document.getElementById('quiz-navigation-palette').style.display = 'none';
-        // 🧹 जाते-जाते पिछले टेस्ट का रिव्यू डिब्बा बंद और साफ़ करें
     const reviewBox = document.getElementById('review-container');
     if (reviewBox) {
         reviewBox.style.display = 'none';
@@ -713,7 +663,6 @@ function resetToSelection() {
     }
 
 }
-
 
 function renderQuestionPalette() {
     const grid = document.getElementById('palette-grid');
@@ -775,7 +724,6 @@ function toggleMobilePalette() {
     }
 }
 
-
 // ==================== 6. NAVIGATION SWITCH CONTROLLER ====================
 function switchTab(pageId) {
     const activeQuizView = document.getElementById('active-quiz-view');
@@ -798,7 +746,6 @@ function switchTab(pageId) {
     if (targetPage) {
         targetPage.classList.add('active');
         
-        // 🎯 FIX: Agar dashboard khul rha hai toh 'flex' layout do, baaki sabko 'block'
         if (pageId.includes('dashboard')) {
             targetPage.style.display = 'flex';
         } else {
@@ -807,17 +754,17 @@ function switchTab(pageId) {
 
         if (pageId === 'analytics-page') {
             loadAnalyticsData();
-            // 🟢 टेस्ट हिस्ट्री लोड करने का ट्रिगर 
             if (typeof loadAttemptedHistory === 'function') {
                 loadAttemptedHistory();
             }
         }
         
-        // 🟢 NAYA CODE: जब बच्चा लीडरबोर्ड पेज खोलेगा, तो लिस्ट तुरंत लोड हो जाएगी
         if (pageId === 'leaderboard-page') {
             const dropdown = document.getElementById('leaderboard-exam-select');
             const selectedExam = dropdown ? dropdown.value : 'hp_police';
             renderLeaderboard(selectedExam); 
+            // 🔥 FIX 2: Leaderboard aate hi badges check karo ki updated hain ya nahi
+            loadUserAchievements();
         }
         
         if (pageId === 'mock-tests-page') {
@@ -935,28 +882,19 @@ function initiateProPayment() {
         return;
     }
 
-    // यूजर की ईमेल आईडी निकालें
     const userEmail = userProfile?.email || "Not Provided";
-    
-    // एक बढ़िया सा प्रोफेशनल मैसेज जो बच्चे के चैट बॉक्स में खुद-ब-खुद टाइप हो जाएगा
-    const message = encodeURIComponent(`Hello Sir, मुझे 'HP Exam Pro' का प्रीमियम एक्सेस (Pro Membership) चाहिए।\n\nMy Registered Email: ${userEmail}\nUser ID: ${userId}`);
-    
-    // तुम्हारा असली टेलीग्राम यूजरनेम
+    const message = encodeURIComponent(`Hello Sir, मुझे 'HP Exam Pro' का प्रीमियम एक्सेस (Pro Membership) चाहिए。\n\nMy Registered Email: ${userEmail}\nUser ID: ${userId}`);
     const myTelegramUsername = "Lakshit_sharma07"; 
     
     const telegramLink = `https://t.me/${myTelegramUsername}?text=${message}`;
-    
-    // बच्चे को सीधे तुम्हारी पर्सनल टेलीग्राम चैट पर भेजना
     window.open(telegramLink, "_blank");
 }
-
 
 // ==================== 9. POST-TEST REVIEW & EXPLANATION ====================
 function showReview() {
     const reviewContainer = document.getElementById('review-container');
     if (!reviewContainer) return;
 
-    // अगर पहले से खुला है तो बंद कर दो (Toggle effect)
     if (reviewContainer.style.display === 'block') {
         reviewContainer.style.display = 'none';
         return;
@@ -966,25 +904,20 @@ function showReview() {
     reviewContainer.innerHTML = `<h3 style="color: #38bdf8; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px;">Detailed Analysis & Solutions</h3>`;
 
     currentQuestions.forEach((q, index) => {
-        const chosenKey = userAnswers[q.id]; // जैसे 'opt1', 'opt2'
+        const chosenKey = userAnswers[q.id]; 
                 let correctKey = q.correct_option || q.answer || q.correct_answer || q.correct;
         
-        // अगर डेटाबेस में सही जवाब '1', '2' के फॉर्मेट में सेव है, तो उसे 'opt1', 'opt2' बना दो
         if (['1', '2', '3', '4', 1, 2, 3, 4].includes(correctKey)) {
             correctKey = 'opt' + correctKey;
         }
 
-        // जो टेक्स्ट बच्चे ने चुना और जो असली जवाब था (उन्हें निकालना)
         const chosenText = chosenKey ? q[chosenKey] : "Did not attempt";
         const correctText = q[correctKey] || correctKey || "Data Not Provided";
 
-
-        // सही/गलत के हिसाब से रंग तय करना
         const isCorrect = chosenKey === correctKey;
         const statusColor = isCorrect ? '#10b981' : (chosenKey ? '#ef4444' : '#f59e0b');
         const statusIcon = isCorrect ? '✅' : (chosenKey ? '❌' : '⚠️ Unattempted');
 
-        // हर सवाल के लिए एक डिब्बा (Card) बनाना
         const qCard = document.createElement('div');
         qCard.style.cssText = `
             background: #1e293b; border-left: 4px solid ${statusColor}; 
@@ -999,7 +932,6 @@ function showReview() {
             </div>
         `;
 
-        // अगर गलत जवाब दिया है या छोड़ा है, तो असली जवाब हरा दिखाओ
         if (!isCorrect) {
             htmlContent += `
                 <div style="font-size: 14px; margin-bottom: 10px;">
@@ -1009,7 +941,6 @@ function showReview() {
             `;
         }
 
-        // 💡 असली जादू: अगर डेटाबेस में Explanation है, तो उसे दिखाओ
         if (q.explanation && q.explanation.trim() !== "") {
             htmlContent += `
                 <div style="margin-top: 12px; padding: 12px; background: rgba(56, 189, 248, 0.1); border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.2);">
@@ -1023,7 +954,7 @@ function showReview() {
         reviewContainer.appendChild(qCard);
     });
 }
-// Mock Test History Logicा
+
 // 📜 यूज़र के अटेम्प्टेड टेस्ट्स की हिस्ट्री लोड करना
 async function loadAttemptedHistory() {
     const historyContainer = document.getElementById('attempt-history-container');
@@ -1061,7 +992,6 @@ if (item.exam_type === 'patwari') {
         const card = document.createElement('div');
         card.style.cssText = 'background: #1e293b; padding: 12px 16px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155;';
         
-        // 🟢 FIX 1: यहाँ Review बटन में 'this' पास किया है ताकि हम उसी बटन पर Loading दिखा सकें
         card.innerHTML = `
             <div>
                 <h4 style="margin: 0; color: #f8fafc; font-size: 14px;">📝 ${examName}</h4>
@@ -1075,24 +1005,21 @@ if (item.exam_type === 'patwari') {
         historyContainer.appendChild(card);
     });
 }
-// 🛑 End Test बटन दबाने पर Warning / Confirmation पूछना
+
 function promptEndTest() {
     const sure = confirm("⚠️ Are you sure?\nक्या आप सच में टेस्ट को अभी Submit करना चाहते हैं?");
     
     if (sure) {
-        // अगर यूज़र 'OK' दबाता है, तो असली सबमिट फंक्शन चला दो
         submitMockTest();
     }
 }
 
-// 👁️ पुराने टेस्ट का रिव्यु खोलना (लोैडिंग इफ़ेक्ट के साथ)
 async function reviewPastTest(testId, btnElement) {
     const originalText = btnElement.innerHTML;
     btnElement.innerHTML = '⏳ Loading...';
     btnElement.disabled = true;
     btnElement.style.opacity = '0.7';
 
-    // डेटाबेस से पुराना रिज़ल्ट लाएं
     const { data, error } = await supabaseClient
         .from('test_results')
         .select('*')
@@ -1123,7 +1050,6 @@ async function reviewPastTest(testId, btnElement) {
     if (quizView) quizView.style.display = 'none';
     if (resultView) resultView.style.display = 'block';
 
-    // 🟢 MAIN FIX: नीले डिब्बे (Score) और सही/गलत स्टैट्स में पुराने नंबर डालें
     const finalScoreEl = document.getElementById('final-score');
     const statCorrectEl = document.getElementById('stat-correct');
     const statWrongEl = document.getElementById('stat-wrong');
@@ -1134,8 +1060,7 @@ async function reviewPastTest(testId, btnElement) {
 
     showReview();
 }
-// 🔄 Re-attempt की पुष्टि
-// 🔄 Re-attempt की पुष्टि और वही पुराने सवाल लोड करना (नया लॉजिक)
+
 async function confirmReattempt(testId, examType, btnElement) {
     let examName = 'JOA IT';
 if (examType === 'patwari') {
@@ -1146,12 +1071,10 @@ if (examType === 'patwari') {
     const sure = confirm(`Are you sure want to Re-Attempt ${examName} ? (सवाल वही रहेंगे)`);
     
     if (sure) {
-        // लोडिंग इफ़ेक्ट
         const originalText = btnElement.innerHTML;
         btnElement.innerHTML = '⏳...';
         btnElement.disabled = true;
 
-        // डेटाबेस से उसी टेस्ट के सवाल निकालें
         const { data, error } = await supabaseClient
             .from('test_results')
             .select('questions_snapshot')
@@ -1166,7 +1089,6 @@ if (examType === 'patwari') {
             return;
         }
 
-        // सवालों को एक टेम्परेरी ग्लोबल वेरिएबल में सेव कर लें
         window.reAttemptQuestions = data.questions_snapshot;
 
         if (typeof switchTab === 'function') switchTab('mock-tests-page');
@@ -1174,11 +1096,9 @@ if (examType === 'patwari') {
     }
 }
 
-
-// 1. Function to send password reset link via Email
 async function handleForgotPassword(email) {
     const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://hp-exam-pro.vercel.app/', // 👈 Bas yahan se '#reset-password' hata diya hai
+        redirectTo: 'https://hp-exam-pro.vercel.app/', 
     });
 
     if (error) {
@@ -1188,7 +1108,6 @@ async function handleForgotPassword(email) {
     }
 }
 
-// 2. Function to update the password in Supabase
 async function handleUpdatePassword(newPassword) {
     const { data, error } = await supabaseClient.auth.updateUser({
         password: newPassword
@@ -1201,10 +1120,8 @@ async function handleUpdatePassword(newPassword) {
     }
 }
 
-// 3. Supabase listener to automatically detect when user clicks the email link
 supabaseClient.auth.onAuthStateChange(async (event, session) => {
     if (event === "PASSWORD_RECOVERY") {
-        // This prompts the user to enter their new password immediately upon return
         const newPass = prompt("🔑 Enter your new HP Exam Pro password:");
         if (newPass) {
             handleUpdatePassword(newPass);
@@ -1212,15 +1129,13 @@ supabaseClient.auth.onAuthStateChange(async (event, session) => {
     }
 });
 
-// 🟢 1. TCS Style Language State & Change Handler
 let currentLanguage = 'hi';
 
 async function changeLanguage(lang) {
     currentLanguage = lang;
-    await displayQuestion(); // भाषा बदलते ही नया सवाल लोड होगा
+    await displayQuestion(); 
 }
 
-// 🟢 2. Auto-Translation Helper (MyMemory API - No CORS Issues)
 async function autoTranslate(text) {
     if (!text || currentLanguage === 'hi') return text;
     try {
@@ -1233,222 +1148,6 @@ async function autoTranslate(text) {
     }
 }
 
-// 3. Render Leaderboard UI
-function renderLeaderboard(examType = 'hp_police', userScoreForThisExam = 0) {
-    const container = document.getElementById('leaderboard-list');
-    if (!container) return;
-
-    const realUserName = window.CURRENT_USER_PROFILE?.display_name || "Student (You)";
-    
-    // घोस्ट यूज़र्स के आज के (फ्लुक्टुएटेड) नंबर निकालो
-    let allUsers = ghostLeaderboards[examType].map(user => ({
-        name: user.name,
-        score: getDailyScore(user.baseScore, user.name),
-        isReal: false
-    }));
-    
-    // ========================================================================
-    // 🛑 ADMIN HIDE FEATURE: अपनी ID को लीडरबोर्ड से छुपाने का कंट्रोल
-    // अगर तुम खुद को छुपाना चाहते हो, तो इसे true रहने दो।
-    // अगर तुम लीडरबोर्ड पर अपना नाम देखना चाहते हो, तो इसे false कर दो।
-    const hideAdmin = true; 
-    
-    // यहाँ तुम्हारी दोनों IDs चेक होंगी
-    const isAdminAccount = realUserName.includes('lakshitsharma976') || realUserName.includes('lakshitsharma8080');
-    // ========================================================================
-
-    // असली यूज़र की एंट्री
-    if (userScoreForThisExam > 0) {
-        if (hideAdmin && isAdminAccount) {
-            // तुम एडमिन हो और Hide सेटिंग ON है, इसलिए तुम्हारा नाम लिस्ट में नहीं जाएगा (Ghost Mode) 👻
-        } else {
-            // कोई आम बच्चा है या तुमने Hide सेटिंग OFF कर दी है, तो लिस्ट में डाल दो
-            allUsers.push({ name: realUserName, score: userScoreForThisExam, isReal: true });
-        }
-    }
-
-    // सॉर्टिंग (ज़्यादा नंबर वाला ऊपर)
-    allUsers.sort((a, b) => b.score - a.score);
-
-    container.innerHTML = '';
-    let realUserRank = -1;
-    let realUserHTML = '';
-
-    allUsers.forEach((user, index) => {
-        const rank = index + 1;
-        if (user.isReal) realUserRank = rank;
-
-        // UI Design Logic
-        let bgStyle = "background: #1e293b; border: 1px solid #334155;";
-        let nameColor = "#f8fafc";
-        let rankDisplay = `<span style="color: #94a3b8; font-weight: bold; width: 30px;">#${rank}</span>`;
-        let isMeBadge = "";
-
-        if (rank === 1) {
-            bgStyle = "background: linear-gradient(90deg, rgba(245, 158, 11, 0.1) 0%, #1e293b 100%); border: 1px solid #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);";
-            rankDisplay = `<span style="font-size: 18px; width: 30px;">👑</span>`;
-            nameColor = "#f59e0b";
-        } else if (rank === 2) {
-            bgStyle = "background: linear-gradient(90deg, rgba(203, 213, 225, 0.1) 0%, #1e293b 100%); border: 1px solid #cbd5e1;";
-            rankDisplay = `<span style="font-size: 18px; width: 30px;">🥈</span>`;
-        } else if (rank === 3) {
-            bgStyle = "background: linear-gradient(90deg, rgba(217, 119, 6, 0.1) 0%, #1e293b 100%); border: 1px solid #d97706;";
-            rankDisplay = `<span style="font-size: 18px; width: 30px;">🥉</span>`;
-        }
-
-        // असली यूज़र का प्रीमियम हाईलाइट
-        if (user.isReal) {
-            bgStyle = "background: rgba(37, 99, 235, 0.15); border: 1px solid #3b82f6;";
-            nameColor = "#38bdf8";
-            isMeBadge = `<span style="background: #2563eb; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">YOU</span>`;
-        }
-
-        const htmlRow = `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-radius: 8px; ${bgStyle}">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    ${rankDisplay}
-                    <span style="font-weight: 600; color: ${nameColor}; display: flex; align-items: center;">${user.name} ${isMeBadge}</span>
-                </div>
-                <div style="font-weight: bold; color: #10b981;">${user.score}</div>
-            </div>
-        `;
-
-        // टॉप 10 को प्रिंट करो
-        if (rank <= 10) {
-            container.innerHTML += htmlRow;
-        } 
-        // अगर असली यूज़र टॉप 10 से बाहर है, तो उसे सेव कर लो (पिन करने के लिए)
-        else if (user.isReal) {
-            realUserHTML = htmlRow;
-        }
-    });
-
-    // Pinned Bottom Logic: अगर बच्चा टॉप 10 में नहीं है, तो उसे सबसे नीचे चिपका दो
-    if (realUserRank > 10) {
-        container.innerHTML += `<div style="text-align: center; color: #475569; font-size: 20px; line-height: 10px; margin: 5px 0;">⋮</div>`;
-        container.innerHTML += realUserHTML;
-    }
-}
-
-// ==================== ❓ DAILY QUESTION OF THE DAY LOGIC ====================
-
-// 1. Dynamic Confetti Script Loader (Hawaiyan udane ke liye library automatically load hogi)
-if (!window.confetti) {
-    const confettiScript = document.createElement('script');
-    confettiScript.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
-    document.head.appendChild(confettiScript);
-}
-
-// 2. Function to load Random Question from Backend (Updated with Exact Supabase Headers)
-async function loadDailyQuestion() {
-    try {
-        const response = await fetch('https://hp-exam-pro-dixk.onrender.com/api/daily-question');
-        const data = await response.json();
-
-        if (data.status === "success" && data.question) {
-            const q = data.question;
-            
-            // 🎯 1. Setting exact question text header
-            document.getElementById('daily-question-text').innerText = q.question_text || "Today's Challenge Question";
-
-            // 🎯 2. Mapping exact headers: opt1, opt2, opt3, opt4
-            const options = [
-                { key: '1', text: q.opt1 },
-                { key: '2', text: q.opt2 },
-                { key: '3', text: q.opt3 },
-                { key: '4', text: q.opt4 }
-            ].filter(opt => opt.text); // Filters out any empty values
-
-            const container = document.getElementById('daily-options-container');
-            container.innerHTML = ''; // Clearing loading text
-
-            // 🎯 3. Fetching exact correct_option value (like '1', '2', '3', or '4')
-            const correctKey = String(q.correct_option || "").trim();
-
-            options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'daily-opt-btn';
-                btn.innerText = `${opt.key}. ${opt.text}`; // Will show as 1. Alan Turing, 2. Charles Babbage etc.
-                
-                // Beautiful minimal button styling
-                btn.style.width = '100%';
-                btn.style.padding = '10px 12px';
-                btn.style.textAlign = 'left';
-                btn.style.border = '1px solid #e2e8f0';
-                btn.style.borderRadius = '8px';
-                btn.style.background = '#f8fafc';
-                btn.style.cursor = 'pointer';
-                btn.style.fontSize = '13px';
-                btn.style.transition = 'all 0.2s';
-                btn.style.color = '#334155';
-
-                // Click event passing the numeric keys and explanation header
-                btn.onclick = () => checkDailyAnswer(btn, opt.key, correctKey, q.explanation || "No explanation provided.");
-                container.appendChild(btn);
-            });
-        } else {
-            document.getElementById('daily-question-text').innerText = "Stay tuned for tomorrow's question!";
-        }
-    } catch (error) {
-        console.error("Daily question load nahi ho paya:", error);
-    }
-}
-
-
-// 3. Core Logic to Check Answer, Trigger Confetti and Show Explanation
-function checkDailyAnswer(clickedBtn, selectedKey, correctKey, explanationText) {
-    // Disable all option buttons so user cannot click multiple times
-    const allButtons = document.querySelectorAll('.daily-opt-btn');
-    allButtons.forEach(btn => btn.disabled = true);
-
-    const expBox = document.getElementById('daily-explanation-box');
-    expBox.style.display = 'block';
-
-    if (selectedKey === correctKey) {
-        // 🎉 1. USER IS CORRECT! Green feedback
-        clickedBtn.style.background = '#d1fae5';
-        clickedBtn.style.borderColor = '#10b981';
-        clickedBtn.style.color = '#065f46';
-        clickedBtn.style.fontWeight = 'bold';
-
-        // 🚀 2. TRIGER HAWAIYAN (Canvas Confetti Boom Effect)
-        if (window.confetti) {
-            confetti({
-                particleCount: 150,
-                spread: 80,
-                origin: { y: 0.6 }
-            });
-        }
-
-        expBox.innerHTML = `<strong style="color: #10b981;">🎉 Correct Answer!</strong><br><span style="margin-top: 4px; display:block;">${explanationText}</span>`;
-    } else {
-        // ❌ 1. USER IS WRONG! Red feedback
-        clickedBtn.style.background = '#fee2e2';
-        clickedBtn.style.borderColor = '#ef4444';
-        clickedBtn.style.color = '#991b1b';
-
-        // 2. Highlight the correct answer in Green so they learn instantly
-        allButtons.forEach(btn => {
-            if (btn.innerText.startsWith(correctKey + '.')) {
-                btn.style.background = '#d1fae5';
-                btn.style.borderColor = '#10b981';
-                btn.style.color = '#065f46';
-                btn.style.fontWeight = 'bold';
-            }
-        });
-
-        expBox.innerHTML = `<strong style="color: #ef4444;">❌ Incorrect Answer!</strong><br><span style="margin-top: 4px; display:block;"><strong>Explanation:</strong> ${explanationText}</span>`;
-    }
-}
-
-// 4. Automatically trigger this function whenever Dashboard/Sidebar content loads
-document.addEventListener('DOMContentLoaded', () => {
-    loadDailyQuestion();
-});
-// =============================================================================
-// ==================== 🏆 SMART LEADERBOARD SYSTEM (WITH DATABASE) ====================
-
-// 1. Ghost Users Data (Fixed Range: Police < 72, Patwari/JOA < 89)
 const ghostLeaderboards = {
     'hp_police': [
         { name: "rahul.sharma99", baseScore: 71.00 }, 
@@ -1488,7 +1187,6 @@ const ghostLeaderboards = {
     ]
 };
 
-// 🟢 NAYA LOGIC: सिर्फ Police में दशमलव, बाकी में पूरे नंबर
 function getDailyScore(baseScore, name, examType) {
     const today = new Date();
     const day = today.getDate();
@@ -1496,7 +1194,6 @@ function getDailyScore(baseScore, name, examType) {
     let fluctuation = (seed % 5) - 2; 
     
     let fraction = 0;
-    // अगर एग्जाम पुलिस का है, तभी दशमलव जोड़ें
     if (examType === 'hp_police') {
         const fractionMap = [0, 0.25, 0.50, 0.75];
         fraction = fractionMap[seed % 4];
@@ -1505,17 +1202,14 @@ function getDailyScore(baseScore, name, examType) {
     return Math.max(0, baseScore + fluctuation + fraction);
 }
 
-// 🟢 NAYA LOGIC: Async function jo backend se real data layega
 async function renderLeaderboard(examType = 'hp_police') {
     const container = document.getElementById('leaderboard-list');
     if (!container) return;
     
-    // Loading State
     container.innerHTML = '<div style="text-align:center; padding: 20px; color:#94a3b8;">⏳ Loading Live Ranks...</div>';
 
     const currentLoggedInName = window.CURRENT_USER_PROFILE?.display_name || "";
     
-    // 1. Ghost Users लोड करें
     let allUsers = ghostLeaderboards[examType].map(user => ({
         name: user.name,
         score: getDailyScore(user.baseScore, user.name),
@@ -1523,17 +1217,14 @@ async function renderLeaderboard(examType = 'hp_police') {
         isMe: false
     }));
 
-    // 2. 🟢 DATABASE FETCH: Supabase से असली यूज़र्स का डेटा लाएं
     try {
         const { data: testResults } = await supabaseClient.from('test_results').select('user_id, score').eq('exam_type', examType);
         const { data: profiles } = await supabaseClient.from('profiles').select('id, display_name');
 
         if (testResults && profiles) {
-            // प्रोफाइल ID को नाम से जोड़ने के लिए एक मैप बनाएं
             const profileMap = {};
             profiles.forEach(p => profileMap[p.id] = p.display_name);
 
-            // हर यूज़र का सबसे हाईएस्ट स्कोर निकालें
             const realUserMaxScores = {};
             testResults.forEach(test => {
                 const userName = profileMap[test.user_id] || "Unknown Student";
@@ -1544,18 +1235,16 @@ async function renderLeaderboard(examType = 'hp_police') {
 
             const hideAdmin = true; 
 
-            // डेटाबेस वाले यूज़र्स को लिस्ट में जोड़ें
             for (const [uName, maxScore] of Object.entries(realUserMaxScores)) {
                 const isAdminAccount = uName.includes('lakshitsharma976') || uName.includes('lakshitsharma8080');
                 
-                // अगर एडमिन है और छुपाना है, तो लिस्ट में मत डालो
                 if (hideAdmin && isAdminAccount) continue;
 
                 allUsers.push({ 
                     name: uName, 
                     score: maxScore, 
                     isReal: true,
-                    isMe: (uName === currentLoggedInName) // जो बच्चा अभी साइट चला रहा है, उसे हाइलाइट करने के लिए
+                    isMe: (uName === currentLoggedInName) 
                 });
             }
         }
@@ -1563,14 +1252,12 @@ async function renderLeaderboard(examType = 'hp_police') {
         console.error("Leaderboard DB Error:", error);
     }
 
-    // 3. सॉर्टिंग (ज़्यादा नंबर वाला ऊपर)
     allUsers.sort((a, b) => b.score - a.score);
     
     container.innerHTML = '';
     let realUserRank = -1;
     let realUserHTML = '';
 
-    // 4. UI Generate करना
     allUsers.forEach((user, index) => {
         const rank = index + 1;
         if (user.isMe) realUserRank = rank;
@@ -1592,13 +1279,11 @@ async function renderLeaderboard(examType = 'hp_police') {
             rankDisplay = `<span style="font-size: 18px; width: 30px;">🥉</span>`;
         }
 
-        // जो बच्चा अभी ऑनलाइन है, उसके कार्ड को नीला रंग (YOU badge) दो
         if (user.isMe) {
             bgStyle = "background: rgba(37, 99, 235, 0.15); border: 1px solid #3b82f6;";
             nameColor = "#38bdf8";
             isMeBadge = `<span style="background: #2563eb; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">YOU</span>`;
         } 
-        // बाकी असली बच्चों (जो डेटाबेस से आए हैं) के नाम के आगे एक छोटा सा 'Verified' टिक दिखा सकते हैं (Optional)
 
         const htmlRow = `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-radius: 8px; ${bgStyle}; flex-shrink: 0;">
@@ -1624,19 +1309,14 @@ async function renderLeaderboard(examType = 'hp_police') {
 }
 
 // ==================== 🎉 ACHIEVEMENT POPUP CONTROLLER ====================
-
-// पॉप-अप दिखाने वाला फंक्शन
 function showAchievementUnlock(icon, title, description) {
-    // HTML में बैज की डिटेल्स सेट करो
     document.getElementById('ach-icon').innerText = icon;
     document.getElementById('ach-title').innerText = title;
     document.getElementById('ach-desc').innerText = description;
 
-    // पॉप-अप को स्क्रीन पर लाओ (Flex layout के साथ)
     const popup = document.getElementById('achievement-popup');
     popup.style.display = 'flex';
     
-    // छोटा सा बाउंस एनीमेशन इफ़ेक्ट
     const popupBox = popup.querySelector('div');
     popupBox.style.transform = 'scale(0.8)';
     setTimeout(() => {
@@ -1644,37 +1324,27 @@ function showAchievementUnlock(icon, title, description) {
     }, 50);
 }
 
-// पॉप-अप बंद करने वाला फंक्शन
 function closeAchievementPopup() {
     document.getElementById('achievement-popup').style.display = 'none';
 }
 
-// ==================== 🏆 ALL 15 ACHIEVEMENTS LIST ====================
+// ==================== 🏆 ALL 19 ACHIEVEMENTS LIST ====================
 const ALL_BADGES = [
-    // 🟢 Consistency
     { id: 'ice_breaker', icon: '🧊', title: 'Ice Breaker', desc: 'पहला मॉक टेस्ट सबमिट किया।' },
     { id: '1_week_warrior', icon: '⚔️', title: '1-Week Warrior', desc: 'लगातार 7 दिन टेस्ट दिया।' },
     { id: '30_day_legend', icon: '👑', title: '30-Day Legend', desc: 'लगातार 30 दिन की स्ट्रीक।' },
     { id: 'weekend_hustler', icon: '📅', title: 'Weekend Hustler', desc: 'शनिवार और रविवार दोनों दिन टेस्ट दिया।' },
-    
-    // 🟢 Performance
     { id: 'grandmaster', icon: '📜', title: 'Grandmaster', desc: 'फुल-सिलेबस टेस्ट कम्पलीट किया।' },
     { id: 'accuracy_sniper', icon: '🎯', title: 'Accuracy Sniper', desc: 'टेस्ट में 90%+ एक्यूरेसी हासिल की।' },
     { id: 'khaki_pride', icon: '👮‍♂️', title: 'Khaki Pride', desc: 'HP Police में टॉप 10% स्कोर।' },
     { id: 'patwari_elite', icon: '✍️', title: 'Patwari Elite', desc: 'पटवारी टेस्ट में 100+ स्कोर।' },
     { id: 'speed_demon', icon: '⚡', title: 'Speed Demon', desc: 'पेपर समय से 20 मिनट पहले पूरा किया।' },
-    
-    // 🟢 Subject-Specific
     { id: 'hp_gk_scholar', icon: '🏔️', title: 'HP GK Scholar', desc: 'हिमाचल GK में 100% स्कोर।' },
     { id: 'vyakaran_guru', icon: '📚', title: 'Vyakaran Guru', desc: 'हिंदी/इंग्लिश ग्रामर में फुल मार्क्स।' },
     { id: 'logic_master', icon: '🧠', title: 'Logic Master', desc: 'रीज़निंग में कोई गलती नहीं।' },
-    
-    // 🟢 Quirky / Fun / Gen-Z Vibe
     { id: 'night_owl', icon: '🦉', title: 'Night Owl', desc: 'रात 12 बजे के बाद टेस्ट सबमिट किया।' },
     { id: 'early_bird', icon: '🌅', title: 'Early Bird', desc: 'सुबह 6 बजे से पहले टेस्ट दिया।' },
     { id: 'comeback_king', icon: '🥊', title: 'Comeback King', desc: 'पिछले टेस्ट से स्कोर में भारी उछाल।' },
-    
-    // 👇 यहाँ से नए Gen-Z बैज शुरू 👇
     { id: 'let_him_cook', icon: '🔥', title: 'Let Him Cook', desc: 'स्कोर लगातार इम्प्रूव हो रहा है। The Cooking Master , let him cook!' },
     { id: 'touch_grass', icon: '🌱', title: 'Touch Grass', desc: 'एक दिन में 4 टेस्ट दे दिए। अब थोड़ा फोन छोड़कर बाहर घूम आओ ब्रो!' },
     { id: 'massive_w', icon: '🏆', title: 'Massive W', desc: 'No Cap 🧢! तुम्हारा स्कोर एकदम FIRE है। Absolute W!' },
@@ -1682,18 +1352,16 @@ const ALL_BADGES = [
 ];
 
 // ==================== 🛠️ RENDER TROPHY CABINET ====================
-// यह फंक्शन डेटाबेस से जीते हुए बैज की लिस्ट लेगा और ग्रिड में भर देगा
 function renderTrophyCabinet(unlockedBadgeIds = []) {
     const grid = document.getElementById('badges-grid');
     if (!grid) return;
     
-    grid.innerHTML = ''; // पुराना कचरा साफ़ करो
+    grid.innerHTML = ''; 
     
     ALL_BADGES.forEach(badge => {
         const isUnlocked = unlockedBadgeIds.includes(badge.id);
         
         if (isUnlocked) {
-            // 🔓 UNLOCKED STYLE (रंगीन और चमकता हुआ)
             grid.innerHTML += `
                 <div class="golden-shine-effect" style="background: linear-gradient(145deg, #1e293b, #0f172a); padding: 15px 10px; border-radius: 10px; border: 1px solid #f59e0b; transition: transform 0.2s;" title="${badge.desc}">
                     <div style="font-size: 32px; margin-bottom: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">${badge.icon}</div>
@@ -1702,7 +1370,6 @@ function renderTrophyCabinet(unlockedBadgeIds = []) {
                 </div>
             `;
         } else {
-            // 🔒 LOCKED STYLE (ब्लैक एंड वाइट और धुंधला)
             grid.innerHTML += `
                 <div style="background: #1e293b; padding: 15px 10px; border-radius: 10px; border: 1px solid #334155; filter: grayscale(100%); opacity: 0.4;" title="${badge.desc}">
                     <div style="font-size: 32px; margin-bottom: 8px;">${badge.icon}</div>
@@ -1713,20 +1380,17 @@ function renderTrophyCabinet(unlockedBadgeIds = []) {
         }
     });
 }
-// पेज लोड होते ही मशीन को चालू करो (अभी जीते हुए बैज की लिस्ट खाली [] है)
+
 // ==================== 📡 FETCH ACHIEVEMENTS FROM SUPABASE ====================
 async function loadUserAchievements() {
-    // यूज़र की ID निकालें (ताकि पता चले कि किसका डेटा लाना है)
     const userId = window.CURRENT_USER_PROFILE?.id || (typeof currentUserId !== 'undefined' ? currentUserId : null);
     
-    // अगर यूज़र लॉग-इन नहीं है, तो सब लॉक कर दो
     if (!userId) {
         renderTrophyCabinet([]);
         return;
     }
 
     try {
-        // Supabase के profiles टेबल से unlocked_badges कॉलम लाएं
         const { data, error } = await supabaseClient
             .from('profiles')
             .select('unlocked_badges')
@@ -1735,23 +1399,16 @@ async function loadUserAchievements() {
 
         if (error) throw error;
 
-        // अगर यूज़र के पास जीते हुए बैज हैं, तो उन्हें मशीन में डालो
         if (data && data.unlocked_badges) {
             renderTrophyCabinet(data.unlocked_badges);
         } else {
-            // अगर एक भी बैज नहीं जीता है, तो खाली लिस्ट भेज दो
             renderTrophyCabinet([]);
         }
     } catch (err) {
         console.error("बैज लोड करने में दिक्कत हुई:", err);
-        renderTrophyCabinet([]); // एरर आने पर सब लॉक दिखा दो
+        renderTrophyCabinet([]); 
     }
 }
-
-// पेज लोड होते ही डेटाबेस से असली बैज चेक करो
-setTimeout(() => {
-    loadUserAchievements();
-}, 1000); // 1 सेकंड का डिले ताकि Supabase पहले लोड हो जाए
 
 // ==================== 💾 SAVE BADGE TO SUPABASE ====================
 async function awardBadgeToUser(badgeId, icon, title, description) {
@@ -1759,7 +1416,6 @@ async function awardBadgeToUser(badgeId, icon, title, description) {
     if (!userId || userId === "test-user-123") return;
 
     try {
-        // 1. Fetch user profile from Supabase
         const { data: profile, error: fetchErr } = await supabaseClient
             .from('profiles')
             .select('unlocked_badges')
@@ -1773,15 +1429,12 @@ async function awardBadgeToUser(badgeId, icon, title, description) {
 
         let existingBadges = profile?.unlocked_badges || [];
         
-        // Don't award if already unlocked
         if (existingBadges.includes(badgeId)) {
             return;
         }
 
-        // 2. Add new badge to list
         existingBadges.push(badgeId);
 
-        // 3. Update database
         const { error: updateErr } = await supabaseClient
             .from('profiles')
             .update({ unlocked_badges: existingBadges })
@@ -1792,7 +1445,6 @@ async function awardBadgeToUser(badgeId, icon, title, description) {
             return;
         }
 
-        // 4. Trigger Celebration Pop-up & Update Grid live
         showAchievementUnlock(icon, title, description);
         renderTrophyCabinet(existingBadges);
 
@@ -1819,121 +1471,95 @@ async function checkAchievements({
     const currentHour = new Date().getHours();
     const currentDay = new Date().getDay();
 
-    // 🟢 1. Consistency & Streaks
-    // 🧊 Ice Breaker
     awardBadgeToUser('ice_breaker', '🧊', 'Ice Breaker', 'First mock test submitted! Welcome to the grind.');
 
-    // ⚔️ 1-Week Warrior
+    // 🔥 FIX 1: Name corrected from 'week_warrior' to '1_week_warrior'
     if (streakDays >= 7) {
-        awardBadgeToUser('week_warrior', '⚔️', '1-Week Warrior', '7-day test streak completed! Absolute consistency.');
+        awardBadgeToUser('1_week_warrior', '⚔️', '1-Week Warrior', '7-day test streak completed! Absolute consistency.');
     }
 
-    // 👑 30-Day Legend
+    // 🔥 FIX 1: Name corrected from 'month_legend' to '30_day_legend'
     if (streakDays >= 30) {
-        awardBadgeToUser('month_legend', '👑', '30-Day Legend', '30 Days of non-stop prep! Legendary discipline.');
+        awardBadgeToUser('30_day_legend', '👑', '30-Day Legend', '30 Days of non-stop prep! Legendary discipline.');
     }
 
-    // 📅 Weekend Hustler
     if (currentDay === 0 || currentDay === 6) {
         awardBadgeToUser('weekend_hustler', '📅', 'Weekend Hustler', 'No chill on weekends! Pure dedication.');
     }
 
-    // 🟢 2. High Performance & Speed
-    // 📜 Grandmaster
     if (totalQuestions >= 100) {
         awardBadgeToUser('grandmaster', '📜', 'Grandmaster', 'Completed a full 100-question marathon test!');
     }
 
-    // 🎯 Accuracy Sniper
     if (attempted >= 10 && accuracy >= 90) {
         awardBadgeToUser('accuracy_sniper', '🎯', 'Accuracy Sniper', `${accuracy.toFixed(1)}% accuracy! Precision on point.`);
     }
 
-    // 👮‍♂️ Khaki Pride
     if (examCategory.toLowerCase().includes('police') && scorePercent >= 80) {
         awardBadgeToUser('khaki_pride', '👮‍♂️', 'Khaki Pride', 'Crushed the HP Police test with 80%+ score!');
     }
 
-    // ✍️ Patwari Elite
     if (examCategory.toLowerCase().includes('patwari') && scorePercent >= 85) {
         awardBadgeToUser('patwari_elite', '✍️', 'Patwari Elite', '85%+ in Patwari mock! Elite tier performance.');
     }
 
-    // ⚡ Speed Demon
     const timeSavedSeconds = totalAllowedSeconds - timeTakenSeconds;
     if (totalAllowedSeconds > 0 && timeSavedSeconds >= 1200 && scorePercent >= 70) {
         awardBadgeToUser('speed_demon', '⚡', 'Speed Demon', 'Finished 20 mins early with 70%+ score. Fast & Furious!');
     }
 
-    // 🟢 3. Subject Mastery
-    // 🏔️ HP GK Scholar
     if (sectionStats.hp_gk && sectionStats.hp_gk.total >= 10 && sectionStats.hp_gk.correct === sectionStats.hp_gk.total) {
         awardBadgeToUser('hp_gk_scholar', '🏔️', 'HP GK Scholar', '100% correct in HP GK! Himachal GK boss.');
     }
 
-    // 📚 Vyakaran Guru
     if (sectionStats.vyakaran && sectionStats.vyakaran.total >= 10 && sectionStats.vyakaran.correct === sectionStats.vyakaran.total) {
         awardBadgeToUser('vyakaran_guru', '📚', 'Vyakaran Guru', 'Full marks in grammar section! Pure mastery.');
     }
 
-    // 🧠 Logic Master
     if (sectionStats.reasoning && sectionStats.reasoning.total >= 10 && sectionStats.reasoning.correct === sectionStats.reasoning.total) {
         awardBadgeToUser('logic_master', '🧠', 'Logic Master', 'Flawless reasoning score! 100% brain power.');
     }
 
-    // 🟢 4. Gen-Z & Quirky Badges
-    // 🦉 Night Owl
     if (currentHour >= 0 && currentHour < 4) {
         awardBadgeToUser('night_owl', '🦉', 'Night Owl', 'Testing at 2 AM? Late night hustle hits different.');
     }
 
-    // 🌅 Early Bird
     if (currentHour >= 4 && currentHour < 6) {
         awardBadgeToUser('early_bird', '🌅', 'Early Bird', 'Morning grind before sunrise! True sigma mode.');
     }
 
-    // 🥊 Comeback King
     if (previousTestScore !== null && (scorePercent - previousTestScore >= 20)) {
         awardBadgeToUser('comeback_king', '🥊', 'Comeback King', 'Jumped +20% score from last test. Huge comeback!');
     }
 
-    // 🔥 Let Him Cook
     if (scorePercent >= 75) {
         awardBadgeToUser('let_him_cook', '🔥', 'Let Him Cook', 'Score is heating up. Don\'t disturb, let him cook!');
     }
 
-    // 🌱 Touch Grass
     if (dailyTestsCountToday >= 4) {
         awardBadgeToUser('touch_grass', '🌱', 'Touch Grass', '4 tests today? Bhai ab thoda bahar ghoom ke fresh air le lo!');
     }
 
-    // 🏆 Massive W
     if (scorePercent >= 80) {
         awardBadgeToUser('massive_w', '🏆', 'Massive W', '80%+ score unlocked! No Cap 🧢, absolute W.');
     }
 
-    // 🎮 Exam OP
     if (totalQuestions >= 10 && correctAnswers === totalQuestions) {
         awardBadgeToUser('exam_op', '🎮', 'Exam OP', '100% Perfect Score! Overpowered vibes only.');
     }
 }
 
 // =========================================================================
-// 🔥 DAILY STREAK ENGINE (FIXED COLUMN NAMES)
+// 🔥 DAILY STREAK ENGINE 
 // =========================================================================
 async function processUserStreak() {
-    console.log("🔥 [Streak] processUserStreak trigger hua!");
-
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id;
-    console.log("🔥 [Streak] Current User ID mila:", userId);
 
     if (!userId || userId === "test-user-123") {
-        console.warn("⚠️ [Streak] User ID nahi mili ya test-user hai, aborting update.");
         return 1;
     }
 
     try {
-        // 1. Supabase से current_streak और last_test_date लाओ
         const { data: profile, error } = await supabaseClient
             .from('profiles')
             .select('current_streak, last_test_date')
@@ -1941,11 +1567,8 @@ async function processUserStreak() {
             .single();
 
         if (error) {
-            console.error("❌ [Streak] Fetch profile error from Supabase:", error);
             return 1;
         }
-
-        console.log("🔥 [Streak] Purana profile data mila:", profile);
 
         const today = new Date();
         const todayDateStr = today.toISOString().split('T')[0];
@@ -1956,7 +1579,6 @@ async function processUserStreak() {
         if (!lastDateStr) {
             streak = 1;
         } else if (lastDateStr === todayDateStr) {
-            console.log("🔥 [Streak] Aaj hi test diya hai pehle bhi, streak same rahegi.");
             return streak;
         } else {
             const yesterday = new Date(today);
@@ -1970,9 +1592,6 @@ async function processUserStreak() {
             }
         }
 
-        console.log(`🔥 [Streak] Updating database with current_streak: ${streak}...`);
-
-        // 2. Supabase में सही कॉलम (current_streak) अपडेट करो
         const { error: updateErr } = await supabaseClient
             .from('profiles')
             .update({
@@ -1982,36 +1601,31 @@ async function processUserStreak() {
             .eq('id', userId);
 
         if (updateErr) {
-            console.error("❌ [Streak] Supabase update fail hua:", updateErr);
             return;
         }
 
-        console.log("✅ [Streak] Database mein kamyabi se update ho gaya!");
-        // स्क्रीन पर लाइव स्ट्रीक नंबर अपडेट करो
         renderStreakUI(streak);
-        // स्क्रीन पर स्ट्रीक पॉप-अप दिखाओ
         showStreakToast(streak);
-        // 3. Badges check
+        
+        // 🔥 FIX 1: Name corrected here as well
         if (streak >= 7) {
-            awardBadgeToUser('week_warrior', '⚔️', '1-Week Warrior', '7-day test streak completed! Absolute consistency.');
+            awardBadgeToUser('1_week_warrior', '⚔️', '1-Week Warrior', '7-day test streak completed! Absolute consistency.');
         }
         if (streak >= 30) {
-            awardBadgeToUser('month_legend', '👑', '30-Day Legend', '30 Days of non-stop prep! Legendary discipline.');
+            awardBadgeToUser('30_day_legend', '👑', '30-Day Legend', '30 Days of non-stop prep! Legendary discipline.');
         }
 
         return streak;
 
     } catch (err) {
-        console.error("❌ [Streak] Unexpected crash error:", err);
         return 1;
     }
 }
 
-// ==================== 🖥️ DYNAMIC STREAK EMOJI & UI (LAPTOP + MOBILE) ====================
+// ==================== 🖥️ DYNAMIC STREAK EMOJI & UI ====================
 function renderStreakUI(streakCount) {
     const count = parseInt(streakCount) || 0;
 
-    // 1. स्ट्रीक के हिसाब से इमोजी और ग्लो का रंग चुनो
     let emoji = '🔥'; 
     let glowColor = 'rgba(255, 107, 0, 0.4)';
     let borderColor = '#ff6b00';
@@ -2030,7 +1644,6 @@ function renderStreakUI(streakCount) {
         borderColor = '#ef4444';
     }
 
-    // 💻 2. DESKTOP UI UPDATE (लैपटॉप के लिए)
     const deskCountEl = document.getElementById('streak-days-count');
     const deskEmojiEl = document.getElementById('streak-emoji');
     const deskDisplay = document.getElementById('user-streak-display');
@@ -2042,7 +1655,6 @@ function renderStreakUI(streakCount) {
         deskDisplay.style.borderColor = borderColor;
     }
 
-    // 📱 3. MOBILE UI UPDATE (मोबाइल के लिए नया कोड)
     document.querySelectorAll('.streak-text-target').forEach(el => {
         el.innerText = `${count} Day Streak`;
     });
@@ -2057,7 +1669,6 @@ function renderStreakUI(streakCount) {
     });
 }
 
-// 🔄 पेज लोड होते ही Supabase से असली स्ट्रीक लाओ
 async function syncStreakOnPageLoad() {
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id;
     if (!userId || userId === "test-user-123") return;
@@ -2077,7 +1688,6 @@ async function syncStreakOnPageLoad() {
     }
 }
 
-// पेज लोड होने के 1.5 सेकंड बाद ऑटोमैटिक सिंक
 setTimeout(syncStreakOnPageLoad, 1500);
 
 // ==================== 🔥 SHOW STREAK TOAST ====================
@@ -2091,7 +1701,6 @@ function showStreakToast(days) {
     
     toast.style.display = 'flex';
     
-    // 3.5 सेकंड बाद अपने-आप गायब हो जाएगा
     setTimeout(() => {
         toast.style.animation = 'slideInToast 0.4s ease-in reverse';
         setTimeout(() => {
@@ -2102,23 +1711,19 @@ function showStreakToast(days) {
 }
 
 // ==================== 💾 AUTO-SAVE & RESUME ENGINE ====================
-
-// 1. टेस्ट को बैकग्राउंड में सेव करने वाला फंक्शन
 function saveMockTestState() {
-    // सिर्फ तभी सेव करो जब सवाल लोड हो चुके हों
     if (currentQuestions && currentQuestions.length > 0) {
         const testState = {
             index: currentQuestionIndex,
             answers: userAnswers,
             time: totalQuizTimeSeconds,
-            questions: currentQuestions,   // 🟢 सवाल भी सेव करने पड़ेंगे वरना रिफ्रेश पर उड़ जाएंगे!
+            questions: currentQuestions,   
             examType: selectedExamType     
         };
         localStorage.setItem('hp_exam_pro_saved_test', JSON.stringify(testState));
     }
 }
 
-// 2. वापस आने पर टेस्ट चेक और चालू करने वाला फंक्शन
 function checkSavedTest() {
     const savedData = localStorage.getItem('hp_exam_pro_saved_test');
     
@@ -2128,71 +1733,60 @@ function checkSavedTest() {
         const userWantsToResume = confirm("⚠️ आपका एक अधूरा मॉक टेस्ट मिला है! क्या आप टेस्ट वहीं से शुरू करना चाहते हैं जहाँ आपने छोड़ा था?");
         
         if (userWantsToResume) {
-            // 🟢 1. डेटा रिस्टोर करो
             currentQuestionIndex = state.index;
             userAnswers = state.answers;
             totalQuizTimeSeconds = state.time;
             currentQuestions = state.questions;
             selectedExamType = state.examType;
             
-            // 🟢 2. BUG FIX: सबसे पहले बाकी सारे पेजों (Dashboard) को छुपा दो!
             document.querySelectorAll('.page-content').forEach(page => {
                 page.classList.remove('active');
                 page.style.display = 'none';
             });
 
-            // 🟢 3. अब सिर्फ Mock Test वाले मेन पेज को एक्टिवेट करो
             const mockTestPage = document.getElementById('mock-tests-page');
             if (mockTestPage) {
                 mockTestPage.classList.add('active');
                 mockTestPage.style.display = 'block';
             }
             
-            // 🟢 4. स्क्रीन सेट करो (Selection छुपाओ, टेस्ट दिखाओ)
             document.getElementById('exam-selection-view').style.display = 'none';
             document.getElementById('active-quiz-view').style.display = 'block';
             
             if(document.getElementById('standard-sidebar-content')) document.getElementById('standard-sidebar-content').style.display = 'none';
             if(document.getElementById('quiz-navigation-palette')) document.getElementById('quiz-navigation-palette').style.display = 'block';
             
-            // 🟢 5. टाइमर और सवाल दोबारा चालू करो
             startQuizTimer();
             displayQuestion();
         } else {
-            // अगर बच्चा 'Cancel' कर दे, तो सेव किया हुआ पुराना टेस्ट उड़ा दो
             localStorage.removeItem('hp_exam_pro_saved_test');
         }
     }
 }
-// वेबसाइट खुलते ही इसे चला दो
 checkSavedTest();
-
 
 // =========================================================================
 // ⚔️ 1v1 BATTLE LOBBY LOGIC
 // =========================================================================
 
 function loadLobbyProfile() {
-    // 1. यूज़र का नाम और XP निकालो
     const userName = window.CURRENT_USER_PROFILE?.display_name || "Guest Student";
     let userXP = window.CURRENT_USER_PROFILE?.xp_points || 0; 
     
     const nameText = document.getElementById('lobby-user-name');
     const rankText = document.getElementById('lobby-user-rank');
 
-    if (!nameText || !rankText) return; // अगर पेज लोड नहीं हुआ है तो एरर से बचने के लिए
+    if (!nameText || !rankText) return; 
 
-    // 2. 👑 THE GOD MAKER CHECK (Admin Only)
     if (userName === "lakshitsharma976" || userName === "lakshitsharma8080") {
         nameText.innerText = `[THE GOD MAKER]`;
         nameText.style.color = "#fef08a"; 
-        nameText.style.textShadow = "0 0 10px #eab308"; // हल्की सी सुनहरी चमक
+        nameText.style.textShadow = "0 0 10px #eab308"; 
 
         rankText.innerText = "XP: ∞ (Limit Exceeded)";
         rankText.style.color = "#fef08a";
         rankText.style.fontWeight = "900";
     } 
-    // 3. 👥 NORMAL PLAYERS LOGIC
     else {
         nameText.innerText = userName;
         nameText.style.color = "#f8fafc";
@@ -2209,13 +1803,110 @@ function loadLobbyProfile() {
     }
 }
 
-// जब बच्चा 'Find Opponent' बटन दबाएगा
+if (!window.confetti) {
+    const confettiScript = document.createElement('script');
+    confettiScript.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+    document.head.appendChild(confettiScript);
+}
+
+async function loadDailyQuestion() {
+    try {
+        const response = await fetch('https://hp-exam-pro-dixk.onrender.com/api/daily-question');
+        const data = await response.json();
+
+        if (data.status === "success" && data.question) {
+            const q = data.question;
+            
+            document.getElementById('daily-question-text').innerText = q.question_text || "Today's Challenge Question";
+
+            const options = [
+                { key: '1', text: q.opt1 },
+                { key: '2', text: q.opt2 },
+                { key: '3', text: q.opt3 },
+                { key: '4', text: q.opt4 }
+            ].filter(opt => opt.text); 
+
+            const container = document.getElementById('daily-options-container');
+            container.innerHTML = ''; 
+
+            const correctKey = String(q.correct_option || "").trim();
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'daily-opt-btn';
+                btn.innerText = `${opt.key}. ${opt.text}`; 
+                
+                btn.style.width = '100%';
+                btn.style.padding = '10px 12px';
+                btn.style.textAlign = 'left';
+                btn.style.border = '1px solid #e2e8f0';
+                btn.style.borderRadius = '8px';
+                btn.style.background = '#f8fafc';
+                btn.style.cursor = 'pointer';
+                btn.style.fontSize = '13px';
+                btn.style.transition = 'all 0.2s';
+                btn.style.color = '#334155';
+
+                btn.onclick = () => checkDailyAnswer(btn, opt.key, correctKey, q.explanation || "No explanation provided.");
+                container.appendChild(btn);
+            });
+        } else {
+            document.getElementById('daily-question-text').innerText = "Stay tuned for tomorrow's question!";
+        }
+    } catch (error) {
+        console.error("Daily question load nahi ho paya:", error);
+    }
+}
+
+function checkDailyAnswer(clickedBtn, selectedKey, correctKey, explanationText) {
+    const allButtons = document.querySelectorAll('.daily-opt-btn');
+    allButtons.forEach(btn => btn.disabled = true);
+
+    const expBox = document.getElementById('daily-explanation-box');
+    expBox.style.display = 'block';
+
+    if (selectedKey === correctKey) {
+        clickedBtn.style.background = '#d1fae5';
+        clickedBtn.style.borderColor = '#10b981';
+        clickedBtn.style.color = '#065f46';
+        clickedBtn.style.fontWeight = 'bold';
+
+        if (window.confetti) {
+            confetti({
+                particleCount: 150,
+                spread: 80,
+                origin: { y: 0.6 }
+            });
+        }
+
+        expBox.innerHTML = `<strong style="color: #10b981;">🎉 Correct Answer!</strong><br><span style="margin-top: 4px; display:block;">${explanationText}</span>`;
+    } else {
+        clickedBtn.style.background = '#fee2e2';
+        clickedBtn.style.borderColor = '#ef4444';
+        clickedBtn.style.color = '#991b1b';
+
+        allButtons.forEach(btn => {
+            if (btn.innerText.startsWith(correctKey + '.')) {
+                btn.style.background = '#d1fae5';
+                btn.style.borderColor = '#10b981';
+                btn.style.color = '#065f46';
+                btn.style.fontWeight = 'bold';
+            }
+        });
+
+        expBox.innerHTML = `<strong style="color: #ef4444;">❌ Incorrect Answer!</strong><br><span style="margin-top: 4px; display:block;"><strong>Explanation:</strong> ${explanationText}</span>`;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadDailyQuestion();
+});
+
 function startMatchmaking() {
     const subject = document.getElementById('battle-subject').value;
     alert(`Searching for an opponent for ${subject.toUpperCase()}... \n\n(VS Arena Glitch Screen will load here soon! 💀)`);
 }
 
-// जब बच्चा 'Invite' बटन दबाएगा
 function inviteFriend() {
     alert("WhatsApp Invite Link functionality will be added here.");
 }
