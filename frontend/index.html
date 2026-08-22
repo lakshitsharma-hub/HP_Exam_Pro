@@ -153,11 +153,11 @@
             <a href="admin.html" id="admin-link" style="display: none;"><i class="fa-solid fa-user-shield" style="width: 25px; color: #94a3b8;"></i> Admin Panel</a>
             <a href="1v1-battle.html" style="text-decoration: none; display: flex; align-items: center; gap: 10px; color: #ef4444 !important; font-weight: bold;"><i class="fa-solid fa-crosshairs" style="width: 25px;"></i> 1v1 Battle</a>
             <a href="mailto:hpexamproai@gmail.com?subject=HP Exam Pro Feedback/Query"><i class="fa-solid fa-envelope" style="width: 25px; color: #94a3b8;"></i> Contact Support</a>
-            <!-- 🌗 THEME TOGGLE BUTTON -->
-<a href="#" id="theme-toggle-btn" onclick="toggleTheme(); return false;" class="nav-item" style="text-decoration: none; display: flex; align-items: center; gap: 10px; font-weight: bold; color: #38bdf8;">
-    <i class="fa-solid fa-sun" id="theme-icon"></i>
-    <span id="theme-text">Light Mode</span>
-</a>
+            <!-- 🌗 THEME TOGGLE BUTTON (MOBILE) -->
+            <a href="#" onclick="toggleTheme(); toggleMenu(); return false;" class="nav-item" style="color: #38bdf8 !important; font-weight: bold; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-sun theme-icon" style="width: 25px;"></i> 
+                <span class="theme-text">Light Mode</span>
+            </a>
             <a href="#" onclick="handleLogout()" style="color: #ef4444; margin-top: 10px; border-top: 1px dashed #334155; padding-top: 12px;"><i class="fa-solid fa-right-from-bracket" style="width: 25px;"></i> Logout</a>
         </div>
 
@@ -255,7 +255,11 @@
     <i class="fa-solid fa-envelope"></i>
     <span>Contact Support</span>
 </a>
-       
+       <!-- 🌗 THEME TOGGLE BUTTON (DESKTOP) -->
+                    <a href="#" onclick="toggleTheme(); return false;" class="nav-item" style="text-decoration: none; color: #38bdf8 !important; font-weight: bold; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-sun theme-icon"></i>
+                        <span class="theme-text">Light Mode</span>
+                    </a>
 <a href="#" onclick="handleLogout()" style="color: #ef4444; display: flex; align-items: center; padding: 12px 15px; text-decoration: none; border-radius: 8px; margin-top: 15px; font-weight: bold; border-top: 1px dashed #334155;"><i class="fa-solid fa-right-from-bracket" style="margin-right: 10px;"></i> Logout</a>
 
                 </nav>
