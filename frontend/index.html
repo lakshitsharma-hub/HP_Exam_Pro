@@ -58,69 +58,103 @@
             animation: golden-pulse 1.5s infinite alternate ease-in-out;
         }
     </style>
-    <style id="modern-ux-theme">
-    /* 1. Frosted Glass Effect (Apple Style) */
+<!-- 🌌 PREMIUM THEME ENGINE CSS (Dark & Light Mode) -->
+<style id="theme-engine-css">
+    /* =========================================
+       🌙 1. DEFAULT: ULTRA PREMIUM DARK MODE
+       ========================================= */
+    body, .main-content, .page-content, .chat-viewport { 
+        background-color: #020617 !important; 
+        color: #f8fafc !important; 
+    }
+    
+    .sidebar, #mobile-sidebar { 
+        background: rgba(15, 23, 42, 0.6) !important; 
+        backdrop-filter: blur(20px) !important; 
+        border-right: 1px solid rgba(51, 65, 85, 0.5) !important; 
+    }
+    
+    /* Cards & Widgets */
+    .exam-card, .info-card, .pro-card, .analytics-grid > div, 
+    #active-quiz-view, #quiz-result-view, 
+    #leaderboard-page > div[style*="background: #0f172a"],
     #standard-sidebar-content .info-card {
-        background: rgba(255, 255, 255, 0.65) !important;
-        backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
-        border: 1px solid rgba(255, 255, 255, 0.8) !important;
-        border-radius: 14px !important;
-        color: #0f172a; /* 🎯 FIX: !important हटा दिया है */
-        transition: all 0.3s ease !important;
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9)) !important; 
+        border: 1px solid rgba(51, 65, 85, 0.6) !important; 
+        border-radius: 18px !important; 
+        color: white !important; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
     }
 
-    /* डार्क टेक्स्ट (बिना !important के) */
+    /* Fix Text colors inside old cards */
     #standard-sidebar-content .info-card h3,
     #standard-sidebar-content #daily-question-text,
     #standard-sidebar-content .exam-info {
-        color: #0f172a; 
+        color: #f8fafc !important; 
     }
 
-    #standard-sidebar-content .info-card:hover {
-        transform: translateY(-3px) !important;
-        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.08) !important;
-        border-color: rgba(37, 99, 235, 0.2) !important;
+    /* Chat & Inputs in Dark Mode */
+    .input-section { background: #0f172a !important; border-top: 1px solid #1e293b !important; }
+    input#user-input { background: #1e293b !important; color: white !important; border: 1px solid #334155 !important; }
+    
+    /* Menu Items */
+    .nav-item.active { 
+        background: linear-gradient(90deg, rgba(37, 99, 235, 0.2), transparent) !important; 
+        color: #38bdf8 !important; 
+        border-left: 4px solid #38bdf8 !important; 
     }
 
-    /* 🎯 FIX: बटन्स के बैकग्राउंड से भी !important हटा दिया है ताकि JS का हरा/लाल रंग काम कर सके */
-    #standard-sidebar-content .info-card button.daily-opt-btn {
-        background: rgba(255, 255, 255, 0.8);
-        border: 1px solid rgba(226, 232, 240, 0.9);
-        color: #334155;
+    /* =========================================
+       🌞 2. LIGHT MODE OVERRIDES
+       ========================================= */
+    body.light-theme, 
+    body.light-theme .main-content, 
+    body.light-theme .page-content, 
+    body.light-theme .chat-viewport { 
+        background-color: #f8fafc !important; 
+        color: #0f172a !important; 
+        background-image: none !important;
     }
 
-    /* 2. Soft Abstract Background Shapes */
-    body { position: relative; overflow-x: hidden; }
-    body::before {
-        content: ""; position: fixed; top: 0%; right: 0%; width: 600px; height: 600px;
-        background: radial-gradient(circle, rgba(56, 189, 248, 0.06) 0%, rgba(255, 255, 255, 0) 70%);
-        border-radius: 50%; z-index: -1; pointer-events: none;
+    body.light-theme .sidebar, 
+    body.light-theme #mobile-sidebar { 
+        background: #ffffff !important; 
+        border-right: 1px solid #e2e8f0 !important; 
     }
-<!-- 🌌 PREMIUM THEME ENGINE CSS (Dark & Light Mode) -->
-<style id="theme-engine-css">
-    /* --- ULTRA PREMIUM DARK MODE --- */
-    body { background-color: #020617 !important; color: #f8fafc; }
-    .sidebar, #mobile-sidebar { background: rgba(15, 23, 42, 0.6) !important; backdrop-filter: blur(20px) !important; border-right: 1px solid rgba(51, 65, 85, 0.5) !important; }
-    .exam-card, .info-card, .pro-card, .analytics-grid > div, #active-quiz-view, #quiz-result-view, #leaderboard-page > div[style*="background: #0f172a"] {
-        background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9)) !important; border: 1px solid rgba(51, 65, 85, 0.6) !important; border-radius: 18px !important; color: white !important; transition: transform 0.3s ease, box-shadow 0.3s ease !important;
-    }
-    .exam-card:hover, .info-card:hover, .pro-card:hover { transform: translateY(-5px) !important; box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(56, 189, 248, 0.3) !important; }
-    .nav-item.active { background: linear-gradient(90deg, rgba(37, 99, 235, 0.2), transparent) !important; color: #38bdf8 !important; border-left: 4px solid #38bdf8 !important; }
 
-    /* --- 🌞 LIGHT MODE OVERRIDES --- */
-    body.light-theme { background-color: #f8fafc !important; color: #0f172a !important; }
-    body.light-theme .sidebar, body.light-theme #mobile-sidebar { background: #ffffff !important; border-right: 1px solid #e2e8f0 !important; }
-    body.light-theme .exam-card, body.light-theme .info-card, body.light-theme .pro-card, body.light-theme .analytics-grid > div, body.light-theme #active-quiz-view, body.light-theme #quiz-result-view, body.light-theme #leaderboard-page > div[style*="background: #0f172a"] {
-        background: #ffffff !important; border: 1px solid #e2e8f0 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important; color: #0f172a !important;
+    body.light-theme .exam-card, 
+    body.light-theme .info-card, 
+    body.light-theme .pro-card, 
+    body.light-theme .analytics-grid > div, 
+    body.light-theme #active-quiz-view, 
+    body.light-theme #quiz-result-view, 
+    body.light-theme #leaderboard-page > div[style*="background: #0f172a"],
+    body.light-theme #standard-sidebar-content .info-card {
+        background: #ffffff !important; 
+        border: 1px solid #e2e8f0 !important; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important; 
+        color: #0f172a !important;
     }
-    body.light-theme h2, body.light-theme h3, body.light-theme h4, body.light-theme p, body.light-theme span, body.light-theme label, body.light-theme small { color: #0f172a !important; }
+
+    /* Fix text in Light Mode */
+    body.light-theme h2, body.light-theme h3, body.light-theme h4, 
+    body.light-theme p, body.light-theme span, body.light-theme label, body.light-theme small,
+    body.light-theme #standard-sidebar-content .info-card h3,
+    body.light-theme #standard-sidebar-content #daily-question-text,
+    body.light-theme #standard-sidebar-content .exam-info { 
+        color: #0f172a !important; 
+    }
+
     body.light-theme .nav-item { color: #475569 !important; }
     body.light-theme .nav-item:hover { background: #f1f5f9 !important; }
     body.light-theme .nav-item.active { background: #e2e8f0 !important; color: #2563eb !important; border-left: 4px solid #2563eb !important; }
+    
     body.light-theme .brand-name { color: #0f172a !important; }
     body.light-theme .top-bar { background: rgba(255,255,255,0.8) !important; border-bottom: 1px solid #e2e8f0 !important; }
+
+    /* Chat Colors Light Mode */
+    body.light-theme .input-section { background: #ffffff !important; border-top: 1px solid #e2e8f0 !important; }
+    body.light-theme input#user-input { background: #f1f5f9 !important; color: #0f172a !important; border: 1px solid #cbd5e1 !important; }
 </style>
 </head>
 <body>
