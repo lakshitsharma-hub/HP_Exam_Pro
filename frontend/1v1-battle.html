@@ -331,7 +331,7 @@
             </div>
         </div>
         <div class="hud-center">
-            <div id="timer-box" class="timer-circle">10</div>
+            <div id="timer-box" class="timer-circle">20</div>
             <div id="round-label" style="font-size: 11px; color: #94a3b8; font-weight: 800; margin-top:5px;">Q 1/5</div>
         </div>
         <div class="hud-player opponent">
@@ -365,7 +365,7 @@
         
         let currentUser = null, userStats = null;
         let matchQuestions = [];
-        let qIdx = 0, time = 10, timer = null, myScore = 0, oppScore = 0;
+        let qIdx = 0, time = 20, timer = null, myScore = 0, oppScore = 0;
         let isBotMatch = false;
         let supabaseClient = null;
         let roomChannel = null;
@@ -627,7 +627,7 @@
                 optsBox.appendChild(btn);
             });
 
-            time = 10;
+            time = 20;
             const timerBox = document.getElementById('timer-box');
             timerBox.innerText = time;
             timerBox.style.color = "#38bdf8";
