@@ -58,23 +58,32 @@
             animation: golden-pulse 1.5s infinite alternate ease-in-out;
         }
     </style>
-<!-- 🌌 PREMIUM THEME ENGINE CSS (Dark & Light Mode) -->
+<!-- 🌌 ALL-IN-ONE MASTER THEME & ANIMATION ENGINE -->
 <style id="theme-engine-css">
-    /* =========================================
-       🌙 1. DEFAULT: ULTRA PREMIUM DARK MODE
-       ========================================= */
+    /* =========================================================
+       🌙 1. DEFAULT ULTRA PREMIUM DARK MODE (Desktop & Mobile)
+       ========================================================= */
     body, .main-content, .page-content, .chat-viewport { 
         background-color: #020617 !important; 
         color: #f8fafc !important; 
     }
     
+    /* Sidebars */
     .sidebar, #mobile-sidebar { 
-        background: rgba(15, 23, 42, 0.6) !important; 
+        background: rgba(15, 23, 42, 0.95) !important; 
         backdrop-filter: blur(20px) !important; 
+        -webkit-backdrop-filter: blur(20px) !important; 
         border-right: 1px solid rgba(51, 65, 85, 0.5) !important; 
+        overflow-y: auto !important;
+        padding-bottom: 30px !important;
     }
-    
-    /* Cards & Widgets */
+
+    #mobile-sidebar a {
+        color: #f8fafc !important;
+        text-decoration: none;
+    }
+
+    /* Cards, Modals, Results & Quizzes */
     .exam-card, .info-card, .pro-card, .analytics-grid > div, 
     #active-quiz-view, #quiz-result-view, 
     #leaderboard-page > div[style*="background: #0f172a"],
@@ -82,31 +91,77 @@
         background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9)) !important; 
         border: 1px solid rgba(51, 65, 85, 0.6) !important; 
         border-radius: 18px !important; 
-        color: white !important; 
+        color: #f8fafc !important; 
         box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
     }
 
-    /* Fix Text colors inside old cards */
     #standard-sidebar-content .info-card h3,
     #standard-sidebar-content #daily-question-text,
     #standard-sidebar-content .exam-info {
         color: #f8fafc !important; 
     }
 
-    /* Chat & Inputs in Dark Mode */
-    .input-section { background: #0f172a !important; border-top: 1px solid #1e293b !important; }
-    input#user-input { background: #1e293b !important; color: white !important; border: 1px solid #334155 !important; }
-    
-    /* Menu Items */
+    /* Active Nav Items */
     .nav-item.active { 
         background: linear-gradient(90deg, rgba(37, 99, 235, 0.2), transparent) !important; 
         color: #38bdf8 !important; 
         border-left: 4px solid #38bdf8 !important; 
     }
 
-    /* =========================================
-       🌞 2. LIGHT MODE OVERRIDES
-       ========================================= */
+    /* Inputs in Dark Mode */
+    .input-section { background: #020617 !important; border-top: 1px solid #1e293b !important; }
+    input#user-input { background: #0f172a !important; color: white !important; border: 1px solid #334155 !important; }
+    input#user-input::placeholder { color: #94a3b8 !important; }
+
+    /* =========================================================
+       🤖 2. CHATBOT ANIMATED GRADIENT GLOW (Desktop & Mobile)
+       ========================================================= */
+    .input-wrapper {
+        position: relative;
+        z-index: 1;
+        border-radius: 30px;
+        background: #0f172a;
+    }
+
+    .input-wrapper::before {
+        content: "";
+        position: absolute;
+        top: -2px; left: -2px; right: -2px; bottom: -2px;
+        background: linear-gradient(90deg, #3b82f6, #a855f7, #ec4899, #38bdf8, #3b82f6);
+        background-size: 300% 300%;
+        border-radius: 32px;
+        z-index: -1;
+        animation: aiGradientMove 4s ease infinite;
+        opacity: 0.65;
+        filter: blur(6px);
+        transition: opacity 0.3s ease, filter 0.3s ease;
+    }
+
+    .input-wrapper:hover::before,
+    .input-wrapper:focus-within::before {
+        opacity: 1;
+        filter: blur(10px);
+    }
+
+    @keyframes aiGradientMove {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .status-indicator {
+        text-shadow: 0 0 8px #10b981;
+        animation: pulseText 1.5s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulseText {
+        0% { opacity: 0.6; }
+        100% { opacity: 1; }
+    }
+
+    /* =========================================================
+       🌞 3. FULL LIGHT MODE OVERRIDES
+       ========================================================= */
     body.light-theme, 
     body.light-theme .main-content, 
     body.light-theme .page-content, 
@@ -122,6 +177,26 @@
         border-right: 1px solid #e2e8f0 !important; 
     }
 
+    /* 📱 Mobile Links Fix for Light Mode */
+    body.light-theme #mobile-sidebar a {
+        color: #1e293b !important;
+    }
+    body.light-theme #mobile-sidebar a:hover {
+        background: #f1f5f9 !important;
+    }
+    body.light-theme #mobile-sidebar a[style*="#ef4444"] {
+        color: #ef4444 !important;
+    }
+    body.light-theme #mobile-sidebar div[style*="background: #0f172a"] {
+        background: #f8fafc !important;
+        border-top: 1px solid #e2e8f0 !important;
+    }
+    body.light-theme #mobile-sidebar .mobile-user-name,
+    body.light-theme #mobile-sidebar h3 {
+        color: #0f172a !important;
+    }
+
+    /* Cards & Container Overrides */
     body.light-theme .exam-card, 
     body.light-theme .info-card, 
     body.light-theme .pro-card, 
@@ -136,25 +211,28 @@
         color: #0f172a !important;
     }
 
-    /* Fix text in Light Mode */
     body.light-theme h2, body.light-theme h3, body.light-theme h4, 
-    body.light-theme p, body.light-theme span, body.light-theme label, body.light-theme small,
+    body.light-theme label,
     body.light-theme #standard-sidebar-content .info-card h3,
     body.light-theme #standard-sidebar-content #daily-question-text,
-    body.light-theme #standard-sidebar-content .exam-info { 
+    body.light-theme #standard-sidebar-content .exam-info,
+    body.light-theme .exam-card h3,
+    body.light-theme .exam-card p { 
         color: #0f172a !important; 
     }
 
     body.light-theme .nav-item { color: #475569 !important; }
     body.light-theme .nav-item:hover { background: #f1f5f9 !important; }
     body.light-theme .nav-item.active { background: #e2e8f0 !important; color: #2563eb !important; border-left: 4px solid #2563eb !important; }
-    
     body.light-theme .brand-name { color: #0f172a !important; }
     body.light-theme .top-bar { background: rgba(255,255,255,0.8) !important; border-bottom: 1px solid #e2e8f0 !important; }
 
-    /* Chat Colors Light Mode */
+    /* Light Theme Chat Adjustments */
     body.light-theme .input-section { background: #ffffff !important; border-top: 1px solid #e2e8f0 !important; }
+    body.light-theme .input-wrapper { background: #ffffff !important; }
     body.light-theme input#user-input { background: #f1f5f9 !important; color: #0f172a !important; border: 1px solid #cbd5e1 !important; }
+    body.light-theme input#user-input::placeholder { color: #64748b !important; }
+    body.light-theme .input-wrapper::before { opacity: 0.45; filter: blur(4px); }
 </style>
 </head>
 <body>
