@@ -406,9 +406,25 @@ async function startMockTest(examType) {
             }
 
         if (data && data.length > 0) {
-            currentQuestions = data; 
+            // 🔥 2. यहाँ से शुरू होता है पुराने सवालों को छाँटने (Filter) का लॉजिक
+            const storageKey = `attempted_q_${examType}`;
+            let seenIds = JSON.parse(localStorage.getItem(storageKey)) || [];
+            
+            // डेटाबेस से आए सवालों में से वो सवाल निकाल लें जो पहले नहीं देखे गए हैं
+            let freshQuestions = data.filter(q => !seenIds.includes(q.id));
+            
+            // अगर छाँटने के बाद टेस्ट में सवाल बहुत कम बचते हैं (मतलब यूज़र ने लगभग सारे सवाल देख लिए हैं)
+            // तो मेमोरी रीसेट कर दें, ताकि टेस्ट में सवालों की गिनती कम न पड़े और टेस्ट क्रैश न हो।
+            if (freshQuestions.length < (data.length * 0.5)) { 
+                localStorage.removeItem(storageKey);
+                freshQuestions = data; // मेमोरी खाली करके सारे सवाल वापस लोड कर दिए
+            }
+            // 🔥 फ़िल्टर लॉजिक खत्म
+
+            currentQuestions = freshQuestions; // अब यहाँ 'data' की जगह 'freshQuestions' सेट होगा
             currentQuestionIndex = 0;
             userAnswers = {};
+            
             if (examType === 'hp_police') {
                 totalQuizTimeSeconds = 7200; 
             } else {
