@@ -593,6 +593,17 @@ async function submitMockTest() {
     document.getElementById('stat-correct').innerText = correctCount;
     document.getElementById('stat-wrong').innerText = wrongCount;
     
+    // 🔥 1. हल किए गए सवालों की ID को LocalStorage में सेव करना (ताकि अगले टेस्ट में रिपीट न हों)
+    if (selectedExamType && currentQuestions.length > 0) {
+        const storageKey = `attempted_q_${selectedExamType}`;
+        const previousAttempted = JSON.parse(localStorage.getItem(storageKey)) || [];
+        const currentIds = currentQuestions.map(q => q.id).filter(Boolean);
+        
+        // पुरानी और नई IDs को मिलाकर सेव करें
+        const updatedAttempted = Array.from(new Set([...previousAttempted, ...currentIds]));
+        localStorage.setItem(storageKey, JSON.stringify(updatedAttempted));
+    }
+
     // 🔥 Process & Update Daily Streak
     processUserStreak();
 
