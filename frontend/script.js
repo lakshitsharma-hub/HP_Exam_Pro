@@ -330,6 +330,18 @@ document.getElementById('togglePassword').addEventListener('click', function () 
 
 // ==================== 5. LIVE QUIZ ENGINE & TIMED TEST ====================
 
+// 1. सवालों को मिक्स करने का हेल्पर फंक्शन (अगर पहले से नहीं है तो इसे भी कॉपी कर लें)
+function shuffleArray(array) {
+    let currentIndex = array.length, randomIndex;
+    while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+    return array;
+}
+
+// 2. तुम्हारा नया और स्मार्ट startMockTest फंक्शन
 async function startMockTest(examType) {
     selectedExamType = examType;
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
@@ -361,67 +373,95 @@ async function startMockTest(examType) {
     
     const titleEl = document.getElementById('quiz-exam-title');
     if (titleEl) {
-            if (examType === 'patwari') titleEl.innerText = 'Patwari Exam Mode';
-            else if (examType === 'hp_police') titleEl.innerText = 'HP Police Exam Mode';
-            else titleEl.innerText = 'JOA IT Exam Mode';
-        }
+        if (examType === 'patwari') titleEl.innerText = 'Patwari Exam Mode';
+        else if (examType === 'hp_police') titleEl.innerText = 'HP Police Exam Mode';
+        else titleEl.innerText = 'JOA IT Exam Mode';
+    }
     
     try {
-            let data = null;
+        let data = null;
 
-            if (window.reAttemptQuestions) {
-                data = window.reAttemptQuestions;
-                window.reAttemptQuestions = null; 
-                
-                if (document.getElementById('quiz-cloud-loader')) document.getElementById('quiz-cloud-loader').remove();
-                examButtons.forEach(btn => { btn.disabled = false; btn.style.opacity = "1"; });
-            } 
-            else {
-                const response = await fetch(`https://hp-exam-pro-dixk.onrender.com/api/questions/${examType}?user_id=${userId}&t=${Date.now()}`);
+        if (window.reAttemptQuestions) {
+            data = window.reAttemptQuestions;
+            window.reAttemptQuestions = null; 
+            
+            if (document.getElementById('quiz-cloud-loader')) document.getElementById('quiz-cloud-loader').remove();
+            examButtons.forEach(btn => { btn.disabled = false; btn.style.opacity = "1"; });
+        } 
+        else {
+            const response = await fetch(`https://hp-exam-pro-dixk.onrender.com/api/questions/${examType}?user_id=${userId}&t=${Date.now()}`);
 
-                if (document.getElementById('quiz-cloud-loader')) document.getElementById('quiz-cloud-loader').remove();
+            if (document.getElementById('quiz-cloud-loader')) document.getElementById('quiz-cloud-loader').remove();
 
-                examButtons.forEach(btn => {
-                    btn.disabled = false;
-                    btn.style.opacity = "1";
-                });
+            examButtons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = "1";
+            });
 
-                if (response.status === 403) {
-                    const errorData = await response.json();
-                    alert('👑 Pro Feature: ' + errorData.detail);
+            if (response.status === 403) {
+                const errorData = await response.json();
+                alert('👑 Pro Feature: ' + errorData.detail);
 
-                    const proPage = document.getElementById('pro-access-page');
-                    if (proPage) {
-                        document.querySelectorAll('.page-content').forEach(p => {
-                            p.classList.remove('active');
-                            p.style.display = 'none';
-                        });
-                        proPage.classList.add('active');
-                        proPage.style.display = 'block';
-                    }
-                    return;
+                const proPage = document.getElementById('pro-access-page');
+                if (proPage) {
+                    document.querySelectorAll('.page-content').forEach(p => {
+                        p.classList.remove('active');
+                        p.style.display = 'none';
+                    });
+                    proPage.classList.add('active');
+                    proPage.style.display = 'block';
                 }
-
-                data = await response.json();
+                return;
             }
+
+            data = await response.json();
+        }
 
         if (data && data.length > 0) {
-            // 🔥 2. यहाँ से शुरू होता है पुराने सवालों को छाँटने (Filter) का लॉजिक
+            // 🔥 1. पुरानी IDs को छाँटने का लॉजिक (No Repetition)
             const storageKey = `attempted_q_${examType}`;
             let seenIds = JSON.parse(localStorage.getItem(storageKey)) || [];
-            
-            // डेटाबेस से आए सवालों में से वो सवाल निकाल लें जो पहले नहीं देखे गए हैं
             let freshQuestions = data.filter(q => !seenIds.includes(q.id));
             
-            // अगर छाँटने के बाद टेस्ट में सवाल बहुत कम बचते हैं (मतलब यूज़र ने लगभग सारे सवाल देख लिए हैं)
-            // तो मेमोरी रीसेट कर दें, ताकि टेस्ट में सवालों की गिनती कम न पड़े और टेस्ट क्रैश न हो।
             if (freshQuestions.length < (data.length * 0.5)) { 
                 localStorage.removeItem(storageKey);
-                freshQuestions = data; // मेमोरी खाली करके सारे सवाल वापस लोड कर दिए
+                freshQuestions = data; 
             }
-            // 🔥 फ़िल्टर लॉजिक खत्म
 
-            currentQuestions = freshQuestions; // अब यहाँ 'data' की जगह 'freshQuestions' सेट होगा
+            // 🔥 2. स्मार्ट सब्जेक्ट-वाइज़ मिक्सर (70-30 Split with Fallback)
+            const toughTargetSubjects = ['hpgk', 'science', 'reasoning', 'english', 'computer'];
+            let finalMixedQuestions = [];
+
+            // डेटाबेस से आए सवालों में मौजूद सभी अलग-अलग सब्जेक्ट्स की लिस्ट
+            const allSubjects = [...new Set(freshQuestions.map(q => (q.subject || q.category || '').toLowerCase()))];
+
+            allSubjects.forEach(sub => {
+                let subQs = freshQuestions.filter(q => (q.subject || q.category || '').toLowerCase() === sub);
+                
+                let isToughSubject = sub && toughTargetSubjects.some(t => sub.includes(t));
+
+                if (isToughSubject) {
+                    let easyQs = shuffleArray(subQs.filter(q => q.difficulty !== 'tough'));
+                    let toughQs = shuffleArray(subQs.filter(q => q.difficulty === 'tough'));
+
+                    const targetTotal = subQs.length;
+                    const targetToughCount = Math.floor(targetTotal * 0.30); // 30% हिस्सा
+
+                    let mixedSub = [];
+                    mixedSub.push(...toughQs.slice(0, targetToughCount));
+                    
+                    const remainingNeeded = targetTotal - mixedSub.length;
+                    mixedSub.push(...easyQs.slice(0, remainingNeeded));
+
+                    finalMixedQuestions.push(...mixedSub);
+                } else {
+                    finalMixedQuestions.push(...subQs);
+                }
+            });
+
+            // फाइनल शफ़ल ताकि टेस्ट में सारे सब्जेक्ट्स अच्छे से मिक्स हो जाएँ
+            currentQuestions = shuffleArray(finalMixedQuestions);
+
             currentQuestionIndex = 0;
             userAnswers = {};
             
