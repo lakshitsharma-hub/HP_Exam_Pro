@@ -330,7 +330,7 @@ document.getElementById('togglePassword').addEventListener('click', function () 
 
 // ==================== 5. LIVE QUIZ ENGINE & TIMED TEST ====================
 
-// 1. सवालों को मिक्स करने का हेल्पर फंक्शन (अगर पहले से नहीं है तो इसे भी कॉपी कर लें)
+// 1. सवालों को मिक्स करने का फंक्शन (इसे सबसे ऊपर रखें)
 function shuffleArray(array) {
     let currentIndex = array.length, randomIndex;
     while (currentIndex !== 0) {
@@ -341,7 +341,7 @@ function shuffleArray(array) {
     return array;
 }
 
-// 2. तुम्हारा नया और स्मार्ट startMockTest फंक्शन
+// 2. फाइनल और अपडेटेड startMockTest फंक्शन
 async function startMockTest(examType) {
     selectedExamType = examType;
     const userId = currentUserId || window.CURRENT_USER_PROFILE?.id || "test-user-123";
@@ -418,49 +418,69 @@ async function startMockTest(examType) {
         }
 
         if (data && data.length > 0) {
-            // 🔥 1. पुरानी IDs को छाँटने का लॉजिक (No Repetition)
+            // 🔥 1. पुरानी IDs को छाँटने का लॉजिक
             const storageKey = `attempted_q_${examType}`;
             let seenIds = JSON.parse(localStorage.getItem(storageKey)) || [];
+            
+            // अनदेखे सवाल निकालें
             let freshQuestions = data.filter(q => !seenIds.includes(q.id));
             
-            if (freshQuestions.length < (data.length * 0.5)) { 
+            // 🎯 फिक्स: अगर फ़िल्टर करने से सवाल कम हो गए हैं (जैसे 115), तो उन्हें वापस 120 करें
+            if (freshQuestions.length < data.length) {
+                const needed = data.length - freshQuestions.length;
+                const seenQuestionsInData = data.filter(q => seenIds.includes(q.id));
+                freshQuestions.push(...seenQuestionsInData.slice(0, needed));
+            }
+            
+            // मेमोरी रीसेट (अगर लगभग सारे सवाल देखे जा चुके हैं)
+            if (freshQuestions.filter(q => !seenIds.includes(q.id)).length < (data.length * 0.3)) { 
                 localStorage.removeItem(storageKey);
-                freshQuestions = data; 
             }
 
-            // 🔥 2. स्मार्ट सब्जेक्ट-वाइज़ मिक्सर (70-30 Split with Fallback)
+            // 🔥 2. स्मार्ट सब्जेक्ट-वाइज़ मिक्सर (70-30 Split)
             const toughTargetSubjects = ['hpgk', 'science', 'reasoning', 'english', 'computer'];
             let finalMixedQuestions = [];
 
-            // डेटाबेस से आए सवालों में मौजूद सभी अलग-अलग सब्जेक्ट्स की लिस्ट
+            // सब्जेक्ट्स को उसी क्रम में रखें (ताकि सेक्शंस ना टूटें)
             const allSubjects = [...new Set(freshQuestions.map(q => (q.subject || q.category || '').toLowerCase()))];
 
             allSubjects.forEach(sub => {
                 let subQs = freshQuestions.filter(q => (q.subject || q.category || '').toLowerCase() === sub);
-                
                 let isToughSubject = sub && toughTargetSubjects.some(t => sub.includes(t));
 
                 if (isToughSubject) {
-                    let easyQs = shuffleArray(subQs.filter(q => q.difficulty !== 'tough'));
-                    let toughQs = shuffleArray(subQs.filter(q => q.difficulty === 'tough'));
+                    let easyQs = subQs.filter(q => q.difficulty !== 'tough');
+                    let toughQs = subQs.filter(q => q.difficulty === 'tough');
 
                     const targetTotal = subQs.length;
-                    const targetToughCount = Math.floor(targetTotal * 0.30); // 30% हिस्सा
+                    const targetToughCount = Math.floor(targetTotal * 0.30); 
 
                     let mixedSub = [];
+                    // 30% मुश्किल सवाल
                     mixedSub.push(...toughQs.slice(0, targetToughCount));
                     
+                    // बचे हुए हिस्से में आसान सवाल
                     const remainingNeeded = targetTotal - mixedSub.length;
                     mixedSub.push(...easyQs.slice(0, remainingNeeded));
 
+                    // Fallback: अगर आसान सवाल कम पड़ें, तो बचे हुए मुश्किल सवालों से कोटा पूरा करें
+                    if (mixedSub.length < targetTotal) {
+                        const stillNeeded = targetTotal - mixedSub.length;
+                        const unusedTough = toughQs.slice(targetToughCount);
+                        mixedSub.push(...unusedTough.slice(0, stillNeeded));
+                    }
+
+                    // 🎯 सब्जेक्ट के अंदर सवालों को शफ़ल करें (ताकि मुश्किल सवाल एक साथ ना दिखें)
+                    mixedSub = shuffleArray(mixedSub);
                     finalMixedQuestions.push(...mixedSub);
                 } else {
+                    // Maths, Current Affairs को बिना छेड़े सीधा डाल दें
                     finalMixedQuestions.push(...subQs);
                 }
             });
 
-            // फाइनल शफ़ल ताकि टेस्ट में सारे सब्जेक्ट्स अच्छे से मिक्स हो जाएँ
-            currentQuestions = shuffleArray(finalMixedQuestions);
+            // 🎯 फिक्स: यहाँ से ग्लोबल शफ़ल हटा दिया है, ताकि Maths, GK आदि अपने सेक्शन में ही रहें
+            currentQuestions = finalMixedQuestions;
 
             currentQuestionIndex = 0;
             userAnswers = {};
