@@ -330,7 +330,7 @@ document.getElementById('togglePassword').addEventListener('click', function () 
 
 // ==================== 5. LIVE QUIZ ENGINE & TIMED TEST ====================
 
-// 1. सवालों को मिक्स करने का फंक्शन (इसे सबसे ऊपर रखें)
+// 1. सवालों को मिक्स करने का फंक्शन
 function shuffleArray(array) {
     let currentIndex = array.length, randomIndex;
     while (currentIndex !== 0) {
@@ -364,7 +364,7 @@ async function startMockTest(examType) {
     loaderOverlay.innerHTML = `
         <div style="border: 4px solid #1e293b; border-top: 4px solid #38bdf8; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
         <h3 style="margin: 0; font-size: 18px; font-weight: 600; letter-spacing: 0.5px;">HP Cloud Server से सवाल निकाले जा रहे हैं...</h3>
-        <p style="color: #94a3b8; font-size: 13px; margin-top: 8px; margin-bottom: 0;">कृपया प्रतीक्षा करें, 120 सवालों का सटीक वेटेज सेट किया जा रहा है ⏳</p>
+        <p style="color: #94a3b8; font-size: 13px; margin-top: 8px; margin-bottom: 0;">कृपया प्रतीक्षा करें, सवालों का सटीक वेटेज सेट किया जा रहा है ⏳</p>
         <style>
             @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         </style>
@@ -401,16 +401,6 @@ async function startMockTest(examType) {
             if (response.status === 403) {
                 const errorData = await response.json();
                 alert('👑 Pro Feature: ' + errorData.detail);
-
-                const proPage = document.getElementById('pro-access-page');
-                if (proPage) {
-                    document.querySelectorAll('.page-content').forEach(p => {
-                        p.classList.remove('active');
-                        p.style.display = 'none';
-                    });
-                    proPage.classList.add('active');
-                    proPage.style.display = 'block';
-                }
                 return;
             }
 
@@ -418,37 +408,67 @@ async function startMockTest(examType) {
         }
 
         if (data && data.length > 0) {
-            // 🔥 1. पुरानी IDs को छाँटने का लॉजिक
             const storageKey = `attempted_q_${examType}`;
             let seenIds = JSON.parse(localStorage.getItem(storageKey)) || [];
             
-            // अनदेखे सवाल निकालें
             let freshQuestions = data.filter(q => !seenIds.includes(q.id));
             
-            // 🎯 फिक्स: अगर फ़िल्टर करने से सवाल कम हो गए हैं (जैसे 115), तो उन्हें वापस 120 करें
             if (freshQuestions.length < data.length) {
                 const needed = data.length - freshQuestions.length;
                 const seenQuestionsInData = data.filter(q => seenIds.includes(q.id));
                 freshQuestions.push(...seenQuestionsInData.slice(0, needed));
             }
             
-            // मेमोरी रीसेट (अगर लगभग सारे सवाल देखे जा चुके हैं)
             if (freshQuestions.filter(q => !seenIds.includes(q.id)).length < (data.length * 0.3)) { 
                 localStorage.removeItem(storageKey);
             }
 
-            // 🔥 2. स्मार्ट सब्जेक्ट-वाइज़ मिक्सर (70-30 Split)
             const toughTargetSubjects = ['hpgk', 'science', 'reasoning', 'english', 'computer'];
             let finalMixedQuestions = [];
 
-            // सब्जेक्ट्स को उसी क्रम में रखें (ताकि सेक्शंस ना टूटें)
             const allSubjects = [...new Set(freshQuestions.map(q => (q.subject || q.category || '').toLowerCase()))];
 
             allSubjects.forEach(sub => {
                 let subQs = freshQuestions.filter(q => (q.subject || q.category || '').toLowerCase() === sub);
                 let isToughSubject = sub && toughTargetSubjects.some(t => sub.includes(t));
 
-                if (isToughSubject) {
+                // 🎯 NEW: JOA IT के लिए कंप्यूटर सेक्शन का 30:40:30 (Easy:Medium:Tough) लॉजिक
+                if (examType === 'joa_it' && sub.includes('computer')) {
+                    let easyQs = subQs.filter(q => q.difficulty !== 'medium' && q.difficulty !== 'tough');
+                    let mediumQs = subQs.filter(q => q.difficulty === 'medium');
+                    let toughQs = subQs.filter(q => q.difficulty === 'tough');
+
+                    const targetTotal = subQs.length;
+                    
+                    // अगर 20:40:40 चाहिए, तो नीचे 0.30 की जगह 0.40 कर देना
+                    const targetMediumCount = Math.floor(targetTotal * 0.40); // 40% Medium
+                    const targetToughCount = Math.floor(targetTotal * 0.30);  // 30% Tough 
+
+                    let mixedSub = [];
+                    
+                    // 1. Tough सवाल भरें
+                    mixedSub.push(...toughQs.slice(0, targetToughCount));
+                    // 2. Medium सवाल भरें
+                    mixedSub.push(...mediumQs.slice(0, targetMediumCount));
+                    
+                    // 3. बचे हुए स्लॉट्स में Easy सवाल भरें
+                    const remainingNeeded = targetTotal - mixedSub.length;
+                    mixedSub.push(...easyQs.slice(0, remainingNeeded));
+
+                    // 4. Fallback (अगर Easy सवाल कम पड़ जाएं)
+                    if (mixedSub.length < targetTotal) {
+                        const stillNeeded = targetTotal - mixedSub.length;
+                        const unusedTough = toughQs.slice(targetToughCount);
+                        const unusedMedium = mediumQs.slice(targetMediumCount);
+                        const backup = [...unusedTough, ...unusedMedium];
+                        mixedSub.push(...backup.slice(0, stillNeeded));
+                    }
+
+                    mixedSub = shuffleArray(mixedSub);
+                    finalMixedQuestions.push(...mixedSub);
+                } 
+                // 🎯 बाकी टफ सब्जेक्ट्स का पुराना 70-30 लॉजिक
+                else if (isToughSubject) {
                     let easyQs = subQs.filter(q => q.difficulty !== 'tough');
                     let toughQs = subQs.filter(q => q.difficulty === 'tough');
 
@@ -456,32 +476,27 @@ async function startMockTest(examType) {
                     const targetToughCount = Math.floor(targetTotal * 0.30); 
 
                     let mixedSub = [];
-                    // 30% मुश्किल सवाल
                     mixedSub.push(...toughQs.slice(0, targetToughCount));
                     
-                    // बचे हुए हिस्से में आसान सवाल
                     const remainingNeeded = targetTotal - mixedSub.length;
                     mixedSub.push(...easyQs.slice(0, remainingNeeded));
 
-                    // Fallback: अगर आसान सवाल कम पड़ें, तो बचे हुए मुश्किल सवालों से कोटा पूरा करें
                     if (mixedSub.length < targetTotal) {
                         const stillNeeded = targetTotal - mixedSub.length;
                         const unusedTough = toughQs.slice(targetToughCount);
                         mixedSub.push(...unusedTough.slice(0, stillNeeded));
                     }
 
-                    // 🎯 सब्जेक्ट के अंदर सवालों को शफ़ल करें (ताकि मुश्किल सवाल एक साथ ना दिखें)
                     mixedSub = shuffleArray(mixedSub);
                     finalMixedQuestions.push(...mixedSub);
-                } else {
-                    // Maths, Current Affairs को बिना छेड़े सीधा डाल दें
+                } 
+                // 🎯 Maths, Current Affairs आदि
+                else {
                     finalMixedQuestions.push(...subQs);
                 }
             });
 
-            // 🎯 फिक्स: यहाँ से ग्लोबल शफ़ल हटा दिया है, ताकि Maths, GK आदि अपने सेक्शन में ही रहें
             currentQuestions = finalMixedQuestions;
-
             currentQuestionIndex = 0;
             userAnswers = {};
             
