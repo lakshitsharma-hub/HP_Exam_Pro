@@ -1,10 +1,7 @@
 name: Send Daily Telegram Quiz
 
 on:
-  schedule:
-    # रोज सुबह भारतीय समयानुसार (IST) लगभग 08:32 AM पर चलेगा (UTC 03:02 AM)
-    - cron: '2 3 * * *'
-  workflow_dispatch: # यह तुम्हें मैन्युअल रन करने का बटन देगा
+  workflow_dispatch:
 
 jobs:
   run-bot:
@@ -33,4 +30,3 @@ jobs:
         TELEGRAM_GROUP: ${{ secrets.TELEGRAM_GROUP }}
       run: |
         python telegram-quiz-bot/bot.py
-        
