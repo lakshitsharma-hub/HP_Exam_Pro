@@ -175,53 +175,81 @@
         .card-god .rank-title { color: #ef4444; letter-spacing: 0.5px; }
         .card-god .rank-pill { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-color: #ef4444; display: flex; align-items: center; gap: 5px; }
         /* =========================================================
-   📱 MOBILE RESPONSIVE FIX FOR 1V1 BATTLE ARENA
+   📱 MOBILE HUD POLISHED & CLEAN FIX
    ========================================================= */
 @media (max-width: 768px) {
-    /* 1. HUD Spacing & Layout */
+    /* 1. Header Bar */
     .battle-hud {
-        padding: 10px 12px !important;
-        gap: 8px !important;
+        padding: 8px 12px !important;
+        gap: 6px !important;
+        align-items: center !important;
     }
+
+    /* 2. Left & Right Player Blocks */
     .hud-player {
-        width: 36% !important;
-        gap: 8px !important;
+        width: 38% !important;
+        gap: 6px !important;
     }
+    
     .hud-avatar-wrapper {
-        width: 42px !important;
-        height: 42px !important;
+        width: 36px !important;
+        height: 36px !important;
     }
     .hud-avatar {
-        width: 38px !important;
-        height: 38px !important;
-        font-size: 18px !important;
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 15px !important;
     }
+
+    .hud-meta-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 2px !important;
+        margin-bottom: 4px !important;
+    }
+    .hud-player.opponent .hud-meta-row {
+        align-items: flex-end !important;
+    }
+
     .hud-name {
         font-size: 11px !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 80px;
+        font-weight: 800 !important;
+        max-width: 85px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        line-height: 1.1 !important;
     }
+    
     #user-xp-tag, #opp-rank {
-        font-size: 9px !important;
-        white-space: nowrap;
+        font-size: 8px !important;
+        opacity: 0.85;
+        line-height: 1 !important;
     }
+
+    .progress-track {
+        height: 6px !important;
+        border-radius: 4px !important;
+    }
+
+    /* 3. Center Timer & Round */
     .hud-center {
-        min-width: 70px !important;
+        min-width: 50px !important;
         gap: 2px !important;
     }
     .timer-circle {
-        width: 38px !important;
-        height: 38px !important;
-        font-size: 15px !important;
+        width: 34px !important;
+        height: 34px !important;
+        font-size: 14px !important;
+        border-width: 2px !important;
     }
     #round-label {
         font-size: 9px !important;
-        margin-top: 2px !important;
+        font-weight: 800 !important;
+        margin-top: 0 !important;
     }
 
-    /* 2. Arena & Question Box */
+    /* 4. Arena Body & Question Card */
     .arena-body {
         padding: 12px !important;
         align-items: flex-start !important;
@@ -229,7 +257,7 @@
     .question-card {
         padding: 20px 16px !important;
         border-radius: 16px !important;
-        margin-top: 10px;
+        margin-top: 10px !important;
     }
     #q-text {
         font-size: 16px !important;
@@ -237,7 +265,7 @@
         margin-bottom: 20px !important;
     }
 
-    /* 3. Options Single Column (Vertical List) */
+    /* 5. Options */
     .options-grid {
         grid-template-columns: 1fr !important;
         gap: 12px !important;
