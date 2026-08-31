@@ -1294,3 +1294,41 @@ body {
     border-radius: 0;
   }
 }
+
+/* =========================================================
+   ATTEMPT HISTORY CONTAINER SCROLLBAR FIX
+   ========================================================= */
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 360px; /* 4-5 items ke baad smooth scroll aane ke liye */
+  overflow-y: auto;
+  padding-right: 6px; /* Scrollbar aur Retake button ke beech gap */
+  scrollbar-gutter: stable;
+}
+
+/* Firefox */
+.history-list {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(56, 189, 248, 0.3) transparent;
+}
+
+/* Chrome, Edge, Safari */
+.history-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.history-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary, #38bdf8);
+}
