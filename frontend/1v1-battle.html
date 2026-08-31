@@ -174,6 +174,80 @@
         .card-god .rank-icon-wrapper { background: #2a0b0e; border: 2px solid #ef4444; color: #fecaca; }
         .card-god .rank-title { color: #ef4444; letter-spacing: 0.5px; }
         .card-god .rank-pill { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-color: #ef4444; display: flex; align-items: center; gap: 5px; }
+        /* =========================================================
+   📱 MOBILE RESPONSIVE FIX FOR 1V1 BATTLE ARENA
+   ========================================================= */
+@media (max-width: 768px) {
+    /* 1. HUD Spacing & Layout */
+    .battle-hud {
+        padding: 10px 12px !important;
+        gap: 8px !important;
+    }
+    .hud-player {
+        width: 36% !important;
+        gap: 8px !important;
+    }
+    .hud-avatar-wrapper {
+        width: 42px !important;
+        height: 42px !important;
+    }
+    .hud-avatar {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 18px !important;
+    }
+    .hud-name {
+        font-size: 11px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 80px;
+    }
+    #user-xp-tag, #opp-rank {
+        font-size: 9px !important;
+        white-space: nowrap;
+    }
+    .hud-center {
+        min-width: 70px !important;
+        gap: 2px !important;
+    }
+    .timer-circle {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 15px !important;
+    }
+    #round-label {
+        font-size: 9px !important;
+        margin-top: 2px !important;
+    }
+
+    /* 2. Arena & Question Box */
+    .arena-body {
+        padding: 12px !important;
+        align-items: flex-start !important;
+    }
+    .question-card {
+        padding: 20px 16px !important;
+        border-radius: 16px !important;
+        margin-top: 10px;
+    }
+    #q-text {
+        font-size: 16px !important;
+        line-height: 1.5 !important;
+        margin-bottom: 20px !important;
+    }
+
+    /* 3. Options Single Column (Vertical List) */
+    .options-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+    .opt-btn {
+        padding: 14px 16px !important;
+        font-size: 14px !important;
+        border-radius: 12px !important;
+    }
+}
     </style>
 </head>
 <body>
