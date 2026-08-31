@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Examination Arena | HP Exam Pro</title>
+  <link rel="stylesheet" href="test-arena.css">
+</head>
+<body data-theme="dark">
+
+  <!-- CBT Exam Top Header -->
+  <header class="exam-header">
+    <div class="exam-header-left">
+      <div class="brand-badge">HP Exam Pro</div>
+      <div class="test-title-group">
+        <h2 id="activeExamTitle">HP Full Mock Test</h2>
+        <span class="test-sub-meta">Pattern: 2026 Latest CBT</span>
+      </div>
+    </div>
+
+    <div class="exam-header-right">
+      <!-- Font Size Adjuster -->
+      <div class="font-resizer-box">
+        <button class="font-btn" onclick="adjustFontSize(-1)" title="Decrease font size">A-</button>
+        <span class="font-label">Font</span>
+        <button class="font-btn" onclick="adjustFontSize(1)" title="Increase font size">A+</button>
+      </div>
+
+      <!-- Live Countdown Timer -->
+      <div class="cbt-timer-box">
+        <span class="timer-icon">⏱️</span>
+        <div class="timer-digits">
+          <span class="t-label">Time Left</span>
+          <span class="t-val" id="timeRemaining">90:00</span>
+        </div>
+      </div>
+
+      <button class="btn-end-test" onclick="openSubmitModal()">Submit Test 🏁</button>
+    </div>
+  </header>
+
+  <!-- Main CBT Grid -->
+  <main class="exam-body-grid">
+    
+    <!-- Left: Question & Options Viewport -->
+    <section class="question-viewport">
+      <div class="q-meta-strip">
+        <span class="q-counter" id="qCurrentIndex">Question 1 of 120</span>
+        <span class="q-marks-tag" id="qMarksTag">+1.00 Marks</span>
+      </div>
+
+      <div class="q-text-card">
+        <p id="questionText">Loading question from server...</p>
+      </div>
+
+      <!-- Options Container -->
+      <div class="options-group" id="optionsContainer">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Action Footer -->
+      <div class="q-action-footer">
+        <div class="footer-left-actions">
+          <button class="btn-nav-outline" onclick="markForReviewAndNext()">⭐ Mark for Review</button>
+          <button class="btn-nav-outline" onclick="clearSelection()">Clear Selection</button>
+        </div>
+        <div class="footer-right-nav">
+          <button class="btn-nav-secondary" id="prevBtn" onclick="prevQuestion()">← Previous</button>
+          <button class="btn-nav-primary" id="nextBtn" onclick="saveAndNext()">Save & Next →</button>
+        </div>
+      </div>
+
+      <!-- Objection Strip -->
+      <div class="question-query-strip">
+        <button class="btn-report-query" onclick="openQueryModal()">
+          <span class="warn-icon">⚠️</span>
+          <span>इस सवाल में कोई गड़बड़ है? आपत्ति दर्ज करें</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Right: Question Palette Sidebar -->
+    <aside class="palette-sidebar">
+      <div class="palette-header">
+        <h3>Question Palette</h3>
+      </div>
+
+      <!-- Palette Legend Status -->
+      <div class="palette-legend">
+        <div class="legend-item"><span class="dot answered"></span> Answered (<span id="countAnswered">0</span>)</div>
+        <div class="legend-item"><span class="dot not-answered"></span> Unanswered (<span id="countUnanswered">0</span>)</div>
+        <div class="legend-item"><span class="dot review"></span> Marked (<span id="countReview">0</span>)</div>
+        <div class="legend-item"><span class="dot not-visited"></span> Not Visited (<span id="countNotVisited">0</span>)</div>
+      </div>
+
+      <!-- Grid of Question Numbers -->
+      <div class="palette-number-grid" id="paletteGrid">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- Submit Test Confirmation Modal -->
+  <div class="submit-modal-backdrop" id="submitModal">
+    <div class="submit-modal-card">
+      <h3>📋 Final Exam Summary</h3>
+      <p style="color: var(--text-cbt-muted); font-size: 0.88rem; margin-top: 4px;">Review your attempted statistics before final submission.</p>
+
+      <div class="modal-summary-grid">
+        <div class="summary-box">
+          <span class="s-label">Total Questions</span>
+          <span class="s-val" id="modTotal">120</span>
+        </div>
+        <div class="summary-box">
+          <span class="s-label" style="color: #4ade80;">Answered</span>
+          <span class="s-val" style="color: #4ade80;" id="modAnswered">0</span>
+        </div>
+        <div class="summary-box">
+          <span class="s-label" style="color: #f87171;">Unanswered</span>
+          <span class="s-val" style="color: #f87171;" id="modUnanswered">0</span>
+        </div>
+        <div class="summary-box">
+          <span class="s-label" style="color: #fde047;">Marked for Review</span>
+          <span class="s-val" style="color: #fde047;" id="modReview">0</span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeSubmitModal()">Resume Test</button>
+        <button class="btn-modal-confirm" onclick="finalSubmitAndExit()">Confirm & Submit Scorecard →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question Objection Modal -->
+  <div class="submit-modal-backdrop" id="queryModal">
+    <div class="submit-modal-card">
+      <h3>⚠️ आपत्ति / Doubt दर्ज करें</h3>
+      <p style="color: var(--text-cbt-muted); font-size: 0.85rem; margin-top: 4px;" id="queryModalSub">
+        Reporting Issue for Question
+      </p>
+
+      <div style="margin: 16px 0; display: flex; flex-direction: column; gap: 10px; text-align: left;">
+        <label style="font-size: 0.82rem; color: var(--text-cbt-muted);">गड़बड़ी का प्रकार चुनें:</label>
+        <select id="queryIssueType" style="background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-cbt); padding: 8px 12px; border-radius: 8px; width: 100%; color: #fff;">
+          <option value="गलत उत्तर (Wrong Answer Key)">गलत उत्तर (Wrong Answer Key)</option>
+          <option value="सवाल/विकल्प में टाइपो (Typo in Question/Options)">सवाल/विकल्प में टाइपो (Typo)</option>
+          <option value="अन्य समस्या (Other)">अन्य समस्या (Other)</option>
+        </select>
+
+        <label style="font-size: 0.82rem; color: var(--text-cbt-muted); margin-top: 6px;">विवरण (Optional):</label>
+        <textarea id="queryComment" rows="3" placeholder="उदा. सही उत्तर विकल्प B होना चाहिए..." style="background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-cbt); border-radius: 8px; padding: 10px; color: #fff; font-size: 0.88rem; resize: none; outline: none;"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeQueryModal()">Cancel</button>
+        <button class="btn-modal-confirm" onclick="submitQuestionQuery()">आपत्ति सबमिट करें →</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="test-arena.js"></script>
+</body>
+</html>
