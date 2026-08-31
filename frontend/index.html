@@ -1,796 +1,560 @@
-
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <meta name="google-site-verification" content="rPKbNREEtn03TChcUjn1DfC2woZah7dDwrFz9r-l7fE" />
-    <title>HP Exam Pro - Himachal's First AI-Powered Learning Website</title> 
-    <meta name="description" content="HP Exam Pro Himachal Pradesh ki pehli AI-powered learning website hai. HPRCA Patwari, HPAS aur Allied exams ke liye clean current affairs, premium mock tests aur live state leaderboard ke sath taiyari karein."> 
-    <meta property="og:type" content="website"> 
-    <meta property="og:url" content="https://hp-exam-pro.vercel.app/"> 
-    <meta property="og:title" content="HP Exam Pro | Himachal's First AI Powered Learning Website 🏆"> 
-    <meta property="og:description" content="AI-powered current affairs filter, smart mock tests aur live state-level leaderboard. Himachal govt exams ki taiyari ab hogi aur bhi behtar!"> 
-    <meta property="og:image" content="https://hp-exam-pro.vercel.app/images/og-banner.png"> 
-    <meta property="og:image:width" content="1200"> <meta property="og:image:height" content="630">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- 🟢 Google Analytics (GA4) Tracking Code -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRGBYR60H3"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HP Exam Pro | Smart Mock Test Platform</title>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="style.css">
 
-      gtag('config', 'G-TRGBYR60H3');
-    </script>
-    <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "HP Exam Pro",
-  "url": "https://hp-exam-pro.vercel.app/"
-}
-</script>
-<!-- 🌟 GOLDEN SHINE ANIMATION CSS -->
-    <style>
-        @keyframes golden-pulse {
-            0% { 
-                box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); 
-                border-color: #d97706; 
-            }
-            50% { 
-                box-shadow: 0 0 20px rgba(251, 191, 36, 0.9), inset 0 0 8px rgba(245, 158, 11, 0.3); 
-                border-color: #fcd34d; 
-            }
-            100% { 
-                box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); 
-                border-color: #d97706; 
-            }
-        }
-        
-        .golden-shine-effect {
-            animation: golden-pulse 1.5s infinite alternate ease-in-out;
-        }
-    </style>
-<!-- 🌌 ALL-IN-ONE MASTER THEME & ANIMATION ENGINE -->
-<style id="theme-engine-css">
-    /* =========================================================
-       🌙 1. DEFAULT ULTRA PREMIUM DARK MODE (Desktop & Mobile)
-       ========================================================= */
-    body, .main-content, .page-content, .chat-viewport { 
-        background-color: #020617 !important; 
-        color: #f8fafc !important; 
-    }
-    
-    /* Sidebars */
-    .sidebar, #mobile-sidebar { 
-        background: rgba(15, 23, 42, 0.95) !important; 
-        backdrop-filter: blur(20px) !important; 
-        -webkit-backdrop-filter: blur(20px) !important; 
-        border-right: 1px solid rgba(51, 65, 85, 0.5) !important; 
-        overflow-y: auto !important;
-        padding-bottom: 30px !important;
-    }
+  <!-- Core Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-    #mobile-sidebar a {
-        color: #f8fafc !important;
-        text-decoration: none;
+  <style>
+    /* Auth Modal Styling */
+    .auth-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(11, 17, 32, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
     }
-
-    /* Cards, Modals, Results & Quizzes */
-    .exam-card, .info-card, .pro-card, .analytics-grid > div, 
-    #active-quiz-view, #quiz-result-view, 
-    #leaderboard-page > div[style*="background: #0f172a"],
-    #standard-sidebar-content .info-card {
-        background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9)) !important; 
-        border: 1px solid rgba(51, 65, 85, 0.6) !important; 
-        border-radius: 18px !important; 
-        color: #f8fafc !important; 
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+    .auth-card {
+      background: var(--bg-surface, #0f172a);
+      border: 1px solid var(--card-border, rgba(255, 255, 255, 0.1));
+      padding: 35px 30px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      position: relative;
     }
-
-    #standard-sidebar-content .info-card h3,
-    #standard-sidebar-content #daily-question-text,
-    #standard-sidebar-content .exam-info {
-        color: #f8fafc !important; 
+    .auth-card h2 {
+      margin: 10px 0 6px 0;
+      color: var(--text-main, #f8fafc);
     }
-
-    /* Active Nav Items */
-    .nav-item.active { 
-        background: linear-gradient(90deg, rgba(37, 99, 235, 0.2), transparent) !important; 
-        color: #38bdf8 !important; 
-        border-left: 4px solid #38bdf8 !important; 
+    .auth-card p {
+      color: var(--text-muted, #94a3b8);
+      font-size: 13px;
+      margin-bottom: 20px;
     }
-
-    /* Inputs in Dark Mode */
-    .input-section { background: #020617 !important; border-top: 1px solid #1e293b !important; }
-    input#user-input { background: #0f172a !important; color: white !important; border: 1px solid #334155 !important; }
-    input#user-input::placeholder { color: #94a3b8 !important; }
-
-    /* =========================================================
-       🤖 2. CHATBOT ANIMATED GRADIENT GLOW (Desktop & Mobile)
-       ========================================================= */
-    .input-wrapper {
-        position: relative;
-        z-index: 1;
-        border-radius: 30px;
-        background: #0f172a;
+    .auth-close-btn {
+      position: absolute;
+      top: 15px;
+      right: 18px;
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      color: var(--text-muted, #94a3b8);
+      cursor: pointer;
     }
-
-    .input-wrapper::before {
-        content: "";
-        position: absolute;
-        top: -2px; left: -2px; right: -2px; bottom: -2px;
-        background: linear-gradient(90deg, #3b82f6, #a855f7, #ec4899, #38bdf8, #3b82f6);
-        background-size: 300% 300%;
-        border-radius: 32px;
-        z-index: -1;
-        animation: aiGradientMove 4s ease infinite;
-        opacity: 0.65;
-        filter: blur(6px);
-        transition: opacity 0.3s ease, filter 0.3s ease;
+    .auth-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px;
+      border-radius: 10px;
     }
-
-    .input-wrapper:hover::before,
-    .input-wrapper:focus-within::before {
-        opacity: 1;
-        filter: blur(10px);
+    .auth-tabs button {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted, #94a3b8);
+      transition: all 0.2s;
     }
-
-    @keyframes aiGradientMove {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
+    .auth-tabs button.active {
+      background: var(--card-bg, #1e293b);
+      color: var(--accent-primary, #38bdf8);
     }
-
-    .status-indicator {
-        text-shadow: 0 0 8px #10b981;
-        animation: pulseText 1.5s infinite alternate ease-in-out;
+    .auth-input {
+      width: 100%;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--card-border, rgba(255, 255, 255, 0.1));
+      border-radius: 10px;
+      color: white;
+      font-size: 14px;
+      outline: none;
+      box-sizing: border-box;
     }
-
-    @keyframes pulseText {
-        0% { opacity: 0.6; }
-        100% { opacity: 1; }
+    .auth-input:focus {
+      border-color: var(--accent-primary, #38bdf8);
     }
-
-    /* =========================================================
-       🌞 3. FULL LIGHT MODE OVERRIDES
-       ========================================================= */
-    body.light-theme, 
-    body.light-theme .main-content, 
-    body.light-theme .page-content, 
-    body.light-theme .chat-viewport { 
-        background-color: #f8fafc !important; 
-        color: #0f172a !important; 
-        background-image: none !important;
+    .google-btn {
+      width: 100%;
+      padding: 10px;
+      background: white;
+      color: #0f172a;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      margin-bottom: 15px;
     }
-
-    body.light-theme .sidebar, 
-    body.light-theme #mobile-sidebar { 
-        background: #ffffff !important; 
-        border-right: 1px solid #e2e8f0 !important; 
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 15px 0;
+      color: var(--text-muted, #94a3b8);
+      font-size: 12px;
     }
-
-    /* 📱 Mobile Links Fix for Light Mode */
-    body.light-theme #mobile-sidebar a {
-        color: #1e293b !important;
+    .auth-divider::before, .auth-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--card-border, rgba(255, 255, 255, 0.1));
     }
-    body.light-theme #mobile-sidebar a:hover {
-        background: #f1f5f9 !important;
-    }
-    body.light-theme #mobile-sidebar a[style*="#ef4444"] {
-        color: #ef4444 !important;
-    }
-    body.light-theme #mobile-sidebar div[style*="background: #0f172a"] {
-        background: #f8fafc !important;
-        border-top: 1px solid #e2e8f0 !important;
-    }
-    body.light-theme #mobile-sidebar .mobile-user-name,
-    body.light-theme #mobile-sidebar h3 {
-        color: #0f172a !important;
-    }
-
-    /* Cards & Container Overrides */
-    body.light-theme .exam-card, 
-    body.light-theme .info-card, 
-    body.light-theme .pro-card, 
-    body.light-theme .analytics-grid > div, 
-    body.light-theme #active-quiz-view, 
-    body.light-theme #quiz-result-view, 
-    body.light-theme #leaderboard-page > div[style*="background: #0f172a"],
-    body.light-theme #standard-sidebar-content .info-card {
-        background: #ffffff !important; 
-        border: 1px solid #e2e8f0 !important; 
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important; 
-        color: #0f172a !important;
-    }
-
-    body.light-theme h2, body.light-theme h3, body.light-theme h4, 
-    body.light-theme label,
-    body.light-theme #standard-sidebar-content .info-card h3,
-    body.light-theme #standard-sidebar-content #daily-question-text,
-    body.light-theme #standard-sidebar-content .exam-info,
-    body.light-theme .exam-card h3,
-    body.light-theme .exam-card p { 
-        color: #0f172a !important; 
-    }
-
-    body.light-theme .nav-item { color: #475569 !important; }
-    body.light-theme .nav-item:hover { background: #f1f5f9 !important; }
-    body.light-theme .nav-item.active { background: #e2e8f0 !important; color: #2563eb !important; border-left: 4px solid #2563eb !important; }
-    body.light-theme .brand-name { color: #0f172a !important; }
-    body.light-theme .top-bar { background: rgba(255,255,255,0.8) !important; border-bottom: 1px solid #e2e8f0 !important; }
-
-    /* Light Theme Chat Adjustments */
-    body.light-theme .input-section { background: #ffffff !important; border-top: 1px solid #e2e8f0 !important; }
-    body.light-theme .input-wrapper { background: #ffffff !important; }
-    body.light-theme input#user-input { background: #f1f5f9 !important; color: #0f172a !important; border: 1px solid #cbd5e1 !important; }
-    body.light-theme input#user-input::placeholder { color: #64748b !important; }
-    body.light-theme .input-wrapper::before { opacity: 0.45; filter: blur(4px); }
-</style>
+    .auth-divider span { padding: 0 10px; }
+  </style>
 </head>
 <body>
-    <nav class="mobile-nav">
-    <div class="menu-icon" onclick="toggleMenu()">
-        <span></span><span></span><span></span>
-    </div>
-    
-    <div class="nav-brand-group">
-        <div class="brand-logo mini">
-            <div class="mountain-peak"></div>
-            <div class="book-base"></div>
-        </div>
-        <div class="logo">HP Exam Pro</div>
-    </div>
-</nav>
 
-        <div id="mobile-sidebar" class="mobile-sidebar" style="display: flex; flex-direction: column; justify-content: space-between; height: 100vh; box-sizing: border-box; overflow-y: auto;">
+  <!-- Top Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <!-- Hamburger Icon for Mobile -->
+      <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <div class="brand-logo" onclick="showMainHome()" style="cursor: pointer;">
+        <span class="logo-badge">HP</span>
+        <span class="logo-text">ExamPro</span>
+      </div>
+    </div>
+
+    <!-- Desktop Nav Links -->
+    <div class="nav-links desktop-nav-links">
+      <a href="javascript:void(0)" class="nav-link active" onclick="scrollToMockTests(event)">📝 Mock Tests</a>
+      <a href="javascript:void(0)" class="nav-link" onclick="handleProtectedNav('1v1-battle.html')">⚔️ 1v1 Battle</a>
+      <a href="javascript:void(0)" class="nav-link" onclick="openSection('Analytics')">📊 Analytics</a>
+      <a href="javascript:void(0)" class="nav-link" onclick="openSection('Leaderboard')">🏆 Leaderboard</a>
+      <a href="mailto:hpexamproai@gmail.com?subject=Support%20Request%20-%20HP%20Exam%20Pro" class="nav-link" target="_blank">💬 Support</a>
+    </div>
+
+    <!-- Right: Streak + Theme + User -->
+    <div class="nav-right">
+      <div class="nav-streak-pill">
+        <span class="streak-icon" id="streakEmoji">🔥</span>
+        <span class="streak-text" id="streakCount">1 Day</span>
+      </div>
+      <button class="theme-toggle-btn" id="themeIcon" onclick="toggleTheme()">☀️</button>
+      <div class="nav-user-badge">
+        <div class="nav-avatar" id="userAvatarChar">👤</div>
+        <span class="nav-username" id="currentUserId">Guest</span>
+        <button class="nav-logout-btn" id="authNavBtn" onclick="handleAuthNavClick()">Login</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Slide-out Drawer Backdrop -->
+  <div class="mobile-drawer-backdrop" id="mobileDrawerBackdrop" onclick="toggleMobileMenu()"></div>
+
+  <!-- Mobile Drawer Sidebar -->
+  <aside class="mobile-nav-drawer" id="mobileNavDrawer">
+    <div class="drawer-header">
+      <div class="brand-logo">
+        <span class="logo-badge">HP</span>
+        <span class="logo-text">ExamPro</span>
+      </div>
+      <button class="drawer-close-btn" onclick="toggleMobileMenu()">✕</button>
+    </div>
+
+    <div class="drawer-links-list">
+      <a href="javascript:void(0)" class="drawer-link" onclick="handleMobileNav('Mock Tests')">
+        <span>📝</span> Mock Tests
+      </a>
+      <a href="javascript:void(0)" class="drawer-link" onclick="handleProtectedNav('1v1-battle.html')">
+        <span>⚔️</span> 1v1 Battle
+      </a>
+      <a href="javascript:void(0)" class="drawer-link" onclick="handleMobileNav('Analytics')">
+        <span>📊</span> Performance Analytics
+      </a>
+      <a href="javascript:void(0)" class="drawer-link" onclick="handleMobileNav('Leaderboard')">
+        <span>🏆</span> Leaderboard & Ranks
+      </a>
+      <a href="mailto:hpexamproai@gmail.com?subject=Support%20Request%20-%20HP%20Exam%20Pro" class="drawer-link" target="_blank">
+        <span>💬</span> Email Support
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Homepage Container -->
+  <main class="dashboard-wrapper" id="home-content-view">
+    
+    <!-- 1. Hero Section -->
+    <header class="hero-section">
+      <div class="hero-badge">⚡ Himachal Pradesh Mock Test Series 2026</div>
+      <h1 class="hero-title">Master Your Prep with <span class="gradient-text">HP Exam Pro</span></h1>
+      <p class="hero-subtitle">Experience real exam interface, accurate negative marking, and detailed weekly performance analytics.</p>
+    </header>
+
+    <!-- 2. Exam Cards Grid -->
+    <div class="section-heading">
+      <h2>Select Your Target Exam</h2>
+      <p>Latest exam pattern with precise subject weightage</p>
+    </div>
+
+    <div class="exam-grid" id="exams-anchor">
+      
+      <!-- JOA IT Card -->
+      <div class="exam-card featured">
+        <div class="card-tag popular">Most Popular</div>
+        <div class="card-icon">💻</div>
+        <h3>HP JOA (IT)</h3>
+        <p class="card-desc">80 Computer Core Questions + 40 General Knowledge, Science, & Logic.</p>
+        <div class="card-meta">
+          <span>⏱️ 90 Mins</span>
+          <span>📝 120 Questions</span>
+          <span>🎯 Real Pattern</span>
+        </div>
+        <button class="btn-start-test" onclick="handleProtectedExam('joa_it')">
+          Start Full Mock →
+        </button>
+      </div>
+
+      <!-- HP Patwari Card -->
+      <div class="exam-card">
+        <div class="card-icon">📜</div>
+        <h3>HP Patwari</h3>
+        <p class="card-desc">Comprehensive test covering Hindi, Maths, English, and HP General Knowledge.</p>
+        <div class="card-meta">
+          <span>⏱️ 90 Mins</span>
+          <span>📝 120 Questions</span>
+          <span>🎯 Full Syllabus</span>
+        </div>
+        <button class="btn-start-test" onclick="handleProtectedExam('patwari')">
+          Start Full Mock →
+        </button>
+      </div>
+
+      <!-- HP Police Card -->
+      <div class="exam-card">
+        <div class="card-icon">👮</div>
+        <h3>HP Police Constable</h3>
+        <p class="card-desc">High-speed practice covering Reasoning, General Science, and State GK.</p>
+        <div class="card-meta">
+          <span>⏱️ 120 Mins</span>
+          <span>📝 90 Questions</span>
+          <span>⚡ -0.25 Marking</span>
+        </div>
+        <button class="btn-start-test" onclick="handleProtectedExam('hp_police')">
+          Start Full Mock →
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ================= ANALYTICS VIEW ================= -->
+    <section id="analytics-view" class="sub-view-section" style="display: none;">
+      
+      <div class="view-header">
         <div>
-            <div style="padding: 15px 20px; border-bottom: 1px solid #334155; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="color: white; margin: 0; font-size: 18px;">Menu</h3>
-                <span onclick="toggleMenu()" style="color: #94a3b8; font-size: 24px; cursor: pointer; line-height: 1;">&times;</span>
-            </div>
-            
-            <a href="#" onclick="switchTab('dashboard-page'); toggleMenu();"><i class="fa-solid fa-house" style="width: 25px; color: #94a3b8;"></i> Dashboard</a>
-            <a href="#" onclick="switchTab('mock-tests-page'); toggleMenu();"><i class="fa-solid fa-pen-to-square" style="width: 25px; color: #94a3b8;"></i> Mock Tests</a>
-            <a href="#" onclick="switchTab('analytics-page'); toggleMenu();"><i class="fa-solid fa-chart-line" style="width: 25px; color: #94a3b8;"></i> Analytics</a>
-            <a href="#" class="nav-item" onclick="switchTab('leaderboard-page'); toggleMenu(); return false;"><i class="fa-solid fa-ranking-star" style="width: 25px; color: #f59e0b;"></i> Leaderboard</a>
-            <a href="#" style="color: #f59e0b !important; font-weight: bold; background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b;" onclick="switchTab('pro-access-page'); toggleMenu();"><i class="fa-solid fa-crown" style="width: 25px;"></i> Get Pro Access</a>
-            <a href="admin.html" id="admin-link" style="display: none;"><i class="fa-solid fa-user-shield" style="width: 25px; color: #94a3b8;"></i> Admin Panel</a>
-            <a href="1v1-battle.html" style="text-decoration: none; display: flex; align-items: center; gap: 10px; color: #ef4444 !important; font-weight: bold;"><i class="fa-solid fa-crosshairs" style="width: 25px;"></i> 1v1 Battle</a>
-            <a href="mailto:hpexamproai@gmail.com?subject=HP Exam Pro Feedback/Query"><i class="fa-solid fa-envelope" style="width: 25px; color: #94a3b8;"></i> Contact Support</a>
-            <!-- 🌗 THEME TOGGLE BUTTON (MOBILE) -->
-            <a href="#" onclick="toggleTheme(); toggleMenu(); return false;" class="nav-item" style="color: #38bdf8 !important; font-weight: bold; text-decoration: none; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-sun theme-icon" style="width: 25px;"></i> 
-                <span class="theme-text">Light Mode</span>
-            </a>
-            <a href="#" onclick="handleLogout()" style="color: #ef4444; margin-top: 10px; border-top: 1px dashed #334155; padding-top: 12px;"><i class="fa-solid fa-right-from-bracket" style="width: 25px;"></i> Logout</a>
+          <h2>📊 Performance Analytics</h2>
+          <p>Real-time accuracy metrics and historical test trends</p>
+        </div>
+        <button class="btn-action-sm" onclick="showMainHome()">← Back to Dashboard</button>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Total Mock Tests</span>
+          <div class="kpi-val-group">
+            <span class="kpi-val" id="statTotalTests">0</span>
+            <span class="kpi-tag blue">Attempted</span>
+          </div>
         </div>
 
-        <!-- 📱 Mobile Profile & Streak Section -->
-        <div style="padding: 15px 20px; border-top: 1px solid #334155; background: #0f172a; margin-bottom: 20px;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                <div class="avatar-small mobile-avatar" style="width: 38px; height: 38px; background: #f59e0b; color: #000; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px;">L</div>
-                <div>
-                    <div class="mobile-user-name" style="color: white; font-weight: bold; font-size: 13px;">User</div>
-                    <small style="color: #94a3b8; font-size: 11px;">Active Profile</small>
-                </div>
-            </div>
-            
-            <!-- 🔥 Streak Capsule for Mobile -->
-            <div class="user-streak-badge" style="display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(255, 107, 0, 0.12); border: 1.5px solid #ff6b00; color: #ff8c00; padding: 8px 12px; border-radius: 25px; font-size: 13px; font-weight: 700;">
-                <span>🔥</span> <span class="streak-text-target">1 Day Streak</span>
-            </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Average Score</span>
+          <div class="kpi-val-group">
+            <span class="kpi-val text-green" id="statAvgScore">0.0</span>
+            <span class="kpi-tag green">Avg</span>
+          </div>
         </div>
-    </div>
 
-    <div id="auth-overlay" class="auth-overlay">
-        <div class="auth-card">
-            <!-- तुम्हारा ब्रांड लोगो -->
-            <div class="brand-logo" style="margin: 0 auto 20px;">
-                <div class="mountain-peak"></div>
-                <div class="book-base"></div>
-            </div>
-            <h2>HP Exam Pro</h2>
-            <p>अपनी तैयारी ट्रैक करने के लिए लॉगिन करें</p>
-
-            <!-- 🌟 1. Google Login Button (Fixed Logo) -->
-            <button class="google-btn" onclick="loginWithGoogle()" style="margin-bottom: 15px;">
-                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/google/google-original.svg" alt="Google Logo" style="width: 20px; height: 20px;">
-                Continue with Google
-            </button>
-
-            <div class="auth-divider">
-                <span>OR continue with email</span>
-            </div>
-
-            <!-- 🌟 2. Tabs (Login / Sign Up) -->
-            <div class="auth-tabs">
-                <button id="tab-login" class="active" onclick="switchAuthTab('login')">Login</button>
-                <button id="tab-signup" onclick="switchAuthTab('signup')">Sign Up</button>
-            </div>
-
-            <!-- 🌟 3. Clean Inputs -->
-            <input type="email" id="auth-email" placeholder="Enter Your E-Mail">
-            <div class="password-field-container">
-                <input type="password" id="auth-pass" placeholder="Enter Password">
-                <i class="fa-solid fa-eye" id="togglePassword"></i>
-            </div>
-
-            <!-- 🌟 4. Forgot Password Link -->
-            <div id="forgot-pass-container" style="text-align: right; margin-bottom: 15px; margin-top: 5px;">
-                <a href="#" onclick="triggerForgotPassword()" style="font-size: 12px; color: #3b82f6; text-decoration: none; font-weight: bold;">Forgot Password?</a>
-            </div>
-
-            <!-- 🌟 5. Main Action Button -->
-            <button id="main-auth-btn" onclick="handleAuthAction()" style="width: 100%; background: #2563eb; color: white; padding: 14px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s;">
-                Login
-            </button>
-
-            <p id="auth-error" style="color: #ef4444; font-size: 12px; margin-top: 15px; display: none;"></p>
+        <div class="kpi-card">
+          <span class="kpi-label">Highest Score</span>
+          <div class="kpi-val-group">
+            <span class="kpi-val text-yellow" id="statHighScore">0.0</span>
+            <span class="kpi-tag yellow">Personal Best</span>
+          </div>
         </div>
-    </div>
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-top">
-                <div class="brand-container">
-                    <div class="brand-logo"><div class="mountain-peak"></div><div class="book-base"></div></div>
-                    <div class="brand-text">
-                        <span class="brand-name">HP EXAM</span>
-                        <span class="brand-tagline">PRO WORKSPACE</span>
-                    </div>
-                </div>
-                <nav class="nav-menu">
-                               <div class="nav-item active" data-page="dashboard" onclick="switchTab('dashboard-page')"><i class="fa-solid fa-house"></i><span>Dashboard</span></div>
-                               <div class="nav-item" data-page="mock-tests" onclick="switchTab('mock-tests-page')"><i class="fa-solid fa-pen-to-square"></i><span>Mock Tests</span></div>
-<a href="1v1-battle.html" class="nav-item" style="text-decoration: none; display: flex; align-items: center; gap: 10px; color: #ef4444; font-weight: bold;">
-    <i class="fa-solid fa-crosshairs"></i>
-    <span>1v1 Battle</span>
-</a>
-                               <div class="nav-item" data-page="analytics" onclick="switchTab('analytics-page')"><i class="fa-solid fa-chart-line"></i><span>Analytics</span></div>
-                               <a href="#" class="nav-item" onclick="switchTab('leaderboard-page'); return false;">
-    <i class="fa-solid fa-ranking-star" style="color: #f59e0b;"></i>
-    <span>Leaderboard</span>
-</a>
-                               <div class="nav-item pro-link" data-page="pro-access" onclick="switchTab('pro-access-page')"><i class="fa-solid fa-crown"></i><span>Get Pro Access</span></div>
-                               <div class="nav-item" data-page="admin" style="display: none;">
-    <i class="fa-solid fa-user-shield"></i>
-    <span>Admin Panel</span>
-</div>
-     <a href="mailto:hpexamproai@gmail.com?subject=HP Exam Pro Feedback/Query" class="nav-item" style="text-decoration: none;">
-    <i class="fa-solid fa-envelope"></i>
-    <span>Contact Support</span>
-</a>
-       <!-- 🌗 THEME TOGGLE BUTTON (DESKTOP) -->
-                    <a href="#" onclick="toggleTheme(); return false;" class="nav-item" style="text-decoration: none; color: #38bdf8 !important; font-weight: bold; display: flex; align-items: center; gap: 10px;">
-                        <i class="fa-solid fa-sun theme-icon"></i>
-                        <span class="theme-text">Light Mode</span>
-                    </a>
-<a href="#" onclick="handleLogout()" style="color: #ef4444; display: flex; align-items: center; padding: 12px 15px; text-decoration: none; border-radius: 8px; margin-top: 15px; font-weight: bold; border-top: 1px dashed #334155;"><i class="fa-solid fa-right-from-bracket" style="margin-right: 10px;"></i> Logout</a>
 
-                </nav>
-            </div>
-            <div class="user-profile">
-                <div class="avatar-small" id="user-initial">?</div>
-                <div class="user-info">
-                    <span id="display-name">User</span>
-                    <small>Active Profile</small>
-                </div>
-            </div>
-            <!-- 🔥 DAILY STREAK TOAST POPUP -->
-<div id="streak-toast" style="
-    display: none;
-    position: fixed;
-    top: 25px;
-    right: 25px;
-    background: linear-gradient(135deg, #1e293b, #0f172a);
-    border: 1.5px solid #ff6b00;
-    box-shadow: 0 0 25px rgba(255, 107, 0, 0.4);
-    padding: 12px 20px;
-    border-radius: 12px;
-    color: white;
-    z-index: 999999;
-    align-items: center;
-    gap: 12px;
-    animation: slideInToast 0.4s ease-out;
-">
-    <div style="font-size: 28px; filter: drop-shadow(0 0 8px #ff6b00);">🔥</div>
-    <div>
-        <div style="font-weight: 800; font-size: 14px; color: #ff8c00; letter-spacing: 0.5px;">STREAK UPDATED!</div>
-        <div style="font-size: 12px; color: #cbd5e1;"><span id="toast-streak-days" style="font-weight: 700; color: #fff;">1</span> Day Streak! Keep the fire burning!</div>
-    </div>
-</div>
-
-<style>
-@keyframes slideInToast {
-    from { transform: translateX(100px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-</style>
-            <!-- 🔥 User Daily Streak Capsule -->
-<div id="user-streak-display" style="
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255, 107, 0, 0.12);
-    border: 1px solid rgba(255, 107, 0, 0.35);
-    color: #ff8c00;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 700;
-    margin: 10px 0;
-    letter-spacing: 0.5px;
-">
-    <span id="streak-emoji">🔥</span> <span id="streak-days-count">1</span> Day Streak
-        </aside>
-
-        <main class="main-content">
-            <div id="dashboard-page" class="page-content active">
-                <header class="top-bar">
-                    <div class="exam-tag">HP State Exams 2026</div>
-                    <div class="status-indicator">● AI Engine Active</div>
-                </header>
-                <div id="messages" class="chat-viewport"></div>
-                <section class="input-section">
-                    <div class="input-wrapper">
-                        <input type="text" id="user-input" placeholder=" सिलेबस से जुड़ा सवाल पूछें..." autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
-
-                        <button id="send-btn" class="send-action"><i class="fa-solid fa-bolt"></i></button>
-                    </div>
-                </section>
-            </div>
-            <!-- ==================== ⚔️ 1v1 BATTLE LOBBY (SKELETON) ==================== -->
-<div id="battle-lobby-page" class="page-content" style="display: none; padding: 20px;">
-    
-    <div style="text-align: center; margin-bottom: 30px;">
-        <h2 style="color: #38bdf8; font-size: 28px; font-weight: 900; text-transform: uppercase;">
-            <i class="fa-solid fa-crosshairs"></i> 1v1 Battle Arena
-        </h2>
-        <p style="color: #94a3b8; font-size: 14px;">Challenge real players and build your Aura!</p>
-    </div>
-
-    <!-- 🔮 Player Profile Preview -->
-    <div style="display: flex; justify-content: center; margin-bottom: 40px;">
-        <div class="player-card" id="lobby-user-card" style="text-align: center;">
-            <!-- Placeholder Avatar (बिना एनिमेशन के) -->
-            <div id="lobby-avatar" style="width: 100px; height: 100px; border-radius: 50%; background-color: #1e293b; background-image: url('https://i.pinimg.com/736x/8f/c3/7b/8fc37b7ca78eb591fbcfaf118a38dbcb.jpg'); background-size: cover; margin: 0 auto;"></div>
-            
-            <div id="lobby-user-name" style="color: #f8fafc; margin-top: 15px; font-weight: bold; font-size: 18px;">Loading...</div>
-            <div id="lobby-user-rank" style="color: #94a3b8; font-size: 12px; font-weight: bold; margin-top: 5px;">Checking XP...</div>
+        <div class="kpi-card">
+          <span class="kpi-label">Overall Accuracy</span>
+          <div class="kpi-val-group">
+            <span class="kpi-val text-purple" id="statAccuracy">0%</span>
+            <span class="kpi-tag purple">Precision</span>
+          </div>
         </div>
-    </div>
+      </div>
 
-    <!-- 🎯 Subject Selection -->
-    <div style="background: #1e293b; padding: 20px; border-radius: 12px; max-width: 400px; margin: 0 auto;">
-        <label style="color: #cbd5e1; font-size: 14px; font-weight: bold; margin-bottom: 10px; display: block;">Select Battle Subject:</label>
+      <!-- Performance Graph Area -->
+      <div class="analytics-card chart-container-card">
+        <div class="card-inner-header">
+          <h3>📈 Score Trend (Last 7 Tests)</h3>
+          <span class="chart-subtext">Visual progress across recent attempts</span>
+        </div>
+        <div class="chart-canvas-wrapper">
+          <canvas id="performanceTrendChart" height="90"></canvas>
+        </div>
+      </div>
+
+      <!-- Attempted Tests List -->
+      <div class="analytics-card history-container-card">
+        <div class="card-inner-header">
+          <h3>📜 Attempt History</h3>
+          <span class="chart-subtext">Review past mistakes and retake tests</span>
+        </div>
         
-        <select id="battle-subject" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #475569; color: white; margin-bottom: 20px;">
-            <option value="hp_gk">Himachal GK (10 Questions)</option>
-            <option value="history">Indian History (10 Questions)</option>
-            <option value="hindi">Hindi Vyakaran (10 Questions)</option>
-            <option value="mixed">Mixed Mega Battle (15 Questions)</option>
-        </select>
+        <div class="history-list" id="attemptHistoryList">
+          <p style="color: var(--text-muted); font-size: 13px;">Loading attempts history...</p>
+        </div>
+      </div>
 
-        <button onclick="startMatchmaking()" style="width: 100%; padding: 14px; background: #ef4444; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
-            <i class="fa-solid fa-bolt"></i> Find Opponent
-        </button>
+    </section>
+
+    <!-- ================= LEADERBOARD VIEW ================= -->
+    <section id="leaderboard-view" class="sub-view-section" style="display: none;">
+      
+      <div class="view-header">
+        <div>
+          <h2>🏆 Himachal Weekly Rankboard</h2>
+          <p>Live rankings refreshed every Monday across HP competitive aspirants</p>
+        </div>
+        <div class="leaderboard-controls">
+          <select id="leaderboardExamFilter" class="filter-select" onchange="renderLeaderboardData(this.value)">
+            <option value="hp_police" selected>HP Police Constable</option>
+            <option value="patwari">HP Patwari</option>
+            <option value="joa_it">HP JOA (IT)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Top 3 Podium -->
+      <div class="podium-grid">
+        <div class="podium-card rank-2">
+          <div class="podium-badge">🥈 Rank 2</div>
+          <div class="podium-avatar" id="podiumRank2Avatar">--</div>
+          <h4 id="podiumRank2Name">Loading...</h4>
+          <span class="podium-score" id="podiumRank2Score">0.00 Pts</span>
+        </div>
+
+        <div class="podium-card rank-1">
+          <div class="crown-icon">👑</div>
+          <div class="podium-badge top">🥇 Rank 1</div>
+          <div class="podium-avatar gold" id="podiumRank1Avatar">--</div>
+          <h4 id="podiumRank1Name">Loading...</h4>
+          <span class="podium-score highlight" id="podiumRank1Score">0.00 Pts</span>
+        </div>
+
+        <div class="podium-card rank-3">
+          <div class="podium-badge">🥉 Rank 3</div>
+          <div class="podium-avatar" id="podiumRank3Avatar">--</div>
+          <h4 id="podiumRank3Name">Loading...</h4>
+          <span class="podium-score" id="podiumRank3Score">0.00 Pts</span>
+        </div>
+      </div>
+
+      <!-- Rank Table (#4 to N) -->
+      <div class="leaderboard-table-card">
+        <div class="table-responsive-wrapper">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>RANK</th>
+                <th>ASPIRANT</th>
+                <th>STATUS</th>
+                <th style="text-align: right;">WEEKLY SCORE</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardRows">
+              <!-- Dynamically populated via script -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Gamified Achievements Section -->
+      <div class="achievements-card">
+        <div class="card-inner-header">
+          <h3>🎖️ Aspirant Milestones & Badges</h3>
+          <span class="chart-subtext">Unlock badges by maintaining consistency and accuracy</span>
+        </div>
         
-        <button onclick="inviteFriend()" style="width: 100%; padding: 12px; background: transparent; color: #38bdf8; border: 1px solid #38bdf8; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer;">
-            <i class="fa-brands fa-whatsapp"></i> Invite a Friend
-        </button>
+        <div class="badges-grid" id="badges-grid">
+          <!-- Dynamically populated via loadUserAchievements() -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 3. Daily Feed Section -->
+    <section class="daily-feed-section" style="margin-top: 55px;">
+      <div class="section-heading">
+        <h2>Daily Booster & Updates</h2>
+        <p>Short practice questions and latest exam-centric news</p>
+      </div>
+
+      <div class="daily-grid">
+        
+        <!-- Question of the Day Card -->
+        <div class="feed-card qotd-card">
+          <div class="feed-card-header">
+            <span class="feed-badge live">🔥 Daily Challenge</span>
+            <span class="feed-timer">Updated Today</span>
+          </div>
+          <h3 class="qotd-title">Question of the Day</h3>
+          <p class="qotd-text" id="daily-question-text">Loading today's challenge question...</p>
+          
+          <div class="qotd-options" id="daily-options-container">
+            <!-- Dynamically populated via loadDailyQuestion() -->
+          </div>
+          <div id="daily-explanation-box" class="qotd-feedback" style="display: none;"></div>
+        </div>
+
+        <!-- Current Affairs Card -->
+        <div class="feed-card ca-card">
+          <div class="feed-card-header">
+            <span class="feed-badge news">📰 HP & National Briefs</span>
+            <span class="feed-date">Live Feed</span>
+          </div>
+          <h3 class="ca-title">Daily Exam Express</h3>
+          
+          <div class="ca-list" id="currentAffairsList">
+            <div class="ca-item">
+              <span class="ca-tag">HP State</span>
+              <p id="current-affairs-text">ताज़ा खबरों के लिए प्रतीक्षा करें...</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Floating Chatbot Widget -->
+  <div class="chat-widget">
+    <button class="chat-toggle-btn" id="chatToggleBtn" onclick="toggleChat()">
+      <span class="chat-icon-open">💬</span>
+      <span class="chat-icon-close" style="display: none;">✕</span>
+    </button>
+
+    <div class="chat-window" id="chatWindow">
+      <div class="chat-header">
+        <div class="chat-header-info">
+          <span class="online-dot"></span>
+          <div>
+            <h4>HP Exam Assistant</h4>
+            <p>Ask anything about syllabus & GK</p>
+          </div>
+        </div>
+        <button class="chat-close-btn" onclick="toggleChat()">✕</button>
+      </div>
+
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-msg bot">
+          नमस्ते! HP Exam Pro AI Assistant में आपका स्वागत है। आज आप किस परीक्षा की तैयारी कर रहे हैं?
+        </div>
+      </div>
+
+      <form class="chat-input-area" onsubmit="handleChatSubmit(event)">
+        <input type="text" id="chatInput" placeholder="सिलैबस से जुड़ा सवाल पूछें..." autocomplete="off" />
+        <button type="submit" class="chat-send-btn">➤</button>
+      </form>
     </div>
-
-</div>
-            <div id="mock-tests-page" class="page-content" style="display: none; padding: 20px;">
-
-    <div id="exam-selection-view">
-        <h2 style="margin-bottom: 20px; color: #0f172a; font-weight: 700;">Himachal Pradesh State Mock Tests 2026</h2>
-        <div class="exam-cards-container" style="display: flex; gap: 20px; flex-wrap: wrap;">
-            
-            <div class="exam-card" style="background: #1e293b; padding: 20px; border-radius: 12px; width: 280px; border: 1px solid #334155; color: white;">
-                <h3>HPRCA Patwari Exam</h3>
-                <p style="font-size: 13px; color: #94a3b8; margin: 10px 0;">Total: 120 Questions | Time: 90 Mins</p>
-                <button onclick="startMockTest('patwari')" style="background: #2563eb; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 100%;">Start Free Test</button>
-            </div>
-
-            <div class="exam-card" style="background: #1e293b; padding: 20px; border-radius: 12px; width: 280px; border: 1px solid #334155; color: white;">
-                <h3>HPRCA JOA (IT) Exam</h3>
-                <p style="font-size: 13px; color: #94a3b8; margin: 10px 0;">Total: 120 Questions | Time: 90 Mins</p>
-                <button onclick="startMockTest('joa_it')" style="background: #2563eb; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 100%;">Start Free Test</button>
-            </div>
-            <!-- HP Police Constable Mock Test Card -->
-<div class="exam-card" style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; text-align: center; color: white;">
-    <h3 style="margin-top: 0; color: #60a5fa; font-size: 20px;">👮 HP Police Constable</h3>
-    <p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">कुल सवाल: 90 | समय: 120 मिनट</p>
-    <p style="color: #cbd5e1; font-size: 13px; margin-bottom: 20px; text-align: left;">
-        ✅ हिंदी व इंग्लिश (40 अंक)<br>
-        ✅ मैथ्स व रीज़निंग (30 अंक)<br>
-        ✅ जनरल अवेयरनेस व साइंस (20 अंक)
-    </p>
-    <button onclick="startMockTest('hp_police')" style="background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%;">Start Free Test 🚀</button>
-</div>
-
-        </div>
-    </div>
-
-  <div id="active-quiz-view" style="display: none; background: #1e293b; padding: 25px; border-radius: 12px; color: white; max-width: 700px; margin: 0 auto; max-height: 85vh; overflow-y: auto; box-sizing: border-box;">
-      <!-- TCS Style Language Selector -->
-<div class="lang-toggle-box" style="float: right; display: flex; align-items: center; gap: 8px; background: #0f172a; padding: 6px 12px; border-radius: 8px; border: 1px solid #334155;">
-    <span style="color: #94a3b8; font-size: 13px; font-weight: 600;">🌐 View In:</span>
-    <select id="langSelect" onchange="changeLanguage(this.value)" style="background: #1e293b; color: #38bdf8; border: 1px solid #475569; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; outline: none;">
-        <option value="hi" selected>Hindi (अ)</option>
-        <option value="en">English (A)</option>
-    </select>
-</div>
-        <div class="quiz-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 15px;">
-            <h3 id="quiz-exam-title">Exam Mode</h3>
-            <div style="background: #ef4444; padding: 5px 12px; border-radius: 20px; font-weight: bold;">
-                ⏰ <span id="quiz-timer">90:00</span>
-            </div>
-        </div>
-
-        <div class="progress-container" style="background: #334155; height: 8px; border-radius: 4px; margin: 20px 0; overflow: hidden;">
-            <div id="quiz-progress-fill" style="background: #10b981; height: 100%; width: 0%; transition: width 0.3s;"></div>
-        </div>
-
-        <div class="question-box" style="margin-bottom: 25px;">
-            <h4 style="color: #94a3b8; margin-bottom: 5px;">Question <span id="current-q-num">1</span>:</h4>
-            <p id="quiz-question-text" style="font-size: 18px; font-weight: 500; line-height: 1.5;">Loading question...</p>
-        </div>
-
-        <div id="quiz-options-wrapper" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;"></div>
-
-       
-     <div class="quiz-footer" style="display: flex; justify-content: space-between; border-top: 1px solid #334155; padding-top: 15px;">
-    <div style="display: flex; gap: 10px;">
-        <button id="prev-q-btn" onclick="navigateQuestion(-1)" style="background: #475569; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Previous</button>
-        <button id="next-q-btn" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Next</button>
-    </div>
-    
-    <button onclick="promptEndTest()" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">End Test 🛑</button>
-</div>
-
- <div id="query-raise-container" style="margin-top: 15px; border-top: 1px dashed #334155; padding-top: 12px; margin-bottom: 20px;">
-            <button id="toggle-query-btn" onclick="toggleQueryBox()" style="background: transparent; color: #94a3b8; border: none; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> इस सवाल में कोई गड़बड़ है? आपत्ति दर्ज करें
-            </button>
-            
-            <div id="query-input-box" style="display: none; margin-top: 10px;">
-                <textarea id="query-issue-text" rows="2" placeholder="कृपया बताएं कि सवाल या ऑप्शंस में क्या त्रुटि है..." style="width: 100%; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 6px; padding: 10px; font-size: 13px; resize: none; outline: none;"></textarea>
-                <button onclick="submitQuestionQuery()" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 5px; cursor: pointer; float: right;">
-                    भेजें (Submit Objection)
-                </button>
-                <div style="clear: both;"></div>
-            </div>
-        </div>
   </div>
-    <div id="quiz-result-view" style="display: none; background: #1e293b; padding: 30px; border-radius: 12px; color: white; max-width: 500px; margin: 0 auto; text-align: center;">
-        <h2 style="color: #10b981; margin-bottom: 10px;">🎉 Test Completed!</h2>
-        <p style="color: #94a3b8;">Aapka result neeche diya gya hai:</p>
-        <button onclick="showReview()" style="background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin-top: 15px; margin-bottom: 20px; font-weight: bold; font-size: 15px;">
-    Review Answers & Solutions 💡
-</button>
-<div id="review-container" style="display: none; margin-top: 25px; text-align: left; max-height: 500px; overflow-y: auto; padding: 15px; background: #0f172a; border-radius: 8px; border: 1px solid #334155;"></div>
 
-        <div class="score-circle" style="width: 120px; height: 120px; border-radius: 50%; background: #2563eb; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 25px auto;">
-            <span id="final-score" style="font-size: 32px; font-weight: bold;">0</span>
-            <span style="font-size: 12px; color: #bfdbfe;">Total Score</span>
-        </div>
+  <!-- Lazy Auth Modal (Hidden by Default) -->
+  <div id="auth-overlay" class="auth-overlay" style="display: none;">
+    <div class="auth-card">
+      <button class="auth-close-btn" onclick="closeAuthModal()">✕</button>
+      
+      <div class="brand-logo" style="margin: 0 auto 12px; display: inline-flex;">
+        <span class="logo-badge">HP</span>
+        <span class="logo-text">ExamPro</span>
+      </div>
+      <h2>Student Login</h2>
+      <p>अपनी तैयारी, रैंक्स और एक्यूरेसी ट्रैक करने के लिए लॉगिन करें</p>
 
-        <div class="stats-grid" style="display: flex; justify-content: space-around; margin-bottom: 25px; background: #0f172a; padding: 15px; border-radius: 8px;">
-            <div>
-                <div id="stat-correct" style="color: #10b981; font-size: 20px; font-weight: bold;">0</div>
-                <div style="font-size: 12px; color: #64748b;">Correct</div>
-            </div>
-            <div>
-                <div id="stat-wrong" style="color: #ef4444; font-size: 20px; font-weight: bold;">0</div>
-                <div style="font-size: 12px; color: #64748b;">Wrong</div>
-            </div>
-        </div>
+      <!-- Google Login Button -->
+      <button class="google-btn" onclick="loginWithGoogle()">
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/google/google-original.svg" alt="Google" style="width: 18px; height: 18px;">
+        Continue with Google
+      </button>
 
-        <button onclick="resetToSelection()" style="background: #475569; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; width: 100%;">Back to Dashboard</button>
+      <div class="auth-divider">
+        <span>OR continue with email</span>
+      </div>
+
+      <!-- Auth Mode Tabs -->
+      <div class="auth-tabs">
+        <button id="tab-login" class="active" onclick="switchAuthTab('login')">Login</button>
+        <button id="tab-signup" onclick="switchAuthTab('signup')">Sign Up</button>
+      </div>
+
+      <!-- Input Fields -->
+      <input type="email" id="auth-email" class="auth-input" placeholder="Enter Your Email">
+      <input type="password" id="auth-pass" class="auth-input" placeholder="Enter Password">
+
+      <div id="forgot-pass-container" style="text-align: right; margin-bottom: 15px;">
+        <a href="javascript:void(0)" onclick="triggerForgotPassword()" style="font-size: 12px; color: #38bdf8; text-decoration: none;">Forgot Password?</a>
+      </div>
+
+      <button id="main-auth-btn" class="btn-start-test" onclick="handleAuthAction()">
+        Login to Workspace
+      </button>
+
+      <p id="auth-error" style="color: #f87171; font-size: 12px; margin-top: 12px; display: none;"></p>
     </div>
+  </div>
 
-            </div>
-
-           <div id="analytics-page" class="page-content" style="display: none; padding: 20px; color: white; overflow-y: auto; height: 100%;">
-    <h2 style="margin-bottom: 20px;">Aapki Tayaari Ka Analytics 📊</h2>
-    
-    <div class="analytics-grid" style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 30px;">
-        <div style="background: #1e293b; padding: 15px; border-radius: 10px; flex: 1; min-width: 120px; border: 1px solid #334155; text-align: center;">
-            <h4 style="color: #94a3b8; font-size: 13px;">Total Tests</h4>
-            <p id="analytics-total-tests" style="font-size: 24px; font-weight: bold; color: #38bdf8; margin-top: 5px;">0</p>
-        </div>
-        <div style="background: #1e293b; padding: 15px; border-radius: 10px; flex: 1; min-width: 120px; border: 1px solid #334155; text-align: center;">
-            <h4 style="color: #94a3b8; font-size: 13px;">Avg Score</h4>
-            <p id="analytics-avg-score" style="font-size: 24px; font-weight: bold; color: #4ade80; margin-top: 5px;">0</p>
-        </div>
-        <div style="background: #1e293b; padding: 15px; border-radius: 10px; flex: 1; min-width: 120px; border: 1px solid #334155; text-align: center;">
-            <h4 style="color: #94a3b8; font-size: 13px;">Highest Score</h4>
-            <p id="analytics-highest-score" style="font-size: 24px; font-weight: bold; color: #f59e0b; margin-top: 5px;">0</p>
-        </div>
-        <div style="background: #1e293b; padding: 15px; border-radius: 10px; flex: 1; min-width: 120px; border: 1px solid #334155; text-align: center;">
-            <h4 style="color: #94a3b8; font-size: 13px;">Accuracy</h4>
-            <p id="analytics-accuracy" style="font-size: 24px; font-weight: bold; color: #a855f7; margin-top: 5px;">0%</p>
-        </div>
+  <!-- Achievement Popup Modal -->
+  <div id="achievement-popup" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); z-index: 99999; justify-content: center; align-items: center; backdrop-filter: blur(8px);">
+    <div style="background: linear-gradient(145deg, #1e293b, #0f172a); border: 2px solid #f59e0b; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; box-shadow: 0 0 40px rgba(245, 158, 11, 0.3);">
+      <h4 style="color: #f59e0b; margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">
+        🌟 Achievement Unlocked! 🌟
+      </h4>
+      <div id="ach-icon" style="font-size: 70px; margin: 20px 0; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));">🏆</div>
+      <h2 id="ach-title" style="color: #f8fafc; margin: 0 0 10px 0; font-size: 24px;">Badge Name</h2>
+      <p id="ach-desc" style="color: #94a3b8; font-size: 14px; margin-bottom: 25px; line-height: 1.5;">You unlocked a new badge!</p>
+      <button onclick="closeAchievementPopup()" style="background: #f59e0b; color: #0f172a; border: none; padding: 12px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%;">Awesome! 🚀</button>
     </div>
+  </div>
 
-    <div style="background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
-        <h3 style="font-size: 16px; margin-bottom: 15px; color: #94a3b8;">Performance Trend (Last 7 Tests)</h3>
-        <canvas id="performanceChart" style="max-height: 300px; width: 100%;"></canvas>
-    </div>
-        <!-- 📜 ATTEMPTED MOCK TESTS HISTORY SECTION -->
-    <div style="margin-top: 25px; padding: 20px; background: #0f172a; border-radius: 12px; border: 1px solid #334155;">
-        <h3 style="color: #38bdf8; margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;">
-            📜 Your Attempted Mock Tests
-        </h3>
-        <div id="attempt-history-container">
-            <!-- यहाँ जावास्क्रिप्ट अपने-आप सारे अटेम्प्टेड टेस्ट्स लोड कर देगी -->
-        </div>
-    </div>
-    <!-- 🟢 नया कोड यहाँ ख़त्म हुआ 🟢 -->
-               <div id="attempt-history-container">
-            <!-- यहाँ जावास्क्रिप्ट अपने-आप सारे अटेम्प्टेड टेस्ट्स लोड कर देगी -->
-        </div>
-    </div>
-    <!-- 🟢 नया कोड यहाँ ख़त्म हुआ 🟢 -->
-
-    
-<!-- 🏆 LEADERBOARD PAGE -->
-<div id="leaderboard-page" class="page-content" style="display: none; padding: 20px; overflow-y: auto; height: 100vh; padding-bottom: 100px;">
-    
-    <div style="margin-bottom: 20px;">
-        <!-- 🟢 Heading color changed to dark blue (#1e293b) so it's visible -->
-        <h2 style="color: #1e293b; margin-top: 0; display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> 
-            Top Performers
-        </h2>
-        <!-- 🟢 Text changed to English and color made darker -->
-        <p style="color: #475569; font-size: 14px; margin-top: 5px; font-weight: 500;">
-            Himachal's Top Rank List. See where you stand in the competition!
-        </p>
-    </div>
-
-    <div style="background: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 15px; margin-bottom: 15px;">
-            <h3 style="color: #38bdf8; margin: 0; font-size: 16px;">Live Rankings</h3>
-            
-            <select id="leaderboard-exam-select" onchange="renderLeaderboard(this.value)" style="background: #1e293b; color: #f8fafc; border: 1px solid #475569; padding: 6px 12px; border-radius: 6px; outline: none; cursor: pointer; font-weight: 600; font-size: 13px;">
-                <option value="hp_police" selected>HP Police</option>
-                <option value="patwari">Patwari</option>
-                <option value="joa_it">JOA IT</option>
-            </select>
-        </div>
-
-        <!-- 🟢 लिस्ट यहाँ लोड होगी (Added max-height and overflow-y for scrolling) -->
-        <div id="leaderboard-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 450px; overflow-y: auto; padding-right: 5px;">
-            <!-- JS will inject list here -->
-        </div>
-    </div>
-   <!-- 🏆 Trophy Cabinet UI -->
-    <div style="background: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #334155; margin-top: 25px;">
-        <h3 style="color: #f8fafc; margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-medal" style="color: #f59e0b;"></i> My Achievements
-        </h3>
-        
-        <!-- 🟢 JS यहाँ अपने-आप सारे 15 बैज लोड करेगी -->
-        <div id="badges-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; text-align: center;">
-            <!-- JS will inject badges here -->
-        </div>
-    </div>
-</div>
-    <div id="pro-access-page" class="page-content" style="display: none; padding: 40px 20px; background: #0f172a; width: 100%; min-height: 80vh; max-height: 85vh; overflow-y: auto; border-radius: 12px; color: white; text-align: center; box-sizing: border-box; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);">     
-    <h2 style="color: #0088cc; font-size: 28px; margin-bottom: 10px;">👑 Upgrade to Pro Workspace</h2>
-    <p style="color: #94a3b8; margin-bottom: 30px;">HPRCA के असली पैटर्न पर आधारित प्रीमियम मॉक टेस्ट अनलॉक करें!</p>
-
-    <div class="pro-card">
-        <h3>HP Exam Pro - Premium</h3>
-        <div class="price">₹99<span>/month</span></div>
-        
-        <ul class="features">
-            <li>🎯 15 Premium Mock Tests / Month (Syllabus Based)</li>
-            <li>📊 Live State-Level Leaderboard & Analytics</li>
-            <li>📰 AI-Filtered Premium Current Affairs</li>
-            <li>💡 Daily 5 Practice Questions with Detailed Solutions</li>
-        </ul>
-        <button id="buy-pro-btn" class="direct-pay-btn" onclick="initiateProPayment()">
-    <i class="fab fa-telegram-plane"></i> Activate via Telegram (Instant)
-</button>
-
-        <div class="trust-badge" style="margin-top: 15px; font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; display: inline-block; width: 100%; box-sizing: border-box; text-align: left; line-height: 1.4;">
-    <p style="margin: 0 0 4px 0;">🔒 100% Safe UPI Payment | 2-Min Activation</p>
-    <p style="margin: 0; color: #38bdf8; font-size: 10.5px;">💡 <strong>Note:</strong> आपको पेमेंट गेटवे के एक्स्ट्रा टैक्स और हिडन चार्जेस से बचाने के लिए हम सीधे एडमिन के ज़रिए 1-Click में एक्टिवेशन करते हैं, ताकि प्राइसेज सबसे कम रहें!</p>
-</div>
-
-    </div>
-</div>
-
-        </main>
-
-        <aside class="insights-panel">
-    <div id="quiz-navigation-palette" style="display: none; background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px;">
-        <h3 style="color: #94a3b8; font-size: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-            <span>Question Palette 🎯</span>
-            <span id="palette-timer" style="color: #ef4444; font-weight: bold;"></span>
-        </h3>
-       <div id="palette-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-height: 280px; overflow-x: hidden !important; overflow-y: auto !important; padding-right: 5px; box-sizing: border-box;"></div>
-        
-        <div style="display: flex; gap: 8px; font-size: 11px; margin-top: 15px; color: #94a3b8; flex-wrap: wrap; border-top: 1px solid #334155; padding-top: 10px;">
-            <span><span style="display:inline-block; width:10px; height:10px; background:#3b82f6; border-radius:50%;"></span> Current</span>
-            <span><span style="display:inline-block; width:10px; height:10px; background:#10b981; border-radius:50%;"></span> Solved</span>
-            <span><span style="display:inline-block; width:10px; height:10px; background:#475569; border-radius:50%;"></span> Unsolved</span>
-        </div>
-    </div>
-
-    <div id="standard-sidebar-content">
-    <div class="info-card">
-        <h3><i class="fa-solid fa-calendar-days"></i> Upcoming Exams</h3>
-        <div class="exam-entry">
-            <div class="exam-info"><strong>HPRCA Patwari </strong><span id="patwari-countdown" class="exam-status"></span></div>
-        </div>
-        <div class="exam-entry" style="margin-top: 8px;">
-            <div class="exam-info"><strong>HP JOA IT </strong><span id="joait-countdown" class="exam-status">Coming Soon</span></div>
-        </div>
-    </div>
-
-    <div class="info-card" id="daily-question-card">
-        <h3><i class="fa-solid fa-circle-question"></i> Question of the Day</h3>
-        <div style="margin-top: 10px;">
-            <p id="daily-question-text" style="font-weight: 500; font-size: 14px; margin-bottom: 12px; line-height: 1.4;">Loading today's challenge...</p>
-            
-            <div id="daily-options-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
-            
-            <div id="daily-explanation-box" style="display: none; margin-top: 12px; padding: 10px; border-radius: 6px; font-size: 13px; line-height: 1.4; background-color: rgba(255, 255, 255, 0.08);"></div>
-        </div>
-    </div>
-
-    <div class="info-card">
-        <h3><i class="fa-solid fa-newspaper"></i> Current Affairs</h3>
-        <div class="news-card"><p id="current-affairs-text">न्यूज़ अपडेट हो रही है...</p></div>
-    </div>
-</div>
-
-            </div>
-        </aside>
-    </div>
-    <script src="script.js"></script>
-<!-- 🎉 ACHIEVEMENT UNLOCK POPUP (Hidden By Default) -->
-<div id="achievement-popup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 99999; justify-content: center; align-items: center; backdrop-filter: blur(8px);">
-    <div style="background: linear-gradient(145deg, #1e293b, #0f172a); border: 2px solid #f59e0b; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; box-shadow: 0 0 40px rgba(245, 158, 11, 0.3); transform: scale(1); transition: transform 0.3s ease-out;">
-        
-        <h4 style="color: #f59e0b; margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">
-            🌟 Achievement Unlocked! 🌟
-        </h4>
-        
-        <div id="ach-icon" style="font-size: 70px; margin: 20px 0; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));">
-            🏆
-        </div>
-        
-        <h2 id="ach-title" style="color: #f8fafc; margin: 0 0 10px 0; font-size: 24px;">
-            Badge Name
-        </h2>
-        
-        <!-- यहाँ कारण दिखेगा कि बैज क्यों मिला -->
-        <p id="ach-desc" style="color: #94a3b8; font-size: 14px; margin-bottom: 25px; line-height: 1.5;">
-            You did something awesome to get this badge!
-        </p>
-        
-        <button onclick="closeAchievementPopup()" style="background: #f59e0b; color: #0f172a; border: none; padding: 12px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
-            Awesome! 🚀
-        </button>
-        
-    </div>
-</div>
+  <script src="script.js"></script>
 </body>
 </html>
