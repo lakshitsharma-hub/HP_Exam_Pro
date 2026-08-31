@@ -164,10 +164,11 @@
 
     <!-- Right: Streak + Theme + User -->
     <div class="nav-right">
-      <div class="nav-streak-pill">
-        <span class="streak-icon" id="streakEmoji">🔥</span>
-        <span class="streak-text" id="streakCount">1 Day</span>
-      </div>
+      <!-- Line 167 badal kar aisi kar do -->
+<div class="nav-streak-pill nav-streak-desktop">
+    <span class="streak-icon" id="streakEmoji">🔥</span>
+    <span class="streak-text" id="streakCount">1 Day</span>
+</div>
       <button class="theme-toggle-btn" id="themeIcon" onclick="toggleTheme()">☀️</button>
       <div class="nav-user-badge">
         <div class="nav-avatar" id="userAvatarChar">👤</div>
@@ -189,7 +190,15 @@
       </div>
       <button class="drawer-close-btn" onclick="toggleMobileMenu()">✕</button>
     </div>
-
+    <!-- Line 192 ke theek baad paste karo -->
+<div class="drawer-streak-card">
+    <span class="d-streak-icon" id="drawerStreakEmoji">🔥</span>
+    <div class="d-streak-info">
+        <span class="d-streak-label">Daily Streak</span>
+        <span class="d-streak-val" id="drawerStreakCount">1 Days</span>
+    </div>
+</div>
+    
     <div class="drawer-links-list">
       <a href="javascript:void(0)" class="drawer-link" onclick="handleMobileNav('Mock Tests')">
         <span>📝</span> Mock Tests
