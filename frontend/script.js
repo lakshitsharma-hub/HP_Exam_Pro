@@ -81,7 +81,7 @@ async function handleAuthAction() {
   const btn = document.getElementById("main-auth-btn");
 
   if (!email || !password) {
-    err.innerText = "कृपया ईमेल और पासवर्ड दोनों दर्ज करें!";
+    err.innerText = "Please enter both email and password!";
     err.style.display = "block";
     return;
   }
@@ -121,7 +121,7 @@ async function loginWithGoogle() {
 function triggerForgotPassword() {
   const email = document.getElementById("auth-email").value.trim();
   if (!email) {
-    alert("पासवर्ड रीसेट करने के लिए पहले ईमेल बॉक्स में अपना ईमेल लिखें!");
+    alert("Please enter your registered email address first!");
     return;
   }
   supabaseClient.auth.resetPasswordForEmail(email, {
@@ -197,7 +197,7 @@ function updateUserNavUI(username) {
 
 function handleAuthNavClick() {
   if (currentUserId) {
-    if (confirm("क्या आप सच में Logout करना चाहते हैं?")) {
+    if (confirm("Are you sure you want to log out?")) {
       supabaseClient.auth.signOut().then(() => {
         localStorage.clear();
         window.location.reload();
@@ -480,7 +480,7 @@ async function loadAttemptedHistory() {
     .order('created_at', { ascending: false });
 
   if (error || !attempts || attempts.length === 0) {
-    container.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">आपने अभी तक कोई टेस्ट नहीं दिया है।</p>';
+    container.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">You have not attempted any tests yet.</p>';
     return;
   }
 
@@ -496,11 +496,42 @@ async function loadAttemptedHistory() {
       </div>
       <div class="history-actions">
         <button class="btn-review" onclick="reviewPastTest('${item.id}')">👁️ Review</button>
-        <button class="btn-re-attempt" onclick="handleProtectedExam('${item.exam_type}')">🔄 Retake</button>
+        <button class="btn-re-attempt" onclick="confirmReattempt('${item.id}', '${item.exam_type}', this)">🔄 Retake</button>
       </div>
     `;
     container.appendChild(div);
   });
+}
+
+// Re-attempt Trigger Function
+async function confirmReattempt(testId, examType, btnElement) {
+  if (confirm("Are you sure you want to retake this test? (The exact same question set will be loaded)")) {
+    const originalText = btnElement.innerText;
+    btnElement.innerText = "⏳ Loading...";
+    btnElement.disabled = true;
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('test_results')
+        .select('questions_snapshot')
+        .eq('id', testId)
+        .single();
+
+      if (error || !data || !data.questions_snapshot) {
+        alert("Previous test data not found!");
+        btnElement.innerText = originalText;
+        btnElement.disabled = false;
+        return;
+      }
+
+      sessionStorage.setItem('hp_reattempt_snapshot', JSON.stringify(data.questions_snapshot));
+      window.location.href = `test-arena.html?exam=${encodeURIComponent(examType)}&reattempt=true`;
+    } catch (err) {
+      console.error("Reattempt error:", err);
+      btnElement.innerText = originalText;
+      btnElement.disabled = false;
+    }
+  }
 }
 
 // Review Past Test Function
@@ -513,7 +544,7 @@ async function reviewPastTest(testId) {
       .single();
 
     if (error || !data || !data.questions_snapshot) {
-      alert("इस टेस्ट का डिटेल्ड रिव्यू डेटा उपलब्ध नहीं है!");
+      alert("Detailed review data is not available for this test!");
       return;
     }
 
@@ -596,10 +627,10 @@ async function loadDailyQuestion() {
           if (opt.key === correctKey) {
             btn.classList.add("correct");
             if (window.confetti) confetti({ particleCount: 120, spread: 70 });
-            if (feedback) feedback.innerHTML = `<span style="color: #4ade80;">✓ बिल्कुल सही उत्तर!</span> ${q.explanation || ''}`;
+            if (feedback) feedback.innerHTML = `<span style="color: #4ade80;">✓ Correct Answer!</span> ${q.explanation || ''}`;
           } else {
             btn.classList.add("wrong");
-            if (feedback) feedback.innerHTML = `<span style="color: #f87171;">✕ गलत उत्तर। सही उत्तर विकल्प ${correctKey} है।</span>`;
+            if (feedback) feedback.innerHTML = `<span style="color: #f87171;">✕ Incorrect answer. The correct choice is Option ${correctKey}.</span>`;
           }
         };
         container.appendChild(btn);
@@ -630,7 +661,7 @@ async function loadRealNews() {
       }, 7000);
     }
   } catch (e) {
-    el.innerText = "ताज़ा करंट अफेयर्स के लिए रिफ्रेश करें।";
+    el.innerText = "Refresh for the latest current affairs updates.";
   }
 }
 
@@ -673,12 +704,12 @@ async function handleChatSubmit(e) {
 
     const botMsg = document.createElement("div");
     botMsg.className = "chat-msg bot";
-    botMsg.innerText = data.answer || "उत्तर प्राप्त करने में असमर्थ।";
+    botMsg.innerText = data.answer || "Unable to get an answer at the moment.";
     msgContainer.appendChild(botMsg);
   } catch (err) {
     const errMsg = document.createElement("div");
     errMsg.className = "chat-msg bot";
-    errMsg.innerText = "सर्वर एरर! AI सहायक अभी कनेक्ट नहीं हो पाया।";
+    errMsg.innerText = "Server Error! AI Assistant could not connect.";
     msgContainer.appendChild(errMsg);
   } finally {
     msgContainer.scrollTop = msgContainer.scrollHeight;
@@ -689,12 +720,12 @@ async function handleChatSubmit(e) {
 // 8. 19-BADGES ACHIEVEMENTS ENGINE
 // =========================================================
 const ALL_BADGES = [
-  { id: 'ice_breaker', icon: '🧊', title: 'Ice Breaker', desc: 'पहला मॉक टेस्ट सबमिट किया।' },
-  { id: '1_week_warrior', icon: '⚔️', title: '1-Week Warrior', desc: 'लगातार 7 दिन टेस्ट दिया।' },
-  { id: '30_day_legend', icon: '👑', title: '30-Day Legend', desc: 'लगातार 30 दिन की स्ट्रीक।' },
-  { id: 'weekend_hustler', icon: '📅', title: 'Weekend Hustler', desc: 'शनिवार और रविवार दोनों दिन टेस्ट दिया।' },
-  { id: 'grandmaster', icon: '📜', title: 'Grandmaster', desc: 'फुल-सिलेबस टेस्ट कम्पलीट किया।' },
-  { id: 'accuracy_sniper', icon: '🎯', title: 'Accuracy Sniper', desc: 'टेस्ट में 90%+ एक्यूरेसी हासिल की।' }
+  { id: 'ice_breaker', icon: '🧊', title: 'Ice Breaker', desc: 'Submitted your first mock test.' },
+  { id: '1_week_warrior', icon: '⚔️', title: '1-Week Warrior', desc: 'Attempted tests 7 days in a row.' },
+  { id: '30_day_legend', icon: '👑', title: '30-Day Legend', desc: 'Maintained a 30-day streak.' },
+  { id: 'weekend_hustler', icon: '📅', title: 'Weekend Hustler', desc: 'Attempted tests on both Saturday and Sunday.' },
+  { id: 'grandmaster', icon: '📜', title: 'Grandmaster', desc: 'Completed a full-syllabus mock test.' },
+  { id: 'accuracy_sniper', icon: '🎯', title: 'Accuracy Sniper', desc: 'Achieved 90%+ accuracy in a mock test.' }
 ];
 
 async function loadUserAchievements() {
