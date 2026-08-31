@@ -53,69 +53,55 @@ class ChatRequest(BaseModel):
     message: str
 
 
-# --- 1. CURRENT AFFAIRS / NEWS ENDPOINT (OFFICIAL EXAM-FOCUSED FEEDS) ---
-# --- 1. CURRENT AFFAIRS / NEWS ENDPOINT (HP IPR + PIB SHIMLA DUAL FEED) ---
+# --- 1. CURRENT AFFAIRS / NEWS ENDPOINT (STRICT POSITIVE INCLUSION FILTER) ---
 @app.get("/api/news")
 async def get_hp_news():
     sources = [
-        # 1. Himachal Pradesh Regional Govt Feeds
-        "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=2&Regid=13", # PIB Regional (Shimla/Chandigarh Zone Hindi)
-        "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=13", # PIB Regional English
-        "https://himachalpr.gov.in/RssFeed.aspx",                 # HP IPR (Information & Public Relations)
-        
-        # 2. National Core Feeds (Backbone)
-        "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=2&Regid=3",  # PIB National Hindi
-        "https://ddnews.gov.in/en/feed/"                          # DD News
+        "https://www.amarujala.com/rss/himachal-pradesh.xml",  # हिमाचल न्यूज़
+        "https://www.tribuneindia.com/rss/feed.aspx?cat_id=40", # हिमाचल न्यूज़
+        "https://www.thehindu.com/news/national/feeder/default.rss" # 🇮🇳 नेशनल न्यूज़
     ]
-    
     all_news = []
     
-    # Negative safety net
-    block_words = [
-        "बारिश", "सड़क बंद", "भूस्खलन", "हादसा", "ट्रैफिक", "मौसम अलर्ट", 
-        "traffic", "landslide", "heavy rain", "weather alert", "accident", "मौत"
+    # ✅ STRICT INCLUSION KEYWORDS (सिर्फ इन एग्जाम-ओरिएंटेड शब्दों वाले आर्टिकल्स ही चुने जाएंगे)
+    mandatory_exam_keywords = [
+        "योजना", "स्कीम", "लॉन्च", "उद्घाटन", "शिलान्यास", "पुरस्कार", "अवार्ड", "नियुक्ति", 
+        "बजट", "शिक्षा", "परीक्षा", "भर्ती", "कैबिनेट", "फैसला", "मंजूरी", "रैंकिंग", "खेल", 
+        "गोल्ड", "मेडल", "स्टार्टअप", "पोर्टल", "नीति", "सम्मेलन", "घोषणा", "समझौता",
+        "scheme", "award", "appointed", "budget", "education", "exam", "cabinet", 
+        "sports", "medal", "policy", "summit", "launch", "agreement", "portal"
     ]
 
     for url in sources:
         try:
             feed = feedparser.parse(url)
             if feed.entries:
-                for entry in feed.entries[:15]:
-                    title = entry.title.strip()
+                for entry in feed.entries[:25]:
+                    title = entry.title
                     title_lower = title.lower()
                     
-                    # Clean HTML tags
-                    if "<" in title and ">" in title:
-                        import re
-                        title = re.sub(r'<[^>]+>', '', title)
-                        
-                    # Skip accidents and weather disruptions
-                    if any(bad in title_lower for bad in block_words):
-                        continue
-                        
-                    if len(title) > 25:
-                        # HP-specific keywords wale headlines ko top priority do
-                        hp_keywords = ["हिमाचल", "शिमला", "कांगड़ा", "मंडी", "कुल्लू", "सुखविंदर", "himachal", "shimla"]
-                        if any(k in title_lower for k in hp_keywords):
-                            all_news.insert(0, title)
-                        else:
-                            all_news.append(title)
+                    # चेक: क्या टाइटल में कम से कम एक भी आधिकारिक एग्जाम कीवर्ड मौजूद है?
+                    has_required_keyword = any(word in title_lower for word in mandatory_exam_keywords)
+                    
+                    if has_required_keyword:
+                        all_news.append(title)
         except Exception as e:
-            print(f"Regional Feed Fetch Error ({url}): {e}")
+            print(f"Error fetching from {url}: {e}")
             
     if all_news:
+        # डुप्लीकेट हटाकर टॉप 10 शुद्ध एग्जाम न्यूज़ रिटर्न करना
         unique_news = list(dict.fromkeys(all_news))
         return {"news": unique_news[:10]}
         
-    # High-quality state + national fallback
     return {
         "news": [
-            "हिमाचल प्रदेश सरकार ने 'मुख्यमंत्री सुख-आश्रय योजना' के तहत नए सामाजिक दिशा-निर्देश जारी किए।",
-            "कांगड़ा में नए स्टेट आईटी पार्क एवं पर्यटन हब के निर्माण को राज्य कैबिनेट की मंजूरी।",
-            "केंद्रीय मंत्रिमंडल ने राष्ट्रीय स्तर पर नई छात्रवृत्ति एवं नवाचार योजना को मंजूरी दी।",
-            "नीति आयोग (NITI Aayog) ने राज्य सतत विकास सूचकांक की नवीनतम रैंकिंग रिपोर्ट जारी की।"
+            "हिमाचल प्रदेश सरकार ने 'मुख्यमंत्री सुख-आश्रय योजना' के तहत नए दिशा-निर्देश जारी किए।",
+            "केंद्र सरकार ने राष्ट्रीय स्तर पर नई छात्रवृत्ति योजना (National Scholarship Scheme) की घोषणा की।",
+            "कांगड़ा के शाहपुर में नए आईटी पार्क के निर्माण की प्रक्रिया तेज़ हुई।",
+            "इस वर्ष के राष्ट्रीय खेल पुरस्कारों (National Sports Awards) की आधिकारिक घोषणा की गई।"
         ]
     }
+
 
 # --- 2. CORE SYSTEM ENDPOINTS ---
 @app.get("/")
