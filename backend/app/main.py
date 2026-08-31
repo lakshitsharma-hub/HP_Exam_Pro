@@ -53,23 +53,30 @@ class ChatRequest(BaseModel):
     message: str
 
 
-# --- 1. CURRENT AFFAIRS / NEWS ENDPOINT (STRICT POSITIVE INCLUSION FILTER) ---
+# --- 1. CURRENT AFFAIRS / NEWS ENDPOINT (OFFICIAL EXAM-FOCUSED FEEDS) ---
 @app.get("/api/news")
 async def get_hp_news():
+    # Only reliable national, governance, economic & editorial feeds
     sources = [
-        "https://www.amarujala.com/rss/himachal-pradesh.xml",  # हिमाचल न्यूज़
-        "https://www.tribuneindia.com/rss/feed.aspx?cat_id=40", # हिमाचल न्यूज़
-        "https://www.thehindu.com/news/national/feeder/default.rss" # 🇮🇳 नेशनल न्यूज़
+        "https://www.thehindu.com/news/national/feeder/default.rss",
+        "https://economictimes.indiatimes.com/news/economy/policy/rssfeeds/13358319.cms",
+        "https://indianexpress.com/section/education/feed/"
     ]
     all_news = []
     
-    # ✅ STRICT INCLUSION KEYWORDS (सिर्फ इन एग्जाम-ओरिएंटेड शब्दों वाले आर्टिकल्स ही चुने जाएंगे)
+    # Strict list of high-value competitive exam keywords
     mandatory_exam_keywords = [
-        "योजना", "स्कीम", "लॉन्च", "उद्घाटन", "शिलान्यास", "पुरस्कार", "अवार्ड", "नियुक्ति", 
-        "बजट", "शिक्षा", "परीक्षा", "भर्ती", "कैबिनेट", "फैसला", "मंजूरी", "रैंकिंग", "खेल", 
-        "गोल्ड", "मेडल", "स्टार्टअप", "पोर्टल", "नीति", "सम्मेलन", "घोषणा", "समझौता",
-        "scheme", "award", "appointed", "budget", "education", "exam", "cabinet", 
-        "sports", "medal", "policy", "summit", "launch", "agreement", "portal"
+        "scheme", "yojana", "योजना", "पोर्टल", "portal", "budget", "बजट", 
+        "cabinet", "कैबिनेट", "appointed", "नियुक्ति", "award", "पुरस्कार", 
+        "isro", "drdo", "gdp", "rbi", "summit", "सम्मेलन", "agreement", "समझौता", 
+        "scholarship", "छात्रवृत्ति", "rank", "ranking", "olympic", "world cup",
+        "governor", "chief minister", "sukhad", "himurja"
+    ]
+
+    # Instant discard list for sensational/local non-exam news
+    negative_words = [
+        "बंदर", "तेंदुआ", "भालू", "हादसा", "शव", "मौत", "क्राइम", "चोरी", 
+        "गिरफ्तार", "विवाद", "हंगामा", "monkey", "crime", "dead", "killed", "arrested"
     ]
 
     for url in sources:
@@ -77,31 +84,32 @@ async def get_hp_news():
             feed = feedparser.parse(url)
             if feed.entries:
                 for entry in feed.entries[:25]:
-                    title = entry.title
+                    title = entry.title.strip()
                     title_lower = title.lower()
                     
-                    # चेक: क्या टाइटल में कम से कम एक भी आधिकारिक एग्जाम कीवर्ड मौजूद है?
-                    has_required_keyword = any(word in title_lower for word in mandatory_exam_keywords)
-                    
-                    if has_required_keyword:
+                    # 1. Skip if contains any negative/crime word
+                    if any(bad in title_lower for bad in negative_words):
+                        continue
+
+                    # 2. Accept only if contains explicit exam keywords
+                    if any(k in title_lower for k in mandatory_exam_keywords):
                         all_news.append(title)
         except Exception as e:
-            print(f"Error fetching from {url}: {e}")
+            print(f"Feed error ({url}): {e}")
             
     if all_news:
-        # डुप्लीकेट हटाकर टॉप 10 शुद्ध एग्जाम न्यूज़ रिटर्न करना
         unique_news = list(dict.fromkeys(all_news))
         return {"news": unique_news[:10]}
         
+    # High-quality fallback if feeds have no fresh updates
     return {
         "news": [
-            "हिमाचल प्रदेश सरकार ने 'मुख्यमंत्री सुख-आश्रय योजना' के तहत नए दिशा-निर्देश जारी किए।",
+            "हिमाचल प्रदेश कैबिनेट ने 'मुख्यमंत्री सुख-आश्रय योजना' के तहत नए दिशा-निर्देशों को मंजूरी दी।",
             "केंद्र सरकार ने राष्ट्रीय स्तर पर नई छात्रवृत्ति योजना (National Scholarship Scheme) की घोषणा की।",
-            "कांगड़ा के शाहपुर में नए आईटी पार्क के निर्माण की प्रक्रिया तेज़ हुई।",
-            "इस वर्ष के राष्ट्रीय खेल पुरस्कारों (National Sports Awards) की आधिकारिक घोषणा की गई।"
+            "कांगड़ा में नए स्टेट डेटा सेंटर और आईटी पार्क की स्थापना को प्रशासनिक स्वीकृति मिली।",
+            "इस वर्ष के राष्ट्रीय खेल एवं नागरिक सम्मान पुरस्कारों की आधिकारिक सूची जारी।"
         ]
     }
-
 
 # --- 2. CORE SYSTEM ENDPOINTS ---
 @app.get("/")
