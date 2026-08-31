@@ -1,5 +1,6 @@
 const API_BASE_URL = "https://hp-exam-pro-dixk.onrender.com";
 
+let rawQuestionsData = [];
 let examQuestions = [];
 let currentIndex = 0;
 let currentFontScale = 1.15;
@@ -13,8 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let examParam = urlParams.get('exam');
   
   if (examParam) {
-    if (examParam.includes("patwari") || examParam.includes("Patwari")) currentExamType = "patwari";
-    else if (examParam.includes("police") || examParam.includes("Police")) currentExamType = "hp_police";
+    const p = examParam.toLowerCase();
+    if (p.includes("patwari")) currentExamType = "patwari";
+    else if (p.includes("police")) currentExamType = "hp_police";
     else currentExamType = "joa_it";
   }
 
@@ -24,10 +26,12 @@ document.addEventListener("DOMContentLoaded", () => {
     'hp_police': 'HP Police Constable Mock Test'
   };
   
-  document.getElementById("activeExamTitle").innerText = titleMap[currentExamType];
+  const titleEl = document.getElementById("activeExamTitle");
+  if (titleEl) titleEl.innerText = titleMap[currentExamType] || "HP Full Mock Test";
   
-  if (currentExamType === 'hp_police') {
-    document.getElementById("qMarksTag").innerText = "+1.00 / -0.25 Negative Marking";
+  const marksTag = document.getElementById("qMarksTag");
+  if (marksTag && currentExamType === 'hp_police') {
+    marksTag.innerText = "+1.00 / -0.25 Negative Marking";
   }
 
   fetchQuestionsFromBackend();
@@ -47,11 +51,12 @@ async function fetchQuestionsFromBackend() {
     const data = await response.json();
 
     if (data && data.length > 0) {
+      rawQuestionsData = data;
       examQuestions = data.map((q, index) => ({
         id: q.id,
-        text: q.question_text || q.question,
+        text: q.question_text || q.question || "",
         options: [q.opt1, q.opt2, q.opt3, q.opt4].filter(Boolean),
-        ans: q.correct_option || q.answer,
+        ans: q.correct_option || q.answer || q.correct_answer || q.correct,
         userSelected: null,
         state: "not-visited"
       }));
@@ -200,8 +205,10 @@ function startTimer() {
     timeLeft--;
     const mins = Math.floor(timeLeft / 60);
     const secs = timeLeft % 60;
-    document.getElementById("timeRemaining").innerText = 
-      `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    const timerEl = document.getElementById("timeRemaining");
+    if (timerEl) {
+      timerEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
   }, 1000);
 }
 
@@ -233,6 +240,7 @@ async function finalSubmitAndExit() {
 
   let correctCount = 0;
   let wrongCount = 0;
+  const userResponsesMap = {};
 
   examQuestions.forEach(q => {
     const chosen = q.userSelected;
@@ -240,6 +248,10 @@ async function finalSubmitAndExit() {
 
     if (['1', '2', '3', '4', 1, 2, 3, 4].includes(correctKey)) {
       correctKey = 'opt' + correctKey;
+    }
+
+    if (chosen) {
+      userResponsesMap[String(q.id)] = chosen;
     }
 
     if (chosen === correctKey) {
@@ -255,6 +267,7 @@ async function finalSubmitAndExit() {
   }
 
   const userName = localStorage.getItem("current_user_name") || "Student";
+  const questionsSnapshotPayload = rawQuestionsData.length > 0 ? rawQuestionsData : examQuestions;
 
   try {
     await fetch(`${API_BASE_URL}/api/submit-score`, {
@@ -267,16 +280,16 @@ async function finalSubmitAndExit() {
         score: Math.max(0, parseFloat(finalScore.toFixed(2))),
         correct_answers: correctCount,
         wrong_answers: wrongCount,
-        questions_snapshot: examQuestions,
-        user_responses: {}
+        questions_snapshot: questionsSnapshotPayload,
+        user_responses: userResponsesMap
       })
     });
-    alert("🎉 Mock Test Submitted! Moving to Dashboard.");
+    alert("🎉 Mock Test Submitted! Moving to Analytics Dashboard.");
   } catch (err) {
     console.error("Score submission error:", err);
   }
 
-  window.location.href = "index.html";
+  window.location.href = "index.html#analytics";
 }
 
 function openQueryModal() {
