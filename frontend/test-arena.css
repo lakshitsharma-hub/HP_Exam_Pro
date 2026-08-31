@@ -591,24 +591,26 @@ body {
     width: 95% !important;
   }
 }
-/* 5. Mobile Palette Sidebar Flow - FIXED OVERLAP */
+/* 5. Mobile Palette Sidebar Flow - BIGGER TOUCH-FRIENDLY BOXES */
   .palette-sidebar {
     border-top: 1px solid var(--border-cbt) !important;
-    padding: 16px 14px 110px 14px !important; 
+    padding: 16px 14px 130px 14px !important; /* Bottom fixed bar ke liye space */
     background: var(--panel-bg) !important;
     overflow: visible !important;
   }
 
   .palette-number-grid {
     display: grid !important;
-    grid-template-columns: repeat(6, 1fr) !important;
-    gap: 8px !important;
-    max-height: 220px !important; /* Fixed viewport height to prevent overflowing */
-    overflow-y: auto !important; /* Enable smooth scrolling inside grid */
-    padding-bottom: 20px !important;
+    grid-template-columns: repeat(5, 1fr) !important; /* 5 columns for larger boxes */
+    gap: 10px !important;
+    max-height: 280px !important;
+    overflow-y: auto !important;
+    padding: 4px 6px 20px 2px !important;
   }
 
   .palette-bubble {
-    font-size: 0.82rem !important;
-    height: 38px !important;
+    font-size: 0.95rem !important; /* Bada and clear text */
+    font-weight: 700 !important;
+    min-height: 48px !important;   /* Large touch target */
+    border-radius: 10px !important;
   }
