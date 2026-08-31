@@ -27,6 +27,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   loadDailyQuestion();
   loadRealNews();
   syncStreakOnPageLoad();
+
+  // URL Hash Handler
+  if (window.location.hash === "#analytics") {
+    openSection("Analytics");
+  } else if (window.location.hash === "#leaderboard") {
+    openSection("Leaderboard");
+  }
 });
 
 // =========================================================
@@ -226,32 +233,42 @@ function openSection(sectionName) {
     return;
   }
 
-  document.querySelectorAll(".nav-link").forEach(link => link.classList.remove("active"));
-  document.getElementById("home-content-view").style.display = "none";
-  document.getElementById("analytics-view").style.display = "none";
-  document.getElementById("leaderboard-view").style.display = "none";
+  const navLinks = document.querySelectorAll(".nav-link");
+  navLinks.forEach(link => link.classList.remove("active"));
 
-  if (sectionName === "Analytics") {
-    const target = document.getElementById("analytics-view");
-    target.style.display = "flex";
+  const homeView = document.getElementById("home-content-view");
+  const analyticsView = document.getElementById("analytics-view");
+  const leaderboardView = document.getElementById("leaderboard-view");
+
+  if (homeView) homeView.style.display = "block";
+  if (analyticsView) analyticsView.style.display = "none";
+  if (leaderboardView) leaderboardView.style.display = "none";
+
+  if (sectionName === "Analytics" && analyticsView) {
+    analyticsView.style.display = "flex";
     loadAnalyticsData();
     loadAttemptedHistory();
-    target.scrollIntoView({ behavior: "smooth" });
-  } else if (sectionName === "Leaderboard") {
-    const target = document.getElementById("leaderboard-view");
-    target.style.display = "flex";
+    analyticsView.scrollIntoView({ behavior: "smooth" });
+  } else if (sectionName === "Leaderboard" && leaderboardView) {
+    leaderboardView.style.display = "flex";
     const filterVal = document.getElementById("leaderboardExamFilter")?.value || "hp_police";
     renderLeaderboardData(filterVal);
     loadUserAchievements();
-    target.scrollIntoView({ behavior: "smooth" });
+    leaderboardView.scrollIntoView({ behavior: "smooth" });
   }
 }
 
 function showMainHome() {
-  document.getElementById("analytics-view").style.display = "none";
-  document.getElementById("leaderboard-view").style.display = "none";
-  document.getElementById("home-content-view").style.display = "block";
+  const analyticsView = document.getElementById("analytics-view");
+  const leaderboardView = document.getElementById("leaderboard-view");
+  const homeView = document.getElementById("home-content-view");
+
+  if (analyticsView) analyticsView.style.display = "none";
+  if (leaderboardView) leaderboardView.style.display = "none";
+  if (homeView) homeView.style.display = "block";
+
   document.querySelectorAll(".nav-link").forEach(link => link.classList.remove("active"));
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function scrollToMockTests(e) {
@@ -372,24 +389,25 @@ async function renderLeaderboardData(examType = 'hp_police') {
   }
 
   const tbody = document.getElementById("leaderboardRows");
-  tbody.innerHTML = "";
-
-  allUsers.slice(3, 10).forEach((user, index) => {
-    const rank = index + 4;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td><span class="rank-badge">#${rank}</span></td>
-      <td>
-        <div class="aspirant-cell">
-          <span class="avatar-mini">${user.name.charAt(0).toUpperCase()}</span>
-          <span class="name">${user.name} ${user.isMe ? '<strong style="color: #38bdf8;">(YOU)</strong>' : ''}</span>
-        </div>
-      </td>
-      <td><span class="acc-pill">Weekly</span></td>
-      <td style="text-align: right;"><span class="score-pill">${user.score.toFixed(2)}</span></td>
-    `;
-    tbody.appendChild(tr);
-  });
+  if (tbody) {
+    tbody.innerHTML = "";
+    allUsers.slice(3, 10).forEach((user, index) => {
+      const rank = index + 4;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><span class="rank-badge">#${rank}</span></td>
+        <td>
+          <div class="aspirant-cell">
+            <span class="avatar-mini">${user.name.charAt(0).toUpperCase()}</span>
+            <span class="name">${user.name} ${user.isMe ? '<strong style="color: #38bdf8;">(YOU)</strong>' : ''}</span>
+          </div>
+        </td>
+        <td><span class="acc-pill">Weekly</span></td>
+        <td style="text-align: right;"><span class="score-pill">${user.score.toFixed(2)}</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
 }
 
 // =========================================================
@@ -402,10 +420,15 @@ async function loadAnalyticsData() {
     const response = await fetch(`${API_BASE_URL}/api/analytics/${currentUserId}`);
     const data = await response.json();
 
-    document.getElementById('statTotalTests').innerText = data.total_tests || 0;
-    document.getElementById('statAvgScore').innerText = data.avg_score || 0;
-    document.getElementById('statHighScore').innerText = data.highest_score || 0;
-    document.getElementById('statAccuracy').innerText = (data.accuracy || 0) + "%";
+    const statTotal = document.getElementById('statTotalTests');
+    const statAvg = document.getElementById('statAvgScore');
+    const statHigh = document.getElementById('statHighScore');
+    const statAcc = document.getElementById('statAccuracy');
+
+    if (statTotal) statTotal.innerText = data.total_tests || 0;
+    if (statAvg) statAvg.innerText = data.avg_score || 0;
+    if (statHigh) statHigh.innerText = data.highest_score || 0;
+    if (statAcc) statAcc.innerText = (data.accuracy || 0) + "%";
 
     const canvas = document.getElementById('performanceTrendChart');
     if (!canvas) return;
@@ -472,11 +495,67 @@ async function loadAttemptedHistory() {
         <p>Attempted: <span>${attemptDate}</span> • Score: <strong class="text-green">${item.score} Marks</strong></p>
       </div>
       <div class="history-actions">
+        <button class="btn-review" onclick="reviewPastTest('${item.id}')">👁️ Review</button>
         <button class="btn-re-attempt" onclick="handleProtectedExam('${item.exam_type}')">🔄 Retake</button>
       </div>
     `;
     container.appendChild(div);
   });
+}
+
+// Review Past Test Function
+async function reviewPastTest(testId) {
+  try {
+    const { data, error } = await supabaseClient
+      .from('test_results')
+      .select('*')
+      .eq('id', testId)
+      .single();
+
+    if (error || !data || !data.questions_snapshot) {
+      alert("इस टेस्ट का डिटेल्ड रिव्यू डेटा उपलब्ध नहीं है!");
+      return;
+    }
+
+    const questions = data.questions_snapshot;
+    const userResponses = data.user_responses || {};
+
+    let reviewHtml = `<div style="max-height: 400px; overflow-y: auto; text-align: left; padding: 10px; font-size: 14px;">`;
+    questions.forEach((q, idx) => {
+      const chosen = userResponses[String(q.id)] || "Unattempted";
+      let correct = q.correct_option || q.answer || q.correct_answer || q.correct;
+      if (['1', '2', '3', '4', 1, 2, 3, 4].includes(correct)) correct = 'opt' + correct;
+      const isCorrect = chosen === correct;
+
+      reviewHtml += `
+        <div style="background: rgba(15,23,42,0.8); border: 1px solid ${isCorrect ? '#22c55e' : '#ef4444'}; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+          <p><strong>Q${idx + 1}:</strong> ${q.question_text || q.question || q.text || ''}</p>
+          <p style="color: ${isCorrect ? '#4ade80' : '#f87171'}; margin: 4px 0;"><strong>Your Answer:</strong> ${chosen} ${isCorrect ? '✅' : '❌'}</p>
+          ${!isCorrect ? `<p style="color: #4ade80; margin: 4px 0;"><strong>Correct:</strong> ${correct} (${q[correct] || ''})</p>` : ''}
+          ${q.explanation ? `<p style="color: #94a3b8; font-size: 12px; margin-top: 6px;">💡 ${q.explanation}</p>` : ''}
+        </div>
+      `;
+    });
+    reviewHtml += `</div>`;
+
+    const reviewModal = document.createElement('div');
+    reviewModal.style.cssText = `
+      position: fixed; inset: 0; background: rgba(11, 17, 32, 0.85); backdrop-filter: blur(8px);
+      z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px;
+    `;
+    reviewModal.innerHTML = `
+      <div style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; max-width: 600px; width: 100%; padding: 24px; color: white;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="margin: 0;">Detailed Test Review</h3>
+          <button onclick="this.closest('div').parentElement.parentElement.remove()" style="background: transparent; border: none; color: #94a3b8; font-size: 20px; cursor: pointer;">✕</button>
+        </div>
+        ${reviewHtml}
+      </div>
+    `;
+    document.body.appendChild(reviewModal);
+  } catch (e) {
+    console.error("Review past test error:", e);
+  }
 }
 
 // =========================================================
@@ -489,7 +568,8 @@ async function loadDailyQuestion() {
 
     if (data.status === "success" && data.question) {
       const q = data.question;
-      document.getElementById("daily-question-text").innerText = q.question_text || q.question;
+      const textEl = document.getElementById("daily-question-text");
+      if (textEl) textEl.innerText = q.question_text || q.question;
 
       const options = [
         { key: '1', text: q.opt1 },
@@ -499,6 +579,7 @@ async function loadDailyQuestion() {
       ].filter(o => o.text);
 
       const container = document.getElementById("daily-options-container");
+      if (!container) return;
       container.innerHTML = "";
 
       const correctKey = String(q.correct_option || "").trim();
@@ -510,15 +591,15 @@ async function loadDailyQuestion() {
         btn.onclick = () => {
           document.querySelectorAll(".daily-opt-btn").forEach(b => b.disabled = true);
           const feedback = document.getElementById("daily-explanation-box");
-          feedback.style.display = "block";
+          if (feedback) feedback.style.display = "block";
 
           if (opt.key === correctKey) {
             btn.classList.add("correct");
             if (window.confetti) confetti({ particleCount: 120, spread: 70 });
-            feedback.innerHTML = `<span style="color: #4ade80;">✓ बिल्कुल सही उत्तर!</span> ${q.explanation || ''}`;
+            if (feedback) feedback.innerHTML = `<span style="color: #4ade80;">✓ बिल्कुल सही उत्तर!</span> ${q.explanation || ''}`;
           } else {
             btn.classList.add("wrong");
-            feedback.innerHTML = `<span style="color: #f87171;">✕ गलत उत्तर। सही उत्तर विकल्प ${correctKey} है।</span>`;
+            if (feedback) feedback.innerHTML = `<span style="color: #f87171;">✕ गलत उत्तर। सही उत्तर विकल्प ${correctKey} है।</span>`;
           }
         };
         container.appendChild(btn);
@@ -558,11 +639,12 @@ function toggleChat() {
   const openIco = document.querySelector(".chat-icon-open");
   const closeIco = document.querySelector(".chat-icon-close");
 
+  if (!win) return;
   win.classList.toggle("active");
   const isActive = win.classList.contains("active");
 
-  openIco.style.display = isActive ? "none" : "block";
-  closeIco.style.display = isActive ? "block" : "none";
+  if (openIco) openIco.style.display = isActive ? "none" : "block";
+  if (closeIco) closeIco.style.display = isActive ? "block" : "none";
 }
 
 async function handleChatSubmit(e) {
@@ -612,65 +694,8 @@ const ALL_BADGES = [
   { id: '30_day_legend', icon: '👑', title: '30-Day Legend', desc: 'लगातार 30 दिन की स्ट्रीक।' },
   { id: 'weekend_hustler', icon: '📅', title: 'Weekend Hustler', desc: 'शनिवार और रविवार दोनों दिन टेस्ट दिया।' },
   { id: 'grandmaster', icon: '📜', title: 'Grandmaster', desc: 'फुल-सिलेबस टेस्ट कम्पलीट किया।' },
-  { id: 'accuracy_sniper', icon: '🎯', title: 'Accuracy Sniper', desc: 'टेस्ट में 90%+ एक्यूरेसी हासिल की।' },
-  { id: 'khaki_pride', icon: '👮‍♂️', title: 'Khaki Pride', desc: 'HP Police में टॉप 10% स्कोर।' },
-  { id: 'patwari_elite', icon: '✍️', title: 'Patwari Elite', desc: 'पटवारी टेस्ट में 100+ स्कोर।' },
-  { id: 'speed_demon', icon: '⚡', title: 'Speed Demon', desc: 'पेपर समय से 20 मिनट पहले पूरा किया।' },
-  { id: 'hp_gk_scholar', icon: '🏔️', title: 'HP GK Scholar', desc: 'हिमाचल GK में 100% स्कोर।' },
-  { id: 'vyakaran_guru', icon: '📚', title: 'Vyakaran Guru', desc: 'हिंदी/इंग्लिश ग्रामर में फुल मार्क्स।' },
-  { id: 'logic_master', icon: '🧠', title: 'Logic Master', desc: 'रीज़निंग में कोई गलती नहीं।' },
-  { id: 'night_owl', icon: '🦉', title: 'Night Owl', desc: 'रात 12 बजे के बाद टेस्ट सबमिट किया।' },
-  { id: 'early_bird', icon: '🌅', title: 'Early Bird', desc: 'सुबह 6 बजे से पहले टेस्ट दिया।' },
-  { id: 'comeback_king', icon: '🥊', title: 'Comeback King', desc: 'पिछले टेस्ट से स्कोर में भारी उछाल।' },
-  { id: 'let_him_cook', icon: '🔥', title: 'Let Him Cook', desc: 'स्कोर लगातार इम्प्रूव हो रहा है।' },
-  { id: 'touch_grass', icon: '🌱', title: 'Touch Grass', desc: 'एक दिन में 4 टेस्ट दे दिए।' },
-  { id: 'massive_w', icon: '🏆', title: 'Massive W', desc: 'तुम्हारा स्कोर एकदम FIRE है।' },
-  { id: 'exam_op', icon: '🎮', title: 'Exam OP', desc: 'OverPowered परफॉरमेंस!' }
+  { id: 'accuracy_sniper', icon: '🎯', title: 'Accuracy Sniper', desc: 'टेस्ट में 90%+ एक्यूरेसी हासिल की।' }
 ];
-
-function showAchievementUnlock(icon, title, description) {
-  const achIcon = document.getElementById('ach-icon');
-  const achTitle = document.getElementById('ach-title');
-  const achDesc = document.getElementById('ach-desc');
-  const popup = document.getElementById('achievement-popup');
-
-  if (achIcon) achIcon.innerText = icon;
-  if (achTitle) achTitle.innerText = title;
-  if (achDesc) achDesc.innerText = description;
-  if (popup) popup.style.display = 'flex';
-}
-
-function closeAchievementPopup() {
-  const popup = document.getElementById('achievement-popup');
-  if (popup) popup.style.display = 'none';
-}
-
-async function awardBadgeToUser(badgeId, icon, title, description) {
-  if (!currentUserId) return;
-
-  try {
-    const { data: profile } = await supabaseClient
-      .from('profiles')
-      .select('unlocked_badges')
-      .eq('id', currentUserId)
-      .single();
-
-    let existingBadges = profile?.unlocked_badges || [];
-    if (existingBadges.includes(badgeId)) return;
-
-    existingBadges.push(badgeId);
-
-    await supabaseClient
-      .from('profiles')
-      .update({ unlocked_badges: existingBadges })
-      .eq('id', currentUserId);
-
-    showAchievementUnlock(icon, title, description);
-    loadUserAchievements();
-  } catch (err) {
-    console.error("Award badge error:", err);
-  }
-}
 
 async function loadUserAchievements() {
   const grid = document.getElementById('badges-grid');
@@ -702,71 +727,8 @@ async function loadUserAchievements() {
 }
 
 // =========================================================
-// 9. DAILY STREAK ENGINE & TOAST
+// 9. DAILY STREAK ENGINE
 // =========================================================
-async function processUserStreak() {
-  if (!currentUserId) return 1;
-
-  try {
-    const { data: profile } = await supabaseClient
-      .from('profiles')
-      .select('current_streak, last_test_date')
-      .eq('id', currentUserId)
-      .single();
-
-    const today = new Date();
-    const todayDateStr = today.toISOString().split('T')[0];
-    let streak = profile?.current_streak || 0;
-    const lastDateStr = profile?.last_test_date ? new Date(profile.last_test_date).toISOString().split('T')[0] : null;
-
-    if (!lastDateStr) {
-      streak = 1;
-    } else if (lastDateStr === todayDateStr) {
-      return streak;
-    } else {
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayDateStr = yesterday.toISOString().split('T')[0];
-
-      if (lastDateStr === yesterdayDateStr) {
-        streak += 1;
-      } else {
-        streak = 1;
-      }
-    }
-
-    await supabaseClient
-      .from('profiles')
-      .update({
-        current_streak: streak,
-        last_test_date: new Date().toISOString()
-      })
-      .eq('id', currentUserId);
-
-    renderStreakUI(streak);
-    if (streak >= 7) awardBadgeToUser('1_week_warrior', '⚔️', '1-Week Warrior', '7-day test streak completed!');
-    if (streak >= 30) awardBadgeToUser('30_day_legend', '👑', '30-Day Legend', '30 Days of non-stop prep!');
-
-    return streak;
-  } catch (err) {
-    console.error("Process streak error:", err);
-    return 1;
-  }
-}
-
-function renderStreakUI(count) {
-  const streakCountEl = document.getElementById('streakCount');
-  const streakEmojiEl = document.getElementById('streakEmoji');
-
-  let emoji = '🔥';
-  if (count >= 30) emoji = '👑';
-  else if (count >= 14) emoji = '⚡';
-  else if (count >= 7) emoji = '💥';
-
-  if (streakCountEl) streakCountEl.innerText = `${count} Days`;
-  if (streakEmojiEl) streakEmojiEl.innerText = emoji;
-}
-
 async function syncStreakOnPageLoad() {
   if (!currentUserId) return;
 
@@ -778,7 +740,8 @@ async function syncStreakOnPageLoad() {
       .single();
 
     if (profile && profile.current_streak !== undefined) {
-      renderStreakUI(profile.current_streak);
+      const streakCountEl = document.getElementById('streakCount');
+      if (streakCountEl) streakCountEl.innerText = `${profile.current_streak} Days`;
     }
   } catch (e) {
     console.error("Streak sync error:", e);
