@@ -814,3 +814,61 @@ function handleMobileNav(sectionName) {
     openSection(sectionName);
   }
 }
+
+
+// =========================================================
+// STREAK SYNC & DYNAMIC TIER EVOLUTION
+// =========================================================
+
+function renderStreakUI(count) {
+  const c = parseInt(count) || 0;
+
+  const streakCountEl = document.getElementById('streakCount');
+  const streakEmojiEl = document.getElementById('streakEmoji');
+  const drawerCountEl = document.getElementById('drawerStreakCount');
+  const drawerEmojiEl = document.getElementById('drawerStreakEmoji');
+  const drawerLabelEl = document.querySelector('.d-streak-label');
+
+  // Milestone Progression
+  let emoji = '🔥';
+  let tierTitle = 'Daily Streak';
+
+  if (c >= 30) {
+    emoji = '👑';
+    tierTitle = 'Legend Streak';
+  } else if (c >= 14) {
+    emoji = '⚡';
+    tierTitle = 'Elite Streak';
+  } else if (c >= 7) {
+    emoji = '💥';
+    tierTitle = 'Warrior Streak';
+  }
+
+  // 1. Update Desktop Navbar
+  if (streakCountEl) streakCountEl.innerText = `${c} Days`;
+  if (streakEmojiEl) streakEmojiEl.innerText = emoji;
+
+  // 2. Update Mobile Drawer
+  if (drawerCountEl) drawerCountEl.innerText = `${c} Days`;
+  if (drawerEmojiEl) drawerEmojiEl.innerText = emoji;
+  if (drawerLabelEl) drawerLabelEl.innerText = tierTitle;
+}
+
+// Page load hone par Supabase se streak fetch karke UI render karna
+async function syncStreakOnPageLoad() {
+  if (!currentUserId) return;
+
+  try {
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('current_streak')
+      .eq('id', currentUserId)
+      .single();
+
+    if (profile && profile.current_streak !== undefined) {
+      renderStreakUI(profile.current_streak);
+    }
+  } catch (e) {
+    console.error("Streak sync error:", e);
+  }
+}
