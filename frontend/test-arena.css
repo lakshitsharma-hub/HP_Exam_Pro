@@ -426,3 +426,39 @@ body {
   align-items: center;
   gap: 6px;
 }
+
+/* =========================================================
+   CUSTOM SLEEK SCROLLBARS (HOMEPAGE SYNC)
+   ========================================================= */
+
+/* Firefox Support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(56, 189, 248, 0.25) transparent;
+}
+
+/* Chrome, Edge, Safari Support */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-cbt, #38bdf8);
+}
+
+/* Question Viewport & Palette Sidebar Clean Spacing */
+.question-viewport, 
+.palette-sidebar {
+  scrollbar-gutter: stable;
+}
