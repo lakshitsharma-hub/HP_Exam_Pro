@@ -40,28 +40,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function fetchQuestionsFromBackend() {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/questions/${currentExamType}?user_id=${currentUserId}&t=${Date.now()}`);
-    
-    if (response.status === 403) {
-      const errorData = await response.json();
-      alert('👑 Pro Feature: ' + errorData.detail);
-      window.location.href = "index.html";
-      return;
-    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const isReattempt = urlParams.get('reattempt') === 'true';
+    const savedSnapshot = sessionStorage.getItem('hp_reattempt_snapshot');
 
-    const data = await response.json();
+    let data = null;
+
+    if (isReattempt && savedSnapshot) {
+      data = JSON.parse(savedSnapshot);
+      sessionStorage.removeItem('hp_reattempt_snapshot');
+    } else {
+      const response = await fetch(`${API_BASE_URL}/api/questions/${currentExamType}?user_id=${currentUserId}&t=${Date.now()}`);
+      
+      if (response.status === 403) {
+        const errorData = await response.json();
+        alert('👑 Pro Feature: ' + errorData.detail);
+        window.location.href = "index.html";
+        return;
+      }
+
+      data = await response.json();
+    }
 
     if (data && data.length > 0) {
       rawQuestionsData = data;
       examQuestions = data.map((q) => ({
         id: q.id,
-        text_hi: q.question_text || q.question || "",
-        opt1_hi: q.opt1 || "",
-        opt2_hi: q.opt2 || "",
-        opt3_hi: q.opt3 || "",
-        opt4_hi: q.opt4 || "",
+        text_hi: q.question_text || q.question || q.text_hi || q.text || "",
+        opt1_hi: q.opt1 || q.opt1_hi || (q.options ? q.options[0] : "") || "",
+        opt2_hi: q.opt2 || q.opt2_hi || (q.options ? q.options[1] : "") || "",
+        opt3_hi: q.opt3 || q.opt3_hi || (q.options ? q.options[2] : "") || "",
+        opt4_hi: q.opt4 || q.opt4_hi || (q.options ? q.options[3] : "") || "",
         translated_en: null,
-        ans: q.correct_option || q.answer || q.correct_answer || q.correct,
+        ans: q.correct_option || q.answer || q.correct_answer || q.correct || q.ans,
         userSelected: null,
         state: "not-visited"
       }));
@@ -72,7 +83,7 @@ async function fetchQuestionsFromBackend() {
       timeLeft = currentExamType === 'hp_police' ? 7200 : 5400;
       startTimer();
     } else {
-      alert("इस परीक्षा के सवाल डेटाबेस में उपलब्ध नहीं हैं।");
+      alert("Questions could not be loaded. Please try again.");
       window.location.href = "index.html";
     }
   } catch (error) {
@@ -109,7 +120,6 @@ async function loadQuestion(index) {
 
   document.getElementById("qCurrentIndex").innerText = `Question ${index + 1} of ${examQuestions.length}`;
 
-  // Check if English translation is needed and not already cached
   if (currentLanguage === 'en' && !q.translated_en) {
     document.getElementById("questionText").innerText = "⏳ Translating to English...";
     q.translated_en = {
@@ -415,7 +425,7 @@ async function submitQuestionQuery() {
         issue_text: `${issueType}: ${comment}`
       })
     });
-    alert("✓ आपकी आपत्ति दर्ज कर ली गई है।");
+    alert("✓ Your query/objection has been registered successfully.");
     closeQueryModal();
   } catch (e) {
     alert("Objection submission failed.");
