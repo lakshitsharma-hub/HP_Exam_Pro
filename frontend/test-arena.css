@@ -462,3 +462,147 @@ body {
 .palette-sidebar {
   scrollbar-gutter: stable;
 }
+
+/* =========================================================
+   MOBILE & TABLET RESPONSIVE FIX (TEST ARENA)
+   ========================================================= */
+
+@media (max-width: 860px) {
+  /* 1. Body & Screen Unlock */
+  body {
+    height: auto !important;
+    min-height: 100vh;
+    overflow-y: auto !important;
+  }
+
+  /* 2. Compact Header */
+  .exam-header {
+    height: auto !important;
+    padding: 10px 14px !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .test-title-group h2 {
+    font-size: 0.88rem !important;
+  }
+
+  .test-sub-meta {
+    display: none !important; /* Mobile space optimization */
+  }
+
+  .exam-header-right {
+    width: 100% !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+  }
+
+  .font-resizer-box {
+    display: none !important;
+  }
+
+  .lang-switch-box {
+    padding: 2px 6px !important;
+  }
+
+  .cbt-timer-box {
+    padding: 4px 10px !important;
+  }
+
+  .t-val {
+    font-size: 0.95rem !important;
+  }
+
+  .btn-end-test {
+    padding: 6px 12px !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* 3. Grid to Single Column Flow */
+  .exam-body-grid {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .question-viewport {
+    padding: 16px 14px 110px 14px !important; /* Bottom fixed bar ke liye space */
+    border-right: none !important;
+    overflow: visible !important;
+    width: 100% !important;
+  }
+
+  .q-text-card {
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 18px !important;
+  }
+
+  .option-btn {
+    padding: 12px 14px !important;
+    font-size: 0.88rem !important;
+  }
+
+  /* 4. Bottom Sticky Fixed Action Footer */
+  .q-action-footer {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: #0f172a !important;
+    border-top: 1px solid var(--border-cbt) !important;
+    padding: 10px 14px !important;
+    z-index: 1000 !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.6) !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+
+  .footer-left-actions {
+    display: flex !important;
+    gap: 6px !important;
+  }
+
+  .footer-left-actions .btn-nav-outline {
+    padding: 8px 10px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .footer-right-nav {
+    display: flex !important;
+    gap: 6px !important;
+    flex: 1 !important;
+    justify-content: flex-end !important;
+  }
+
+  .btn-nav-secondary, 
+  .btn-nav-primary {
+    padding: 8px 14px !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* 5. Mobile Palette Sidebar Flow */
+  .palette-sidebar {
+    border-top: 1px solid var(--border-cbt) !important;
+    padding: 16px 14px 120px 14px !important;
+    background: var(--panel-bg) !important;
+  }
+
+  .palette-number-grid {
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 6px !important;
+    max-height: 220px !important;
+  }
+
+  .palette-bubble {
+    font-size: 0.78rem !important;
+  }
+
+  /* 6. Scorecard & Query Modals */
+  .submit-modal-card {
+    padding: 20px 16px !important;
+    width: 95% !important;
+  }
+}
