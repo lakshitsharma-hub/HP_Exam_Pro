@@ -5,6 +5,7 @@ let examQuestions = [];
 let currentIndex = 0;
 let currentFontScale = 1.15;
 let currentExamType = "joa_it";
+let currentLanguage = "hi";
 let timerInterval = null;
 let timeLeft = 5400;
 let currentUserId = localStorage.getItem("current_user_id") || "test-user-123";
@@ -52,17 +53,21 @@ async function fetchQuestionsFromBackend() {
 
     if (data && data.length > 0) {
       rawQuestionsData = data;
-      examQuestions = data.map((q, index) => ({
+      examQuestions = data.map((q) => ({
         id: q.id,
-        text: q.question_text || q.question || "",
-        options: [q.opt1, q.opt2, q.opt3, q.opt4].filter(Boolean),
+        text_hi: q.question_text || q.question || "",
+        opt1_hi: q.opt1 || "",
+        opt2_hi: q.opt2 || "",
+        opt3_hi: q.opt3 || "",
+        opt4_hi: q.opt4 || "",
+        translated_en: null,
         ans: q.correct_option || q.answer || q.correct_answer || q.correct,
         userSelected: null,
         state: "not-visited"
       }));
 
       renderPalette();
-      loadQuestion(0);
+      await loadQuestion(0);
       
       timeLeft = currentExamType === 'hp_police' ? 7200 : 5400;
       startTimer();
@@ -76,7 +81,25 @@ async function fetchQuestionsFromBackend() {
   }
 }
 
-function loadQuestion(index) {
+// Auto-Translation Utility via Public Free API
+async function autoTranslate(text) {
+  if (!text || currentLanguage === 'hi') return text;
+  try {
+    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=hi|en`);
+    const data = await res.json();
+    return data.responseData ? data.responseData.translatedText : text;
+  } catch (error) {
+    console.error("Translation error:", error);
+    return text;
+  }
+}
+
+async function changeLanguage(lang) {
+  currentLanguage = lang;
+  await loadQuestion(currentIndex);
+}
+
+async function loadQuestion(index) {
   currentIndex = index;
   const q = examQuestions[index];
 
@@ -85,13 +108,34 @@ function loadQuestion(index) {
   }
 
   document.getElementById("qCurrentIndex").innerText = `Question ${index + 1} of ${examQuestions.length}`;
-  document.getElementById("questionText").innerText = q.text;
+
+  // Check if English translation is needed and not already cached
+  if (currentLanguage === 'en' && !q.translated_en) {
+    document.getElementById("questionText").innerText = "⏳ Translating to English...";
+    q.translated_en = {
+      text: await autoTranslate(q.text_hi),
+      opt1: q.opt1_hi ? await autoTranslate(q.opt1_hi) : "",
+      opt2: q.opt2_hi ? await autoTranslate(q.opt2_hi) : "",
+      opt3: q.opt3_hi ? await autoTranslate(q.opt3_hi) : "",
+      opt4: q.opt4_hi ? await autoTranslate(q.opt4_hi) : ""
+    };
+  }
+
+  const displayText = currentLanguage === 'en' && q.translated_en
+    ? q.translated_en.text
+    : q.text_hi;
+
+  const displayOptions = currentLanguage === 'en' && q.translated_en
+    ? [q.translated_en.opt1, q.translated_en.opt2, q.translated_en.opt3, q.translated_en.opt4].filter(Boolean)
+    : [q.opt1_hi, q.opt2_hi, q.opt3_hi, q.opt4_hi].filter(Boolean);
+
+  document.getElementById("questionText").innerText = displayText;
 
   const container = document.getElementById("optionsContainer");
   container.innerHTML = "";
   const prefixes = ["A", "B", "C", "D"];
 
-  q.options.forEach((opt, optIndex) => {
+  displayOptions.forEach((opt, optIndex) => {
     const optionKey = `opt${optIndex + 1}`;
     const isSelected = q.userSelected === optionKey;
 
@@ -265,6 +309,21 @@ async function finalSubmitAndExit() {
   if (currentExamType === 'hp_police') {
     finalScore = correctCount - (wrongCount * 0.25);
   }
+  finalScore = Math.max(0, parseFloat(finalScore.toFixed(2)));
+
+  const totalAttempted = correctCount + wrongCount;
+  const accuracy = totalAttempted > 0 ? Math.round((correctCount / totalAttempted) * 100) : 0;
+
+  document.getElementById("resFinalScore").innerText = finalScore;
+  document.getElementById("resCorrectCount").innerText = correctCount;
+  document.getElementById("resWrongCount").innerText = wrongCount;
+  document.getElementById("resAccuracy").innerText = accuracy + "%";
+
+  document.getElementById("scorecardModal").style.display = "flex";
+
+  if (window.confetti && finalScore > 0) {
+    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+  }
 
   const userName = localStorage.getItem("current_user_name") || "Student";
   const questionsSnapshotPayload = rawQuestionsData.length > 0 ? rawQuestionsData : examQuestions;
@@ -277,19 +336,60 @@ async function finalSubmitAndExit() {
         user_id: currentUserId,
         display_name: userName,
         exam_type: currentExamType,
-        score: Math.max(0, parseFloat(finalScore.toFixed(2))),
+        score: finalScore,
         correct_answers: correctCount,
         wrong_answers: wrongCount,
         questions_snapshot: questionsSnapshotPayload,
         user_responses: userResponsesMap
       })
     });
-    alert("🎉 Mock Test Submitted! Moving to Analytics Dashboard.");
   } catch (err) {
     console.error("Score submission error:", err);
   }
+}
 
-  window.location.href = "index.html#analytics";
+function toggleSolutionsReview() {
+  const container = document.getElementById("solutionsReviewContainer");
+  if (!container) return;
+
+  if (container.style.display === "block") {
+    container.style.display = "none";
+    return;
+  }
+
+  container.style.display = "block";
+  container.innerHTML = "";
+
+  examQuestions.forEach((q, idx) => {
+    let correctKey = q.ans;
+    if (['1', '2', '3', '4', 1, 2, 3, 4].includes(correctKey)) correctKey = 'opt' + correctKey;
+
+    const chosen = q.userSelected;
+    const isCorrect = chosen === correctKey;
+
+    const raw = rawQuestionsData[idx] || {};
+    const explanation = raw.explanation || "";
+
+    const div = document.createElement("div");
+    div.style.cssText = `
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid ${isCorrect ? 'rgba(34, 197, 94, 0.4)' : (chosen ? 'rgba(239, 68, 68, 0.4)' : 'rgba(255,255,255,0.08)')};
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+    `;
+
+    div.innerHTML = `
+      <p style="margin: 0 0 6px 0; font-weight: 700; color: #f8fafc;">Q${idx + 1}: ${q.text_hi}</p>
+      <p style="margin: 2px 0; color: ${isCorrect ? '#4ade80' : '#f87171'};">
+        <strong>Your Choice:</strong> ${chosen ? chosen.toUpperCase() : 'Unattempted'} ${isCorrect ? '✅' : '❌'}
+      </p>
+      ${!isCorrect ? `<p style="margin: 2px 0; color: #4ade80;"><strong>Correct:</strong> ${String(correctKey).toUpperCase()}</p>` : ''}
+      ${explanation ? `<p style="margin: 6px 0 0 0; color: #94a3b8; font-size: 0.75rem;">💡 ${explanation}</p>` : ''}
+    `;
+    container.appendChild(div);
+  });
 }
 
 function openQueryModal() {
