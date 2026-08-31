@@ -591,25 +591,24 @@ body {
     width: 95% !important;
   }
 }
-
-/* 5. Mobile Palette Sidebar Flow - FIX FOR CUTOFF QUESTIONS */
+/* 5. Mobile Palette Sidebar Flow - FIXED OVERLAP */
   .palette-sidebar {
     border-top: 1px solid var(--border-cbt) !important;
-    padding: 16px 14px 180px 14px !important; /* Extra bottom padding so last row is fully visible */
+    padding: 16px 14px 110px 14px !important; 
     background: var(--panel-bg) !important;
-    overflow-y: visible !important;
+    overflow: visible !important;
   }
 
   .palette-number-grid {
+    display: grid !important;
     grid-template-columns: repeat(6, 1fr) !important;
     gap: 8px !important;
-    max-height: 280px !important; /* Smooth scrollable area */
-    overflow-y: auto !important;
-    padding-bottom: 25px !important; /* Inside scroll buffer */
-    padding-right: 4px !important;
+    max-height: 220px !important; /* Fixed viewport height to prevent overflowing */
+    overflow-y: auto !important; /* Enable smooth scrolling inside grid */
+    padding-bottom: 20px !important;
   }
 
   .palette-bubble {
-    font-size: 0.85rem !important;
-    min-height: 42px !important;
+    font-size: 0.82rem !important;
+    height: 38px !important;
   }
