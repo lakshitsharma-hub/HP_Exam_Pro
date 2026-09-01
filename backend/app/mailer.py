@@ -1,33 +1,38 @@
 import os
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import requests
 
-BREVO_SMTP_KEY = os.getenv("BREVO_SMTP_KEY")
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 SENDER_EMAIL = os.getenv("SENDER_EMAIL", "hpexamproai@gmail.com")
 SUPPORT_URL = "https://hp-exam-pro.vercel.app/support.html"
 TELEGRAM_URL = "https://t.me/HPEXAM_PRO"
 
 def send_email(to_email: str, subject: str, html_body: str):
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "api-key": BREVO_API_KEY,
+        "Content-Type": "application/json",
+        "accept": "application/json"
+    }
+    payload = {
+        "sender": {
+            "name": "HP Exam Pro",
+            "email": SENDER_EMAIL
+        },
+        "to": [{"email": to_email}],
+        "subject": subject,
+        "htmlContent": html_body
+    }
+
     try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"] = f"HP Exam Pro <{SENDER_EMAIL}>"
-        msg["To"] = to_email
-        msg.attach(MIMEText(html_body, "html"))
-
-        # Brevo SMTP Relay over port 587
-        with smtplib.SMTP("smtp-relay.brevo.com", 587, timeout=15) as server:
-            server.ehlo()
-            server.starttls()
-            server.ehlo()
-            server.login(SENDER_EMAIL, BREVO_SMTP_KEY)
-            server.sendmail(SENDER_EMAIL, to_email, msg.as_string())
-
-        print(f"✅ Email delivered successfully to {to_email}")
-        return True
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        if response.status_code in [200, 201]:
+            print(f"✅ Email delivered successfully to {to_email}")
+            return True
+        else:
+            print(f"❌ Brevo API Error: {response.status_code} - {response.text}")
+            return False
     except Exception as e:
-        print(f"❌ Brevo SMTP Error for {to_email}: {e}")
+        print(f"❌ HTTP Request Error: {e}")
         return False
 
 # 1. Registration / Welcome Template
@@ -38,13 +43,11 @@ def get_welcome_html(name: str):
         <p style="color: #cbd5e1; font-size: 15px; line-height: 1.6;">
             Your account has been successfully created. You can now access exam-standard mock tests, real-time 1v1 Battle Arena challenges, and daily practice sets tailored for Himachal Pradesh competitive examinations.
         </p>
-        
         <div style="margin: 25px 0;">
             <a href="https://hp-exam-pro.vercel.app" style="display: inline-block; padding: 12px 24px; background: #2563eb; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
                 Start Practice Now 🎯
             </a>
         </div>
-
         <div style="background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(56, 189, 248, 0.2); padding: 16px; border-radius: 8px; margin: 20px 0;">
             <p style="margin: 0 0 10px 0; font-size: 14px; font-weight: bold; color: #38bdf8;">📢 Join Our Telegram Aspirants Community</p>
             <p style="margin: 0 0 12px 0; font-size: 13px; color: #94a3b8;">
@@ -54,7 +57,6 @@ def get_welcome_html(name: str):
                 Join Telegram Channel 💬
             </a>
         </div>
-
         <hr style="border: 0; border-top: 1px solid #334155; margin: 20px 0;">
         <p style="font-size: 13px; color: #94a3b8; margin: 0;">
             Have a question or facing an issue? <a href="{SUPPORT_URL}" style="color: #38bdf8; text-decoration: none;">Submit a Support Query</a>
@@ -70,19 +72,16 @@ def get_pro_html(name: str):
         <p style="color: #cbd5e1; font-size: 15px; line-height: 1.6;">
             Hello {name}, your Pro membership is now live! All premium mock test series, detailed solution breakdowns, and advanced performance metrics have been unlocked.
         </p>
-
         <div style="background: #1e293b; padding: 15px; border-radius: 8px; margin: 20px 0; font-size: 14px; color: #e2e8f0; line-height: 1.8;">
             ✔ Unlimited Full-Length Mock Tests<br>
             ✔ Complete Question Explanations & Analytics<br>
             ✔ Priority Evaluation & Support
         </div>
-
         <div style="margin: 20px 0;">
             <a href="https://hp-exam-pro.vercel.app" style="display: inline-block; padding: 12px 24px; background: #eab308; color: #0f172a; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
                 Go to Workspace 🚀
             </a>
         </div>
-
         <hr style="border: 0; border-top: 1px solid #334155; margin: 20px 0;">
         <p style="font-size: 13px; color: #94a3b8; margin: 0;">
             Need help or have billing queries? <a href="{SUPPORT_URL}" style="color: #facc15; text-decoration: none;">Contact Support Team</a>
@@ -101,13 +100,11 @@ def get_inactive_html(name: str):
         <p style="color: #cbd5e1; font-size: 14px;">
             Fresh questions, updated HP GK modules, and recent current affairs sets are now live on the platform.
         </p>
-
         <div style="margin: 25px 0;">
             <a href="https://hp-exam-pro.vercel.app" style="display: inline-block; padding: 12px 24px; background: #22c55e; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
                 Resume Daily Practice ⚡
             </a>
         </div>
-
         <hr style="border: 0; border-top: 1px solid #334155; margin: 20px 0;">
         <p style="font-size: 13px; color: #94a3b8; margin: 0;">
             Facing technical issues or have feedback? <a href="{SUPPORT_URL}" style="color: #38bdf8; text-decoration: none;">Raise a Query</a>
