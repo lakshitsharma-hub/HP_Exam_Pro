@@ -9,6 +9,9 @@ import feedparser
 from supabase import create_client, Client
 from datetime import datetime
 import razorpay
+import requests
+from .mailer import send_email, get_welcome_html, get_pro_html, get_inactive_html
+from datetime import datetime, timedelta
 
 app = FastAPI(title="HP Exam Pro API")
 
@@ -313,7 +316,13 @@ async def verify_payment_signature(payload: dict):
         
         razorpay_client.utility.verify_payment_signature(params_dict)
         supabase.table("profiles").update({"is_pro": True}).eq("id", user_id).execute()
-        
+        # ✉️ Pro Access Email Trigger
+        u_res = supabase.table("profiles").select("display_name, email").eq("id", user_id).execute()
+        if u_res.data:
+            u_name = u_res.data[0].get("display_name", "Student")
+            u_mail = u_res.data[0].get("email")
+            if u_mail:
+                send_email(u_mail, "👑 HP Exam Pro: Pro Access Activated", get_pro_html(u_name))
         return {"status": "success", "message": "👑 बधाई हो! आपका प्रो एक्सेस सफलतापूर्वक एक्टिव कर दिया गया है।"}
     except razorpay.errors.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="🔐 सुरक्षा अलर्ट: पेमेंट सिग्नेचर वेरिफिकेशन फेल हो गया!")
@@ -356,6 +365,27 @@ async def raise_question_query(data: QueryRaiseInput):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# 1. Welcome Mail Trigger (Jab user signup kare)
+@app.post("/api/user/welcome-mail")
+async def welcome_mail_trigger(payload: dict):
+    email = payload.get("email")
+    name = payload.get("name", "Student")
+    if email:
+        send_email(email, "Welcome to HP Exam Pro! 🚀", get_welcome_html(name))
+    return {"status": "success"}
+
+# 2. Inactive Users Automated Check (Cron Job ke liye)
+@app.get("/api/cron/inactive-reminder")
+async def trigger_inactive_emails():
+    cutoff = (datetime.utcnow() - timedelta(days=15)).strftime('%Y-%m-%d')
+    res = supabase.table("profiles").select("email, display_name").lte("last_active", cutoff).execute()
+    
+    users = res.data or []
+    for u in users:
+        if u.get("email"):
+            send_email(u["email"], "We Miss You on HP Exam Pro! 🔥", get_inactive_html(u.get("display_name", "Aspirant")))
+            
+    return {"status": "success", "processed_users": len(users)}
 
 # --- 6. LIVE ANALYTICS ENDPOINT ---
 @app.get("/api/analytics/{user_id}")
@@ -412,3 +442,35 @@ async def get_daily_question():
         return {"status": "error", "message": "No questions found in database."}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+
+# --- FREE PRO / SUPPORT TELEGRAM DISPATCHER --
+class SupportClaimInput(BaseModel):
+    name: str
+    email: str
+    phone: str
+    target_exam: str
+    reason: str
+
+@app.post("/api/support/claim-free-pro")
+async def claim_free_pro_access(data: SupportClaimInput):
+    try:
+        bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "YOUR_BOT_TOKEN")
+        chat_id = os.getenv("TELEGRAM_CHAT_ID", "YOUR_CHAT_ID")
+
+        text_msg = (
+            f"🎁 <b>New Free Pro Access / Support Request</b>\n\n"
+            f"👤 <b>Name:</b> {data.name}\n"
+            f"📧 <b>Email:</b> {data.email}\n"
+            f"📱 <b>Phone:</b> {data.phone}\n"
+            f"🎯 <b>Target Exam:</b> {data.target_exam}\n"
+            f"📝 <b>Reason / Query:</b>\n{data.reason}\n\n"
+            f"⏰ <i>Time: {datetime.now().strftime('%d-%m-%Y %I:%M %p')}</i>"
+        )
+
+        tg_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        requests.post(tg_url, json={"chat_id": chat_id, "text": text_msg, "parse_mode": "HTML"})
+
+        return {"status": "success", "message": "Request submitted successfully!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
