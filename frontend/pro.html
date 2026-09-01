@@ -140,52 +140,42 @@
 </div>
 <!-- Supabase JS Client (Agar pehle se load nahi hai) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  (async function checkProStatusDirect() {
+  (async function checkProRedirect() {
     try {
-      // 1. Check all possible Supabase session keys in localStorage
-      let rawSession = null;
+      // 1. Storage se session pakdo
+      let session = null;
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('sb-') || key.includes('auth-token') || key.includes('supabase'))) {
+        if (key && (key.startsWith('sb-') || key.includes('auth-token'))) {
           try {
-            const val = JSON.parse(localStorage.getItem(key));
-            if (val && (val.user || val.currentSession?.user || val.access_token)) {
-              rawSession = val;
+            const parsed = JSON.parse(localStorage.getItem(key));
+            if (parsed?.user?.id || parsed?.currentSession?.user?.id) {
+              session = parsed.user || parsed.currentSession.user;
               break;
             }
-          } catch (e) {}
+          } catch(e) {}
         }
       }
 
-      // Check if user is logged in
-      const user = rawSession?.user || rawSession?.currentSession?.user;
-      if (!user || !user.id) {
-        console.log("No logged-in user in localStorage.");
-        return;
-      }
+      if (!session || !session.id) return;
 
-      console.log("Logged in user found:", user.email || user.id);
+      // 2. Apne Supabase Project details
+      const SUPABASE_URL = "https://jitkmfqxojfppnpoxeff.supabase.co"; // <-- Replace with your URL
+      const SUPABASE_ANON_KEY = "sb_publishable_6H4ld2wexzzNexqTfOtvIw_xLkWKsif";                 // <-- Replace with your Anon Key
 
-      // 2. Direct Backend API Call for Pro Status (Render Backend ke through)
-      const res = await fetch(`https://hp-exam-pro-dixk.onrender.com/api/user/status?user_id=${user.id}`).catch(() => null);
-      
-      // Fallback: Agar local storage me pro flag hai
-      const isLocalPro = localStorage.getItem('user_is_pro') === 'true' || localStorage.getItem('is_pro') === 'true';
+      const sb = window.supabaseClient || supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      if (isLocalPro) {
-        console.log("Pro user detected via localStorage. Redirecting...");
+      const { data: profile } = await sb
+        .from('profiles')
+        .select('is_pro')
+        .eq('id', session.id)
+        .maybeSingle();
+
+      if (profile && (profile.is_pro === true || profile.is_pro === 'true')) {
+        localStorage.setItem('user_is_pro', 'true');
         window.location.replace("index.html");
-        return;
-      }
-
-      if (res && res.ok) {
-        const data = await res.json();
-        if (data.is_pro) {
-          localStorage.setItem('user_is_pro', 'true');
-          console.log("Pro user verified from backend. Redirecting...");
-          window.location.replace("index.html");
-        }
       }
     } catch (err) {
       console.error("Pro check failed:", err);
