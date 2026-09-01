@@ -7,8 +7,10 @@ SENDER_EMAIL = os.getenv("SENDER_EMAIL", "hpexamproai@gmail.com")  # Replace wit
 APP_PASSWORD = os.getenv("APP_PASSWORD", "hmihdlvyiktccudn")
 SUPPORT_URL = "https://hp-exam-pro.vercel.app/support.html"
 TELEGRAM_URL = "https://t.me/HPEXAM_PRO"
-
 def send_email(to_email: str, subject: str, html_body: str):
+    # Passwords se spaces hata kar clean karein
+    clean_password = APP_PASSWORD.replace(" ", "").strip() if APP_PASSWORD else ""
+
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
@@ -16,13 +18,18 @@ def send_email(to_email: str, subject: str, html_body: str):
         msg["To"] = to_email
         msg.attach(MIMEText(html_body, "html"))
 
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(SENDER_EMAIL, APP_PASSWORD)
+        # Port 587 with starttls (Render/Cloud servers ke liye 100% reliable)
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            server.login(SENDER_EMAIL, clean_password)
             server.sendmail(SENDER_EMAIL, to_email, msg.as_string())
+            
         print(f"✅ Email delivered successfully to {to_email}")
         return True
     except Exception as e:
-        print(f"❌ Email sending error: {e}")
+        print(f"❌ Email sending error for {to_email}: {e}")
         return False
 
 # 1. Registration / Welcome Template (With Telegram & Support Query Links)
