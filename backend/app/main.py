@@ -370,10 +370,18 @@ async def raise_question_query(data: QueryRaiseInput):
 async def welcome_mail_trigger(payload: dict):
     email = payload.get("email")
     name = payload.get("name", "Student")
+    print(f"📩 [MAIL] Attempting to send Welcome Email to: {email} ({name})")
+    
     if email:
-        send_email(email, "Welcome to HP Exam Pro! 🚀", get_welcome_html(name))
-    return {"status": "success"}
-
+        try:
+            html = get_welcome_html(name)
+            success = send_email(email, "Welcome to HP Exam Pro! 🚀", html)
+            print(f"📩 [MAIL] Result for {email}: {success}")
+            return {"status": "success" if success else "failed", "sent": success}
+        except Exception as e:
+            print(f"❌ [MAIL ERROR]: {str(e)}")
+            return {"status": "error", "message": str(e)}
+    return {"status": "skipped", "message": "No email provided"}
 # 2. Inactive Users Automated Check (Cron Job ke liye)
 @app.get("/api/cron/inactive-reminder")
 async def trigger_inactive_emails():
