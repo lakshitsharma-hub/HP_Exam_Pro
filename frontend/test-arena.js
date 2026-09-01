@@ -10,6 +10,67 @@ let timerInterval = null;
 let timeLeft = 5400;
 let currentUserId = localStorage.getItem("current_user_id") || "test-user-123";
 
+// ==================== ANTI-REPEAT QUESTION TRACKING ====================
+function getAttemptedHistoryKey() {
+  return `hp_attempted_qids_${currentExamType}_${currentUserId}`;
+}
+
+function getAttemptedQuestionIds() {
+  try {
+    const raw = localStorage.getItem(getAttemptedHistoryKey());
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function recordAttemptedQuestions(questions) {
+  try {
+    const currentList = getAttemptedQuestionIds();
+    const newIds = questions.map(q => q.id).filter(Boolean);
+    
+    // Merge unique IDs
+    const merged = Array.from(new Set([...currentList, ...newIds]));
+    
+    // Memory limit: Max 500 IDs store rakhein taaki storage overflow na ho
+    if (merged.length > 500) {
+      merged.splice(0, merged.length - 500);
+    }
+    
+    localStorage.setItem(getAttemptedHistoryKey(), JSON.stringify(merged));
+  } catch (e) {
+    console.warn("Could not save attempted question history:", e);
+  }
+}
+// =======================================================================
+
+// ==================== STATE PERSISTENCE HELPERS ====================
+function getTestSessionKey() {
+  return `hp_test_state_${currentExamType}_${currentUserId}`;
+}
+
+function saveTestState() {
+  if (!examQuestions || examQuestions.length === 0) return;
+  try {
+    const state = {
+      rawQuestionsData: rawQuestionsData,
+      examQuestions: examQuestions,
+      currentIndex: currentIndex,
+      timeLeft: timeLeft,
+      currentLanguage: currentLanguage,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(getTestSessionKey(), JSON.stringify(state));
+  } catch (e) {
+    console.warn("Session auto-save failed:", e);
+  }
+}
+
+function clearTestState() {
+  localStorage.removeItem(getTestSessionKey());
+}
+// ====================================================================
+
 document.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
   let examParam = urlParams.get('exam');
@@ -44,13 +105,45 @@ async function fetchQuestionsFromBackend() {
     const isReattempt = urlParams.get('reattempt') === 'true';
     const savedSnapshot = sessionStorage.getItem('hp_reattempt_snapshot');
 
+    // 1. Session Resume Check on Page Reload
+    if (!isReattempt) {
+      const savedSession = localStorage.getItem(getTestSessionKey());
+      if (savedSession) {
+        try {
+          const parsed = JSON.parse(savedSession);
+          const isRecent = (Date.now() - parsed.timestamp) < (3 * 60 * 60 * 1000);
+
+          if (isRecent && parsed.timeLeft > 0 && parsed.examQuestions && parsed.examQuestions.length > 0) {
+            console.log("⚡ Resuming active session...");
+            rawQuestionsData = parsed.rawQuestionsData || [];
+            examQuestions = parsed.examQuestions || [];
+            currentIndex = parsed.currentIndex || 0;
+            timeLeft = parsed.timeLeft;
+            currentLanguage = parsed.currentLanguage || "hi";
+
+            renderPalette();
+            await loadQuestion(currentIndex);
+            startTimer();
+            return;
+          }
+        } catch (e) {
+          console.warn("Session restore error:", e);
+        }
+      }
+    }
+
     let data = null;
 
     if (isReattempt && savedSnapshot) {
       data = JSON.parse(savedSnapshot);
       sessionStorage.removeItem('hp_reattempt_snapshot');
+      clearTestState();
     } else {
-      const response = await fetch(`${API_BASE_URL}/api/questions/${currentExamType}?user_id=${currentUserId}&t=${Date.now()}`);
+      // Excluded past IDs pass kar rahe hain backend ko
+      const attemptedIds = getAttemptedQuestionIds();
+      const excludeParam = attemptedIds.length > 0 ? `&exclude_ids=${attemptedIds.join(',')}` : '';
+
+      const response = await fetch(`${API_BASE_URL}/api/questions/${currentExamType}?user_id=${currentUserId}&t=${Date.now()}${excludeParam}`);
       
       if (response.status === 403) {
         const errorData = await response.json();
@@ -63,8 +156,15 @@ async function fetchQuestionsFromBackend() {
     }
 
     if (data && data.length > 0) {
-      rawQuestionsData = data;
-      examQuestions = data.map((q) => ({
+      // Client-side fallback anti-repeat prioritization (agar backend ne full pool bhej diya ho)
+      const pastSeenIds = new Set(getAttemptedQuestionIds());
+      const unseen = data.filter(q => !pastSeenIds.has(q.id));
+      const seen = data.filter(q => pastSeenIds.has(q.id));
+      
+      // Pehle fresh questions aayenge, pool khatam hone par hi purane mix honge
+      rawQuestionsData = [...unseen, ...seen];
+
+      examQuestions = rawQuestionsData.map((q) => ({
         id: q.id,
         text_hi: q.question_text || q.question || q.text_hi || q.text || "",
         opt1_hi: q.opt1 || q.opt1_hi || (q.options ? q.options[0] : "") || "",
@@ -77,10 +177,14 @@ async function fetchQuestionsFromBackend() {
         state: "not-visited"
       }));
 
+      // Current batch ke IDs ko history me record karein
+      recordAttemptedQuestions(examQuestions);
+
       renderPalette();
       await loadQuestion(0);
       
       timeLeft = currentExamType === 'hp_police' ? 7200 : 5400;
+      saveTestState();
       startTimer();
     } else {
       alert("Questions could not be loaded. Please try again.");
@@ -107,6 +211,7 @@ async function autoTranslate(text) {
 
 async function changeLanguage(lang) {
   currentLanguage = lang;
+  saveTestState();
   await loadQuestion(currentIndex);
 }
 
@@ -170,17 +275,20 @@ async function loadQuestion(index) {
 
   document.getElementById("prevBtn").disabled = (currentIndex === 0);
   updatePaletteStatus();
+  saveTestState();
 }
 
 function selectOption(optionKey) {
   examQuestions[currentIndex].userSelected = optionKey;
   examQuestions[currentIndex].state = "answered";
+  saveTestState();
   loadQuestion(currentIndex);
 }
 
 function clearSelection() {
   examQuestions[currentIndex].userSelected = null;
   examQuestions[currentIndex].state = "unanswered";
+  saveTestState();
   loadQuestion(currentIndex);
 }
 
@@ -198,6 +306,7 @@ function prevQuestion() {
 
 function markForReviewAndNext() {
   examQuestions[currentIndex].state = "review";
+  saveTestState();
   if (currentIndex < examQuestions.length - 1) {
     loadQuestion(currentIndex + 1);
   } else {
@@ -257,6 +366,11 @@ function startTimer() {
       return;
     }
     timeLeft--;
+
+    if (timeLeft % 5 === 0) {
+      saveTestState();
+    }
+
     const mins = Math.floor(timeLeft / 60);
     const secs = timeLeft % 60;
     const timerEl = document.getElementById("timeRemaining");
@@ -291,6 +405,7 @@ function closeSubmitModal() {
 async function finalSubmitAndExit() {
   clearInterval(timerInterval);
   closeSubmitModal();
+  clearTestState();
 
   let correctCount = 0;
   let wrongCount = 0;
