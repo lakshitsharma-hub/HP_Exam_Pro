@@ -872,62 +872,59 @@ function renderStreakUI(count) {
   if (drawerLabelEl) drawerLabelEl.innerText = tierTitle;
 }
 
-// Page load hone par Supabase se streak fetch karke UI render karna
-async function syncStreakOnPageLoad() {
-  if (!currentUserId) return;
-
+// Combined Live User Profile & UI Sync
+async function syncUserProfile() {
   try {
-    const { data: profile } = await supabaseClient
+    // 1. Get active Supabase client
+    const sb = window.supabaseClient || window.supabase;
+    if (!sb) return;
+
+    // 2. Get logged in user
+    const { data: { user }, error: authErr } = await sb.auth.getUser();
+    if (authErr || !user) return;
+
+    // 3. Single DB query for both streak and is_pro
+    const { data: profile, error } = await sb
       .from('profiles')
-      .select('current_streak')
-      .eq('id', currentUserId)
+      .select('current_streak, is_pro')
+      .eq('id', user.id)
       .single();
 
-    if (profile && profile.current_streak !== undefined) {
+    if (error || !profile) return;
+
+    // 4. Update Streak UI (agar streak function available ho)
+    if (profile.current_streak !== undefined && typeof renderStreakUI === 'function') {
       renderStreakUI(profile.current_streak);
     }
+
+    // 5. Update Pro Status & LocalStorage
+    const isPro = Boolean(profile.is_pro);
+    localStorage.setItem('user_is_pro', isPro ? 'true' : 'false');
+    updateProUI(isPro);
+
   } catch (e) {
-    console.error("Streak sync error:", e);
+    console.error("Profile sync error:", e);
   }
 }
 
-// main.js ya auth.js ke bottom mein
-
-// 1. Live status sync function
-async function syncUserProfile() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_pro')
-    .eq('id', user.id)
-    .single();
-
-  if (profile) {
-    localStorage.setItem('user_is_pro', profile.is_pro);
-    updateProUI(profile.is_pro);
-  }
-}
-
-// 2. UI update function
+// 6. UI Update Function (Hide/Show pro.html links)
 function updateProUI(isPro) {
-  // Jis bhi link/button par pro.html ka href hai unhe select karega
-  const proLinks = document.querySelectorAll('a[href*="pro.html"]');
   const isProActive = (isPro === true || isPro === 'true');
+  const proLinks = document.querySelectorAll('a[href*="pro.html"], .pro-nav-item, #proBtn');
 
   proLinks.forEach(el => {
-    el.style.display = isProActive ? 'none' : 'inline-flex';
+    el.style.display = isProActive ? 'none' : '';
   });
 }
 
-// Page load hote hi run karein
+// 7. Auto Run on Page Load
 document.addEventListener('DOMContentLoaded', () => {
-  // Pehle fast render ke liye localStorage check karein
+  // Fast render using cached status
   const cachedPro = localStorage.getItem('user_is_pro');
   if (cachedPro !== null) {
     updateProUI(cachedPro);
   }
-  // Fir fresh DB status fetch karke sync karein
+
+  // Live database sync
   syncUserProfile();
 });
