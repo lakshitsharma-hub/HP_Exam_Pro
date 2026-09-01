@@ -329,11 +329,11 @@ async def verify_payment_signature(payload: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-# --- 4. SCORE SUBMISSION ENDPOINT ---
+# --- 4. SCORE SUBMISSION ENDPOINT (WITH AUTOMATIC STREAK ENGINE) ---
 @app.post("/api/submit-score")
 async def submit_score(data: ScoreSubmission):
     try:
+        # 1. Insert test result record
         response = supabase.table("test_results").insert({
             "user_id": data.user_id,
             "display_name": data.display_name,
@@ -344,10 +344,58 @@ async def submit_score(data: ScoreSubmission):
             "questions_snapshot": data.questions_snapshot,
             "user_responses": data.user_responses
         }).execute()
-        return {"status": "success", "data": response.data}
+
+        # 2. Dynamic Streak Update Engine
+        new_streak = 1
+        if data.user_id and data.user_id != "test-user-123":
+            try:
+                # Fetch user's current streak and last active timestamp
+                profile_resp = supabase.table("profiles").select("current_streak, last_active_date").eq("id", data.user_id).execute()
+                
+                if profile_resp.data and len(profile_resp.data) > 0:
+                    user_profile = profile_resp.data[0]
+                    current_streak = user_profile.get("current_streak") or 0
+                    last_active_str = user_profile.get("last_active_date")
+
+                    today = datetime.utcnow().date()
+
+                    if last_active_str:
+                        try:
+                            # Clean timestamp string for parsing
+                            cleaned_ts = last_active_str.split(".")[0].replace("Z", "").replace("+00:00", "")
+                            last_active_date = datetime.fromisoformat(cleaned_ts).date()
+                            diff_days = (today - last_active_date).days
+
+                            if diff_days == 0:
+                                # Aaj already test de chuka hai -> maintain streak
+                                new_streak = max(current_streak, 1)
+                            elif diff_days == 1:
+                                # Lagataar agle din test diya -> increment streak
+                                new_streak = current_streak + 1
+                            else:
+                                # Gap 1 din se zyada ho gaya -> reset streak
+                                new_streak = 1
+                        except Exception as parse_err:
+                            print(f"Date parse fallback: {parse_err}")
+                            new_streak = 1
+                    else:
+                        new_streak = 1
+
+                    # Update Database Profile
+                    supabase.table("profiles").update({
+                        "current_streak": new_streak,
+                        "last_active_date": datetime.utcnow().isoformat()
+                    }).eq("id", data.user_id).execute()
+            except Exception as streak_err:
+                print(f"Streak calculation error: {streak_err}")
+
+        return {
+            "status": "success", 
+            "data": response.data, 
+            "updated_streak": new_streak
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 # --- 5. QUERY RAISE SYSTEM ENDPOINT ---
 @app.post("/api/query/raise")
