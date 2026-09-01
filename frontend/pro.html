@@ -141,42 +141,54 @@
 <!-- Supabase JS Client (Agar pehle se load nahi hai) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  (async function checkProStatus() {
-    // 1. Apne actual Supabase credentials verify karein
-    const SUPABASE_URL = "https://your-project.supabase.co"; // <-- Replace this
-    const SUPABASE_ANON_KEY = "your-anon-key";              // <-- Replace this
+  (async function checkProStatusDirect() {
+    try {
+      // 1. Check all possible Supabase session keys in localStorage
+      let rawSession = null;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('sb-') || key.includes('auth-token') || key.includes('supabase'))) {
+          try {
+            const val = JSON.parse(localStorage.getItem(key));
+            if (val && (val.user || val.currentSession?.user || val.access_token)) {
+              rawSession = val;
+              break;
+            }
+          } catch (e) {}
+        }
+      }
 
-    const sb = window.supabaseClient || supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      // Check if user is logged in
+      const user = rawSession?.user || rawSession?.currentSession?.user;
+      if (!user || !user.id) {
+        console.log("No logged-in user in localStorage.");
+        return;
+      }
 
-    // 2. Active Session Fetch
-    const { data: { session }, error: sessionErr } = await sb.auth.getSession();
-    
-    if (sessionErr || !session) {
-      console.log("No active user session found on pro.html");
-      return;
-    }
+      console.log("Logged in user found:", user.email || user.id);
 
-    const userId = session.user.id;
-    console.log("Checking Pro status for User ID:", userId);
+      // 2. Direct Backend API Call for Pro Status (Render Backend ke through)
+      const res = await fetch(`https://hp-exam-pro-dixk.onrender.com/api/user/status?user_id=${user.id}`).catch(() => null);
+      
+      // Fallback: Agar local storage me pro flag hai
+      const isLocalPro = localStorage.getItem('user_is_pro') === 'true' || localStorage.getItem('is_pro') === 'true';
 
-    // 3. Database Query (Apni table ka naam confirm karein: profiles / users)
-    const { data, error } = await sb
-      .from('profiles') // <-- Agar table 'users' hai toh 'users' karein
-      .select('is_pro')
-      .eq('id', userId)
-      .maybeSingle();
+      if (isLocalPro) {
+        console.log("Pro user detected via localStorage. Redirecting...");
+        window.location.replace("index.html");
+        return;
+      }
 
-    if (error) {
-      console.error("Supabase Query Error:", error);
-      return;
-    }
-
-    console.log("Fetched Profile Data:", data);
-
-    // 4. Redirect Condition
-    if (data && (data.is_pro === true || data.is_pro === "true" || data.is_pro === 1)) {
-      console.log("User is PRO. Redirecting to home...");
-      window.location.replace("index.html");
+      if (res && res.ok) {
+        const data = await res.json();
+        if (data.is_pro) {
+          localStorage.setItem('user_is_pro', 'true');
+          console.log("Pro user verified from backend. Redirecting...");
+          window.location.replace("index.html");
+        }
+      }
+    } catch (err) {
+      console.error("Pro check failed:", err);
     }
   })();
 </script>
