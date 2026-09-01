@@ -614,8 +614,8 @@ body {
     min-height: 48px !important;   /* Large touch target */
     border-radius: 10px !important;
   }
-/* Language Selector Capsule Container */
-.lang-selector-wrap {
+/* Language Selector Container */
+.lang-switch-box {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -623,18 +623,25 @@ body {
   border: 1px solid rgba(56, 189, 248, 0.25);
   padding: 4px 10px;
   border-radius: 8px;
+}
+
+/* Globe Icon & Label */
+.lang-label {
   color: #38bdf8;
   font-size: 13px;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-/* Styled Dropdown */
-.lang-selector-wrap select {
+/* Styled Select Dropdown */
+.lang-select {
   background: #0f172a;
   color: #f8fafc;
   border: 1px solid #334155;
   border-radius: 6px;
-  padding: 4px 8px;
+  padding: 3px 8px;
   font-size: 13px;
   font-weight: 500;
   outline: none;
@@ -642,13 +649,13 @@ body {
   transition: all 0.2s ease;
 }
 
-.lang-selector-wrap select:hover,
-.lang-selector-wrap select:focus {
+.lang-select:hover,
+.lang-select:focus {
   border-color: #38bdf8;
   box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
 }
 
-.lang-selector-wrap select option {
+.lang-select option {
   background: #0f172a;
   color: #ffffff;
 }
