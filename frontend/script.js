@@ -226,6 +226,14 @@ function handleProtectedExam(examType) {
     openAuthModal();
     return;
   }
+
+  // 👑 Pro Check: Agar user Pro member nahi hai toh pro.html par redirect karein
+  if (currentProfile && !currentProfile.is_pro) {
+    alert("🔒 Full-length Mock Tests are available for Pro Members. Upgrade to Pro for ₹99 to unlock all 15 tests!");
+    window.location.href = "pro.html";
+    return;
+  }
+
   window.location.href = `test-arena.html?exam=${encodeURIComponent(examType)}`;
 }
 
