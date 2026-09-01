@@ -4,7 +4,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 SENDER_EMAIL = os.getenv("SENDER_EMAIL", "hpexamproai@gmail.com")  # Replace with your Gmail or set in Render Env
-APP_PASSWORD = os.getenv("APP_PASSWORD", "hmihdlvyiktccudn")
+APP_PASSWORD = os.getenv("APP_PASSWORD", "bbigsgfwykdxoclh")
 SUPPORT_URL = "https://hp-exam-pro.vercel.app/support.html"
 TELEGRAM_URL = "https://t.me/HPEXAM_PRO"
 def send_email(to_email: str, subject: str, html_body: str):
