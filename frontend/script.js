@@ -98,6 +98,17 @@ async function handleAuthAction() {
     } else {
       const { data, error } = await supabaseClient.auth.signUp({ email, password });
       if (error) throw error;
+
+      // ✉️ Backend ko Welcome Email trigger bhejo
+      fetch("https://hp-exam-pro-dixk.onrender.com/api/user/welcome-mail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email,
+          name: email.split("@")[0]
+        })
+      }).catch(err => console.log("Welcome email error:", err));
+
       alert("✅ Registration Successful! Please login with your credentials.");
       switchAuthTab("login");
     }
@@ -109,7 +120,6 @@ async function handleAuthAction() {
     btn.disabled = false;
   }
 }
-
 async function loginWithGoogle() {
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: 'google',
