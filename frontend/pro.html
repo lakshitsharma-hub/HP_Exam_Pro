@@ -138,6 +138,38 @@
 
     <a href="https://hp-exam-pro.vercel.app" class="back-link">← Return to Dashboard</a>
 </div>
+<!-- Supabase JS Client (Agar pehle se load nahi hai) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<script>
+  // Apne Project ke Supabase URL aur Anon Key yahan verify karein
+  const SUPABASE_URL = "AAPKA_SUPABASE_PROJECT_URL";
+  const SUPABASE_ANON_KEY = "AAPKI_SUPABASE_ANON_KEY";
+  
+  // Agar window.supabaseClient pehle se initialized hai toh use use karega, warna naya banayega
+  const client = window.supabaseClient || supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  async function redirectIfPro() {
+    try {
+      const { data: { user } } = await client.auth.getUser();
+      if (!user) return; // Agar login nahi hai toh normal pro.html render hone de
+
+      const { data: profile } = await client
+        .from('profiles')
+        .select('is_pro')
+        .eq('id', user.id)
+        .single();
+
+      if (profile && (profile.is_pro === true || profile.is_pro === 'true')) {
+        // Already Pro user ko home/dashboard par bhej dein
+        window.location.replace('/index.html');
+      }
+    } catch (err) {
+      console.error("Pro check error:", err);
+    }
+  }
+
+  redirectIfPro();
+</script>
 </body>
 </html>
