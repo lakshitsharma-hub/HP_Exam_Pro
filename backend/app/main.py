@@ -329,7 +329,7 @@ async def verify_payment_signature(payload: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- 4. SCORE SUBMISSION ENDPOINT (WITH AUTOMATIC STREAK ENGINE) ---
+# --- 4. SCORE SUBMISSION ENDPOINT (WITH EXACT COLUMN NAMES) ---
 @app.post("/api/submit-score")
 async def submit_score(data: ScoreSubmission):
     try:
@@ -349,31 +349,31 @@ async def submit_score(data: ScoreSubmission):
         new_streak = 1
         if data.user_id and data.user_id != "test-user-123":
             try:
-                # Fetch user's current streak and last active timestamp
-                profile_resp = supabase.table("profiles").select("current_streak, last_active_date").eq("id", data.user_id).execute()
+                # Fetch profile with exact column names: current_streak, last_test_date
+                profile_resp = supabase.table("profiles").select("current_streak, last_test_date").eq("id", data.user_id).execute()
                 
                 if profile_resp.data and len(profile_resp.data) > 0:
                     user_profile = profile_resp.data[0]
                     current_streak = user_profile.get("current_streak") or 0
-                    last_active_str = user_profile.get("last_active_date")
+                    last_test_str = user_profile.get("last_test_date")
 
                     today = datetime.utcnow().date()
 
-                    if last_active_str:
+                    if last_test_str:
                         try:
-                            # Clean timestamp string for parsing
-                            cleaned_ts = last_active_str.split(".")[0].replace("Z", "").replace("+00:00", "")
-                            last_active_date = datetime.fromisoformat(cleaned_ts).date()
-                            diff_days = (today - last_active_date).days
+                            # Clean ISO timestamp
+                            cleaned_ts = last_test_str.split(".")[0].replace("Z", "").replace("+00:00", "")
+                            last_test_date = datetime.fromisoformat(cleaned_ts).date()
+                            diff_days = (today - last_test_date).days
 
                             if diff_days == 0:
-                                # Aaj already test de chuka hai -> maintain streak
+                                # Same day test -> streak maintain rahegi
                                 new_streak = max(current_streak, 1)
                             elif diff_days == 1:
-                                # Lagataar agle din test diya -> increment streak
+                                # Consecutive day -> streak + 1
                                 new_streak = current_streak + 1
                             else:
-                                # Gap 1 din se zyada ho gaya -> reset streak
+                                # Gap > 1 day -> streak reset to 1
                                 new_streak = 1
                         except Exception as parse_err:
                             print(f"Date parse fallback: {parse_err}")
@@ -381,10 +381,10 @@ async def submit_score(data: ScoreSubmission):
                     else:
                         new_streak = 1
 
-                    # Update Database Profile
+                    # Update Database Profile using last_test_date
                     supabase.table("profiles").update({
                         "current_streak": new_streak,
-                        "last_active_date": datetime.utcnow().isoformat()
+                        "last_test_date": datetime.utcnow().isoformat()
                     }).eq("id", data.user_id).execute()
             except Exception as streak_err:
                 print(f"Streak calculation error: {streak_err}")
