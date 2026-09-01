@@ -907,14 +907,24 @@ async function syncUserProfile() {
   }
 }
 
-// 6. UI Update Function (Hide/Show pro.html links)
 function updateProUI(isPro) {
   const isProActive = (isPro === true || isPro === 'true');
-  const proLinks = document.querySelectorAll('a[href*="pro.html"], .pro-nav-item, #proBtn');
 
-  proLinks.forEach(el => {
-    el.style.display = isProActive ? 'none' : '';
+  // 1. Pro navigation tabs / links ko select karo
+  const proElements = document.querySelectorAll('a[href*="pro.html"], a[href*="pro"], .pro-btn, .pro-tab');
+
+  proElements.forEach(el => {
+    // Agar text me "Get Pro" hai ya href pro.html hai
+    if (el.href?.includes('pro') || el.innerText?.includes('Get Pro') || el.innerText?.includes('👑')) {
+      el.style.display = isProActive ? 'none' : 'inline-flex';
+    }
   });
+
+  // Agar user Pro hai toh streak ke paas badge dikhana chahein toh:
+  const proBadge = document.getElementById('navbarProBadge');
+  if (proBadge) {
+    proBadge.style.display = isProActive ? 'inline-flex' : 'none';
+  }
 }
 
 // 7. Auto Run on Page Load
