@@ -1378,3 +1378,15 @@ body {
   font-weight: 800;
   color: #f59e0b;
 }
+
+.desktop-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Pehle agar 20px+ tha toh thoda kam kiya */
+  white-space: nowrap; /* Text ko 2 lines mein tootne se rokega */
+}
+
+.nav-link {
+  white-space: nowrap;
+  font-size: 13px; /* Agar font bada hai toh 13px-13.5px kar dein */
+}
