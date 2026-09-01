@@ -890,3 +890,44 @@ async function syncStreakOnPageLoad() {
     console.error("Streak sync error:", e);
   }
 }
+
+// main.js ya auth.js ke bottom mein
+
+// 1. Live status sync function
+async function syncUserProfile() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_pro')
+    .eq('id', user.id)
+    .single();
+
+  if (profile) {
+    localStorage.setItem('user_is_pro', profile.is_pro);
+    updateProUI(profile.is_pro);
+  }
+}
+
+// 2. UI update function
+function updateProUI(isPro) {
+  // Jis bhi link/button par pro.html ka href hai unhe select karega
+  const proLinks = document.querySelectorAll('a[href*="pro.html"]');
+  const isProActive = (isPro === true || isPro === 'true');
+
+  proLinks.forEach(el => {
+    el.style.display = isProActive ? 'none' : 'inline-flex';
+  });
+}
+
+// Page load hote hi run karein
+document.addEventListener('DOMContentLoaded', () => {
+  // Pehle fast render ke liye localStorage check karein
+  const cachedPro = localStorage.getItem('user_is_pro');
+  if (cachedPro !== null) {
+    updateProUI(cachedPro);
+  }
+  // Fir fresh DB status fetch karke sync karein
+  syncUserProfile();
+});
