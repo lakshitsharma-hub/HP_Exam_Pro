@@ -262,7 +262,7 @@ async function generateTestPDF(examType) {
 
                 <!-- 🟢 WhatsApp Support (सिर्फ एकदम आखिरी पेज के अंत में छपेगा) -->
                 <div style="margin-top: 40px; padding-top: 15px; border-top: 1px dashed #cbd5e1; text-align: center; font-size: 13px; color: #1e293b;">
-                    💬 <b>For Support & Queries, WhatsApp Only (Strictly No Calls): +91 86289-11975</b>
+                    💬 <b>For Support & Queries visit https://hp-exam-pro.vercel.app/support.html</b>
                 </div>
 
                 <script>
