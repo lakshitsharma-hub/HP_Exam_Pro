@@ -8,3 +8,4 @@ pydantic
 supabase
 feedparser
 razorpay
+requests
