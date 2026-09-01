@@ -6,21 +6,14 @@ SENDER_EMAIL = os.getenv("SENDER_EMAIL", "hpexamproai@gmail.com")
 SUPPORT_URL = "https://hp-exam-pro.vercel.app/support.html"
 TELEGRAM_URL = "https://t.me/HPEXAM_PRO"
 
-import os
-import requests
-
-BREVO_API_KEY = os.getenv("BREVO_API_KEY", "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")
-SENDER_EMAIL = os.getenv("SENDER_EMAIL", "hpexamproai@gmail.com")
-SUPPORT_URL = "https://hp-exam-pro.vercel.app/support.html"
-TELEGRAM_URL = "https://t.me/HPEXAM_PRO"
-
 def send_email(to_email: str, subject: str, html_body: str):
-    # Strip any extra spaces from the key
-    clean_key = BREVO_API_KEY.strip() if BREVO_API_KEY else ""
+    if not BREVO_API_KEY:
+        print("❌ BREVO_API_KEY environment variable is not set!")
+        return False
 
     url = "https://api.brevo.com/v3/smtp/email"
     headers = {
-        "api-key": clean_key,
+        "api-key": BREVO_API_KEY.strip(),
         "accept": "application/json",
         "content-type": "application/json"
     }
@@ -49,6 +42,8 @@ def send_email(to_email: str, subject: str, html_body: str):
     except Exception as e:
         print(f"❌ HTTP Request Error: {e}")
         return False
+
+
 # 1. Registration / Welcome Template
 def get_welcome_html(name: str):
     return f"""
