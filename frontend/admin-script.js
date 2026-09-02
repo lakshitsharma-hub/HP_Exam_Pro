@@ -193,6 +193,7 @@ async function openUserAttemptsModal(userId, displayName) {
     content.innerHTML = listHtml;
 }
 
+// 👁️ Candidate ke question-wise marked options render karna
 function viewAttemptedResponsesByIndex(index) {
     const att = currentModalAttempts[index];
     if (!att) return;
@@ -200,34 +201,56 @@ function viewAttemptedResponsesByIndex(index) {
     const container = document.getElementById('reviewModalContent');
     document.getElementById('reviewModalTitle').innerText = `${(att.exam_type || 'Test').toUpperCase()} Response Sheet`;
 
-    let answers = att.responses || att.user_answers || att.answers || {};
-    if (typeof answers === 'string') {
-        try { answers = JSON.parse(answers); } catch(e) {}
-    }
+    const snapshot = att.questions_snapshot || [];
+    const responses = att.user_responses || {};
 
-    const keys = Object.keys(answers);
-    if (keys.length === 0) {
-        container.innerHTML = '<p style="padding: 20px; text-align: center; color: #94a3b8;">Detailed question map is empty for this session.</p>';
+    if (snapshot.length === 0) {
+        container.innerHTML = '<p style="padding: 20px; text-align: center; color: #94a3b8;">Detailed questions snapshot is empty for this test.</p>';
     } else {
         let qCards = '';
-        let i = 1;
-        keys.forEach(qid => {
-            const val = answers[qid];
-            const userAns = typeof val === 'object' && val !== null ? val.selected : val;
-            const correctAns = typeof val === 'object' && val !== null ? val.correct : 'N/A';
-            const isMatched = userAns && correctAns && (String(userAns).trim().toLowerCase() === String(correctAns).trim().toLowerCase());
+        snapshot.forEach((q, i) => {
+            const qNum = i + 1;
+            const qId = q.id || qNum;
+            const userMarkedKey = responses[qId] || responses[String(qId)] || null;
+
+            // Normalize Correct Option (e.g. '3' -> 'opt3', ya 'opt3')
+            let rawCorrect = q.correct_option || q.answer || q.correct_answer || '';
+            let correctKey = rawCorrect;
+            if (['1', '2', '3', '4', 1, 2, 3, 4].includes(rawCorrect)) {
+                correctKey = 'opt' + rawCorrect;
+            }
+
+            const isAttempted = Boolean(userMarkedKey);
+            const isCorrect = isAttempted && String(userMarkedKey).toLowerCase() === String(correctKey).toLowerCase();
+
+            // Label Helper
+            const getOptText = (optKey) => {
+                if (!optKey) return 'Not Attempted';
+                const text = q[optKey] || optKey;
+                const letter = optKey.replace('opt', '').toUpperCase();
+                return `(${letter}) ${text}`;
+            };
 
             qCards += `
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 10px;">
-                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 13px;">
-                        <span>Question #${i++}</span>
-                        <span style="color: ${isMatched ? '#16a34a' : (userAns ? '#dc2626' : '#64748b')};">
-                            ${isMatched ? '✅ Correct' : (userAns ? '❌ Incorrect' : '⚪ Skipped')}
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px;">
+                        <span style="font-weight: 700; color: #0f172a; font-size: 14px;">Q${qNum}. ${q.question_text || q.question}</span>
+                        <span style="font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 6px; white-space: nowrap; ${
+                            isCorrect ? 'background: #dcfce7; color: #166534;' : 
+                            (isAttempted ? 'background: #fee2e2; color: #991b1b;' : 'background: #f1f5f9; color: #64748b;')
+                        }">
+                            ${isCorrect ? '✅ Correct' : (isAttempted ? '❌ Incorrect' : '⚪ Skipped')}
                         </span>
                     </div>
-                    <div style="margin-top: 8px; font-size: 13px;">
-                        <b>Candidate Marked:</b> <span style="background: #e2e8f0; padding: 2px 8px; border-radius: 4px;">${userAns || 'Not Answered'}</span>
-                        &nbsp;|&nbsp; <b>Correct:</b> <span style="background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 4px;">${correctAns}</span>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12px; color: #475569; margin-bottom: 10px; padding-left: 6px;">
+                        <div style="${correctKey === 'opt1' ? 'font-weight: bold; color: #16a34a;' : ''}">(A) ${q.opt1 || ''}</div>
+                        <div style="${correctKey === 'opt2' ? 'font-weight: bold; color: #16a34a;' : ''}">(B) ${q.opt2 || ''}</div>
+                        <div style="${correctKey === 'opt3' ? 'font-weight: bold; color: #16a34a;' : ''}">(C) ${q.opt3 || ''}</div>
+                        <div style="${correctKey === 'opt4' ? 'font-weight: bold; color: #16a34a;' : ''}">(D) ${q.opt4 || ''}</div>
+                    </div>
+                    <div style="background: #f8fafc; padding: 8px 12px; border-radius: 6px; font-size: 12px; border-left: 3px solid ${isCorrect ? '#10b981' : (isAttempted ? '#ef4444' : '#94a3b8')};">
+                        <b>Candidate Selected:</b> <span style="font-weight: 600;">${getOptText(userMarkedKey)}</span> 
+                        &nbsp;|&nbsp; <b>Correct Option:</b> <span style="color: #16a34a; font-weight: 700;">${getOptText(correctKey)}</span>
                     </div>
                 </div>
             `;
@@ -240,59 +263,87 @@ function viewAttemptedResponsesByIndex(index) {
     revModal.style.display = 'flex';
 }
 
+// 📄 Candidate Scorecard & Full Attempt Sheet PDF
 function generateUserAttemptPDFByIndex(index) {
     const att = currentModalAttempts[index];
     if (!att) return;
 
-    let answers = att.responses || att.user_answers || att.answers || {};
-    if (typeof answers === 'string') {
-        try { answers = JSON.parse(answers); } catch(e) {}
-    }
-
+    const snapshot = att.questions_snapshot || [];
+    const responses = att.user_responses || {};
     const win = window.open('', '_blank');
-    let responseList = '';
-    let i = 1;
 
-    Object.keys(answers).forEach(qid => {
-        const val = answers[qid];
-        const u = typeof val === 'object' && val !== null ? val.selected : val;
-        const c = typeof val === 'object' && val !== null ? val.correct : 'N/A';
+    let responseList = '';
+    snapshot.forEach((q, i) => {
+        const qNum = i + 1;
+        const qId = q.id || qNum;
+        const userMarkedKey = responses[qId] || responses[String(qId)] || null;
+
+        let rawCorrect = q.correct_option || q.answer || q.correct_answer || '';
+        let correctKey = rawCorrect;
+        if (['1', '2', '3', '4', 1, 2, 3, 4].includes(rawCorrect)) {
+            correctKey = 'opt' + rawCorrect;
+        }
+
+        const isAttempted = Boolean(userMarkedKey);
+        const isCorrect = isAttempted && String(userMarkedKey).toLowerCase() === String(correctKey).toLowerCase();
+
+        const getOptionTitle = (k) => {
+            if (!k) return 'Skipped';
+            const letter = k.replace('opt', '').toUpperCase();
+            return `(${letter}) ${q[k] || k}`;
+        };
+
         responseList += `
-            <div style="border-bottom: 1px solid #cbd5e1; padding: 6px 0; font-size: 12px; page-break-inside: avoid; break-inside: avoid;">
-                <b>Q${i++}:</b> Selected: <u>${u || 'Skipped'}</u> | Correct Key: <b>${c}</b>
+            <div style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; break-inside: avoid; page-break-inside: avoid;">
+                <p style="margin: 0 0 6px 0; font-size: 13px; font-weight: bold; color: #0f172a;">
+                    Q${qNum}. ${q.question_text || q.question}
+                </p>
+                <div style="font-size: 12px; color: #334155;">
+                    Candidate Marked: <b>${getOptionTitle(userMarkedKey)}</b> 
+                    &nbsp;|&nbsp; Correct Key: <b style="color: #166534;">${getOptionTitle(correctKey)}</b> 
+                    &nbsp;→ <b>${isCorrect ? '✅ (+1)' : (isAttempted ? '❌ (-0.25)' : '⚪ (0)')}</b>
+                </div>
             </div>
         `;
     });
 
     const html = `
+        <!DOCTYPE html>
         <html>
         <head>
             <title>${currentModalCandidateName} - Scorecard</title>
             <style>
-                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 30px; color: #0f172a; }
-                .card { border: 1px solid #cbd5e1; padding: 15px; border-radius: 8px; margin-bottom: 20px; background: #f8fafc; }
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 25px; color: #0f172a; line-height: 1.4; }
+                .summary-box { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: #f8fafc; border: 1px solid #cbd5e1; padding: 14px; border-radius: 8px; margin-bottom: 20px; }
+                .summary-item { font-size: 12px; }
+                .summary-item b { font-size: 14px; color: #0f172a; display: block; margin-top: 2px; }
+                @media print {
+                    body { padding: 10px; }
+                }
             </style>
         </head>
         <body>
-            <h2>🏔️ HP Exam Pro - Candidate Scorecard</h2>
-            <div class="card">
-                <p><b>Candidate:</b> ${currentModalCandidateName}</p>
-                <p><b>Target Exam:</b> ${(att.exam_type || '').toUpperCase()}</p>
-                <p><b>Score Secured:</b> ${att.score ?? 'N/A'}</p>
-                <p><b>Generated At:</b> ${new Date().toLocaleString()}</p>
+            <h2 style="margin: 0 0 4px 0;">🏔️ HP Exam Pro - Individual Candidate Audit</h2>
+            <p style="margin: 0 0 15px 0; color: #64748b; font-size: 13px;">Target Exam: ${(att.exam_type || '').toUpperCase()} | Date: ${new Date(att.created_at).toLocaleString()}</p>
+            
+            <div class="summary-box">
+                <div class="summary-item">Candidate: <b>${currentModalCandidateName}</b></div>
+                <div class="summary-item">Final Score: <b style="color: #2563eb;">${att.score ?? 'N/A'}</b></div>
+                <div class="summary-item">Correct Answers: <b style="color: #16a34a;">${att.correct_answers ?? 0}</b></div>
+                <div class="summary-item">Wrong Answers: <b style="color: #dc2626;">${att.wrong_answers ?? 0}</b></div>
             </div>
-            <h3>Detailed Responses Audit</h3>
-            ${responseList || '<p>No question map available.</p>'}
-            <script>window.onload = function() { window.print(); };</script>
+
+            <h3 style="border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 12px;">Detailed Question Responses</h3>
+            <div>${responseList || '<p>No questions snapshot stored.</p>'}</div>
+
+            <script>
+                window.onload = function() { setTimeout(() => { window.print(); }, 400); };
+            </script>
         </body>
         </html>
     `;
     win.document.write(html);
     win.document.close();
-}
-
-function closeModal(id) {
-    document.getElementById(id).style.display = 'none';
 }
 
 // --- 5. CLEAN ANTI-CUT MOCK TEST PDF GENERATOR ---
