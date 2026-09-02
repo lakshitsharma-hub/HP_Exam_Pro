@@ -181,13 +181,20 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
             res = query.execute()
             data = res.data if res.data else []
 
-            # Filter out already selected IDs in this test session
+           # Filter out already selected IDs in this test session
             available = [q for q in data if q.get("id") not in selected_ids]
 
+            # 🖥️ Computer Cap: JOA IT ke alawa baaki exams (Patwari/Police) mein sirf Easy aayenge
+            if subject_name == 'computer' and exam_type != 'joa_it':
+                available = [
+                    q for q in available 
+                    if (q.get("difficulty") or "").lower() not in ["tough", "hard", "medium"]
+                ]
+
             # Segregate by difficulty levels
-            tough_pool = [q for q in available if (q.get("difficulty") or "").lower() == "tough"]
+            tough_pool = [q for q in available if (q.get("difficulty") or "").lower() in ["tough", "hard"]]
             medium_pool = [q for q in available if (q.get("difficulty") or "").lower() == "medium"]
-            easy_pool = [q for q in available if (q.get("difficulty") or "").lower() not in ["tough", "medium"]]
+            easy_pool = [q for q in available if (q.get("difficulty") or "").lower() not in ["tough", "hard", "medium"]]
 
             # Calculate 30:40:30 target proportions
             target_tough = int(round(count * 0.30))
