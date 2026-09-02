@@ -6,6 +6,7 @@ const SB_URL = "https://jitkmfqxojfppnpoxeff.supabase.co";
 const SB_KEY = "sb_publishable_6H4ld2wexzzNexqTfOtvIw_xLkWKsif";
 
 const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+window.supabaseClient = supabaseClient; // 👈 yeh add karein
 
 let currentAuthMode = 'login';
 let currentUserId = localStorage.getItem("current_user_id") || null;
@@ -874,21 +875,20 @@ function renderStreakUI(count) {
 
 // Combined Live User Profile & UI Sync
 async function syncUserProfile() {
-  const sb = window.supabaseClient || window.supabase;
-  if (!sb) return;
+  const sb = window.supabaseClient;
+  if (!sb || !sb.auth) return;
 
   try {
-    // 1. Get logged in user (Single call)
     const { data: { user }, error: authErr } = await sb.auth.getUser();
     if (authErr || !user) return;
 
-    // 2. Update last_active on every visit/refresh
+    // 1. Update last_active on every visit/refresh
     await sb
       .from('profiles')
       .update({ last_active: new Date().toISOString() })
       .eq('id', user.id);
 
-    // 3. Single DB query for both streak and is_pro
+    // 2. Fetch streak and pro status
     const { data: profile, error } = await sb
       .from('profiles')
       .select('current_streak, is_pro')
@@ -897,12 +897,10 @@ async function syncUserProfile() {
 
     if (error || !profile) return;
 
-    // 4. Update Streak UI (agar streak function available ho)
     if (profile.current_streak !== undefined && typeof renderStreakUI === 'function') {
       renderStreakUI(profile.current_streak);
     }
 
-    // 5. Update Pro Status & LocalStorage
     const isPro = Boolean(profile.is_pro);
     localStorage.setItem('user_is_pro', isPro ? 'true' : 'false');
     updateProUI(isPro);
