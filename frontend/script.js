@@ -777,30 +777,50 @@ async function loadUserAchievements() {
 }
 
 // =========================================================
-// 9. DAILY STREAK ENGINE
+// 9. DAILY STREAK ENGINE & DYNAMIC EMOJI
 // =========================================================
-async function syncStreakOnPageLoad() {
-  if (!currentUserId) return;
 
-  try {
-    const { data: profile } = await supabaseClient
-      .from('profiles')
-      .select('current_streak')
-      .eq('id', currentUserId)
-      .single();
+function renderStreakUI(count) {
+  const c = parseInt(count) || 0;
 
-    if (profile && profile.current_streak !== undefined) {
-      const streakCountEl = document.getElementById('streakCount');
-      if (streakCountEl) streakCountEl.innerText = `${profile.current_streak} Days`;
-    }
-  } catch (e) {
-    console.error("Streak sync error:", e);
+  const streakCountEl = document.getElementById('streakCount');
+  const streakEmojiEl = document.getElementById('streakEmoji');
+  const drawerCountEl = document.getElementById('drawerStreakCount');
+  const drawerEmojiEl = document.getElementById('drawerStreakEmoji');
+  const drawerLabelEl = document.querySelector('.d-streak-label');
+
+  // Dynamic Milestone Progression
+  let emoji = '🔥';
+  let tierTitle = 'Daily Streak';
+
+  if (c >= 30) {
+    emoji = '👑';
+    tierTitle = 'Legend Streak';
+  } else if (c >= 14) {
+    emoji = '⚡';
+    tierTitle = 'Elite Streak';
+  } else if (c >= 7) {
+    emoji = '💥';
+    tierTitle = 'Warrior Streak';
+  } else if (c === 0) {
+    emoji = '🕯️';
+    tierTitle = 'Start Streak';
   }
+
+  // Desktop Navbar Updates
+  if (streakCountEl) streakCountEl.innerText = `${c} Days`;
+  if (streakEmojiEl) streakEmojiEl.innerText = emoji;
+
+  // Mobile Drawer Updates
+  if (drawerCountEl) drawerCountEl.innerText = `${c} Days`;
+  if (drawerEmojiEl) drawerEmojiEl.innerText = emoji;
+  if (drawerLabelEl) drawerLabelEl.innerText = tierTitle;
 }
 
 // =========================================================
 // 10. THEME & MOBILE DRAWER CONTROLS
 // =========================================================
+
 function toggleTheme() {
   const currentTheme = document.documentElement.getAttribute("data-theme");
   const icon = document.getElementById("themeIcon");
@@ -834,46 +854,26 @@ function handleMobileNav(sectionName) {
   }
 }
 
-
 // =========================================================
-// STREAK SYNC & DYNAMIC TIER EVOLUTION
+// 11. COMBINED LIVE PROFILE & PRO SYNC ENGINE
 // =========================================================
 
-function renderStreakUI(count) {
-  const c = parseInt(count) || 0;
+function updateProUI(isPro) {
+  const isProActive = (isPro === true || isPro === 'true');
 
-  const streakCountEl = document.getElementById('streakCount');
-  const streakEmojiEl = document.getElementById('streakEmoji');
-  const drawerCountEl = document.getElementById('drawerStreakCount');
-  const drawerEmojiEl = document.getElementById('drawerStreakEmoji');
-  const drawerLabelEl = document.querySelector('.d-streak-label');
+  const proElements = document.querySelectorAll('a[href*="pro.html"], a[href*="pro"], .pro-btn, .pro-tab');
+  proElements.forEach(el => {
+    if (el.href?.includes('pro') || el.innerText?.includes('Get Pro') || el.innerText?.includes('👑')) {
+      el.style.display = isProActive ? 'none' : 'inline-flex';
+    }
+  });
 
-  // Milestone Progression
-  let emoji = '🔥';
-  let tierTitle = 'Daily Streak';
-
-  if (c >= 30) {
-    emoji = '👑';
-    tierTitle = 'Legend Streak';
-  } else if (c >= 14) {
-    emoji = '⚡';
-    tierTitle = 'Elite Streak';
-  } else if (c >= 7) {
-    emoji = '💥';
-    tierTitle = 'Warrior Streak';
+  const proBadge = document.getElementById('navbarProBadge');
+  if (proBadge) {
+    proBadge.style.display = isProActive ? 'inline-flex' : 'none';
   }
-
-  // 1. Update Desktop Navbar
-  if (streakCountEl) streakCountEl.innerText = `${c} Days`;
-  if (streakEmojiEl) streakEmojiEl.innerText = emoji;
-
-  // 2. Update Mobile Drawer
-  if (drawerCountEl) drawerCountEl.innerText = `${c} Days`;
-  if (drawerEmojiEl) drawerEmojiEl.innerText = emoji;
-  if (drawerLabelEl) drawerLabelEl.innerText = tierTitle;
 }
 
-// Combined Live User Profile & UI Sync
 async function syncUserProfile() {
   const sb = window.supabaseClient;
   if (!sb || !sb.auth) return;
@@ -888,7 +888,7 @@ async function syncUserProfile() {
       .update({ last_active: new Date().toISOString() })
       .eq('id', user.id);
 
-    // 2. Fetch streak and pro status
+    // 2. Fetch streak and pro status in single query
     const { data: profile, error } = await sb
       .from('profiles')
       .select('current_streak, is_pro')
@@ -897,47 +897,26 @@ async function syncUserProfile() {
 
     if (error || !profile) return;
 
-    if (profile.current_streak !== undefined && typeof renderStreakUI === 'function') {
-      renderStreakUI(profile.current_streak);
-    }
+    // 3. Render Streak & Dynamic Emoji
+    const streakVal = profile.current_streak ?? 0;
+    renderStreakUI(streakVal);
 
+    // 4. Update Pro UI
     const isPro = Boolean(profile.is_pro);
     localStorage.setItem('user_is_pro', isPro ? 'true' : 'false');
     updateProUI(isPro);
 
   } catch (e) {
-    console.error("Profile sync error:", e);
+    console.error("Profile & Streak sync error:", e);
   }
 }
 
-function updateProUI(isPro) {
-  const isProActive = (isPro === true || isPro === 'true');
-
-  // 1. Pro navigation tabs / links ko select karo
-  const proElements = document.querySelectorAll('a[href*="pro.html"], a[href*="pro"], .pro-btn, .pro-tab');
-
-  proElements.forEach(el => {
-    // Agar text me "Get Pro" hai ya href pro.html hai
-    if (el.href?.includes('pro') || el.innerText?.includes('Get Pro') || el.innerText?.includes('👑')) {
-      el.style.display = isProActive ? 'none' : 'inline-flex';
-    }
-  });
-
-  // Agar user Pro hai toh streak ke paas badge dikhana chahein toh:
-  const proBadge = document.getElementById('navbarProBadge');
-  if (proBadge) {
-    proBadge.style.display = isProActive ? 'inline-flex' : 'none';
-  }
-}
-
-// 7. Auto Run on Page Load
+// Auto Run on Page Load
 document.addEventListener('DOMContentLoaded', () => {
-  // Fast render using cached status
   const cachedPro = localStorage.getItem('user_is_pro');
   if (cachedPro !== null) {
     updateProUI(cachedPro);
   }
 
-  // Live database sync
   syncUserProfile();
 });
