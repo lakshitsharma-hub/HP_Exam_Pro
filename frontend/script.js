@@ -874,14 +874,19 @@ function renderStreakUI(count) {
 
 // Combined Live User Profile & UI Sync
 async function syncUserProfile() {
-  try {
-    // 1. Get active Supabase client
-    const sb = window.supabaseClient || window.supabase;
-    if (!sb) return;
+  const sb = window.supabaseClient || window.supabase;
+  if (!sb) return;
 
-    // 2. Get logged in user
+  try {
+    // 1. Get logged in user (Single call)
     const { data: { user }, error: authErr } = await sb.auth.getUser();
     if (authErr || !user) return;
+
+    // 2. Update last_active on every visit/refresh
+    await sb
+      .from('profiles')
+      .update({ last_active: new Date().toISOString() })
+      .eq('id', user.id);
 
     // 3. Single DB query for both streak and is_pro
     const { data: profile, error } = await sb
