@@ -9,26 +9,30 @@ let allLoadedUsers = [];
 // --- 2. DIFFICULTY & STATS COUNTER ---
 async function refreshDashboardStats() {
     try {
-        const tableName = 'questions'; // Falls back to 'questions' table
+        const tableName = 'questions';
 
+        // Total Questions
         const { count: totalCount } = await supabaseClient
             .from(tableName)
             .select('*', { count: 'exact', head: true });
 
+        // Easy
         const { count: easyCount } = await supabaseClient
             .from(tableName)
             .select('*', { count: 'exact', head: true })
             .ilike('difficulty', '%easy%');
 
+        // Medium
         const { count: medCount } = await supabaseClient
             .from(tableName)
             .select('*', { count: 'exact', head: true })
             .ilike('difficulty', '%medium%');
 
+        // Hard / Tough
         const { count: hardCount } = await supabaseClient
             .from(tableName)
             .select('*', { count: 'exact', head: true })
-            .ilike('difficulty', '%hard%');
+            .or('difficulty.ilike.%hard%,difficulty.ilike.%tough%');
 
         document.getElementById('count-total').innerText = totalCount ?? 0;
         document.getElementById('count-easy').innerText = easyCount ?? 0;
