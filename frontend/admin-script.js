@@ -1,7 +1,7 @@
 // --- 1. SUPABASE INITIALIZATION ---
-const SB_URL = "https://jitkmfqxojfppnpoxeff.supabase.co";[cite: 1]
-const SB_KEY = "sb_publishable_6H4ld2wexzzNexqTfOtvIw_xLkWKsif";[cite: 1]
-const supabaseClient = supabase.createClient(SB_URL, SB_KEY);[cite: 1]
+const SB_URL = "https://jitkmfqxojfppnpoxeff.supabase.co";
+const SB_KEY = "sb_publishable_6H4ld2wexzzNexqTfOtvIw_xLkWKsif";
+const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
 const log = document.getElementById('admin-log');
 let allLoadedUsers = [];
@@ -9,27 +9,22 @@ let allLoadedUsers = [];
 // --- 2. DIFFICULTY & STATS COUNTER ---
 async function refreshDashboardStats() {
     try {
-        // Exam questions table se difficulty metrics fetch karna
-        const tableName = 'exam_questions';
-        
-        // Total
+        const tableName = 'questions'; // Falls back to 'questions' table
+
         const { count: totalCount } = await supabaseClient
             .from(tableName)
             .select('*', { count: 'exact', head: true });
 
-        // Easy
         const { count: easyCount } = await supabaseClient
             .from(tableName)
             .select('*', { count: 'exact', head: true })
             .ilike('difficulty', '%easy%');
 
-        // Medium
         const { count: medCount } = await supabaseClient
             .from(tableName)
             .select('*', { count: 'exact', head: true })
             .ilike('difficulty', '%medium%');
 
-        // Hard
         const { count: hardCount } = await supabaseClient
             .from(tableName)
             .select('*', { count: 'exact', head: true })
@@ -50,15 +45,15 @@ async function refreshDashboardStats() {
 async function loadUsers() {
     const tableBody = document.getElementById('user-table-body');
     if (!tableBody) return;
-    tableBody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center;">Loading candidate data...</td></tr>';[cite: 1]
+    tableBody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center;">Loading candidate data...</td></tr>';
 
     const { data: users, error } = await supabaseClient
         .from('profiles')
         .select('*')
-        .order('created_at', { ascending: false });[cite: 1]
+        .order('created_at', { ascending: false });
 
     if (error) {
-        tableBody.innerHTML = `<tr><td colspan="5" style="color: red; padding: 12px;">Error: ${error.message}</td></tr>`;[cite: 1]
+        tableBody.innerHTML = `<tr><td colspan="5" style="color: red; padding: 12px;">Error: ${error.message}</td></tr>`;
         return;
     }
 
@@ -77,14 +72,14 @@ function renderUserRows(users) {
 
     tableBody.innerHTML = '';
     users.forEach(user => {
-        const isPro = user.is_pro;[cite: 1]
+        const isPro = user.is_pro;
         const limitText = user.custom_limit !== null && user.custom_limit !== undefined 
             ? `${user.custom_limit} Tests` 
-            : 'Default';[cite: 1]
+            : 'Default';
 
         const statusTag = isPro 
             ? '<span style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px;">👑 PRO</span>' 
-            : '<span style="background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px;">FREE</span>';[cite: 1]
+            : '<span style="background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px;">FREE</span>';
 
         let formattedActive = 'Never';
         if (user.last_active) {
@@ -93,7 +88,7 @@ function renderUserRows(users) {
         }
 
         const row = `
-            <tr style="border-bottom: 1px solid #f1f5f9; hover: background: #f8fafc;">
+            <tr style="border-bottom: 1px solid #f1f5f9;">
                 <td style="padding: 12px 14px;">
                     <a href="javascript:void(0)" onclick="openUserAttemptsModal('${user.id}', '${user.display_name || 'Candidate'}')" style="font-weight: 700; color: #2563eb; text-decoration: none;">
                         ${user.display_name || 'User'}
@@ -133,15 +128,24 @@ async function openUserAttemptsModal(userId, displayName) {
     content.innerHTML = '<p style="text-align: center; color: #64748b;">Loading test records...</p>';
     document.getElementById('userModal').style.display = 'flex';
 
-    // Fetch from test_results / test_attempts
-    const { data: attempts, error } = await supabaseClient
+    // Attempt retrieval from test_results or test_attempts
+    let { data: attempts } = await supabaseClient
         .from('test_results')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-    if (error || !attempts || attempts.length === 0) {
-        content.innerHTML = '<div style="padding: 30px; text-align: center; color: #94a3b8;">Is candidate ne abhi tak koi full test attempt nahi kiya hai.</div>';
+    if (!attempts || attempts.length === 0) {
+        const fallback = await supabaseClient
+            .from('test_attempts')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+        attempts = fallback.data;
+    }
+
+    if (!attempts || attempts.length === 0) {
+        content.innerHTML = '<div style="padding: 30px; text-align: center; color: #94a3b8;">Is candidate ne abhi tak koi test attempt nahi kiya hai.</div>';
         return;
     }
 
@@ -182,17 +186,15 @@ async function openUserAttemptsModal(userId, displayName) {
     content.innerHTML = listHtml;
 }
 
-// Candidate ke question-wise ticked answers dekhne ke liye
 function viewAttemptedResponses(serializedAttempt) {
     const att = JSON.parse(decodeURIComponent(serializedAttempt));
     const container = document.getElementById('reviewModalContent');
     document.getElementById('reviewModalTitle').innerText = `${(att.exam_type || 'Test').toUpperCase()} Response Sheet`;
 
-    // responses JSON structure
-    const answers = att.responses || att.user_answers || {};
+    const answers = att.responses || att.user_answers || att.answers || {};
     
     if (Object.keys(answers).length === 0) {
-        container.innerHTML = '<p style="padding: 20px; text-align: center; color: #94a3b8;">Detailed response map is empty for this session.</p>';
+        container.innerHTML = '<p style="padding: 20px; text-align: center; color: #94a3b8;">No response record saved for this session.</p>';
     } else {
         let qCards = '';
         let index = 1;
@@ -206,7 +208,7 @@ function viewAttemptedResponses(serializedAttempt) {
                     <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 13px;">
                         <span>Question #${index++} (ID: ${qid})</span>
                         <span style="color: ${isMatched ? '#16a34a' : '#dc2626'};">
-                            ${isMatched ? '✅ Correct (+1)' : (userAns ? '❌ Incorrect (-0.25)' : '⚪ Unattempted')}
+                            ${isMatched ? '✅ Correct' : (userAns ? '❌ Incorrect' : '⚪ Unattempted')}
                         </span>
                     </div>
                     <div style="margin-top: 8px; font-size: 13px;">
@@ -222,11 +224,10 @@ function viewAttemptedResponses(serializedAttempt) {
     document.getElementById('reviewModal').style.display = 'flex';
 }
 
-// User Attempt ka Printable PDF
 function generateUserAttemptPDF(serializedAttempt, displayName) {
     const att = JSON.parse(decodeURIComponent(serializedAttempt));
     const win = window.open('', '_blank');
-    const answers = att.responses || att.user_answers || {};
+    const answers = att.responses || att.user_answers || att.answers || {};
 
     let responseList = '';
     let i = 1;
@@ -243,10 +244,10 @@ function generateUserAttemptPDF(serializedAttempt, displayName) {
     const html = `
         <html>
         <head>
-            <title>${displayName} - Attempt Sheet</title>
+            <title>${displayName} - Scorecard</title>
             <style>
-                body { font-family: sans-serif; padding: 30px; }
-                .card { border: 1px solid #334155; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+                body { font-family: sans-serif; padding: 30px; color: #0f172a; }
+                .card { border: 1px solid #cbd5e1; padding: 15px; border-radius: 8px; margin-bottom: 20px; background: #f8fafc; }
             </style>
         </head>
         <body>
@@ -257,7 +258,7 @@ function generateUserAttemptPDF(serializedAttempt, displayName) {
                 <p><b>Score Secured:</b> ${att.score ?? 'N/A'}</p>
                 <p><b>Generated At:</b> ${new Date().toLocaleString()}</p>
             </div>
-            <h3>Detailed Question Audit</h3>
+            <h3>Detailed Responses Audit</h3>
             ${responseList || '<p>No question map available.</p>'}
             <script>window.onload = function() { window.print(); };</script>
         </body>
@@ -271,47 +272,46 @@ function closeModal(id) {
     document.getElementById(id).style.display = 'none';
 }
 
-// --- 5. CLEAN ANTI-CUT MOCK PDF GENERATOR ---
+// --- 5. CLEAN ANTI-CUT MOCK TEST PDF GENERATOR ---
 async function generateTestPDF(examType) {
-    let examName = 'JOA IT Examination';[cite: 1]
-    let totalMarks = '120';[cite: 1]
-    let timeAllowed = '90 Minutes';[cite: 1]
+    let examName = 'JOA IT Examination';
+    let totalMarks = '120';
+    let timeAllowed = '90 Minutes';
 
     if (examType === 'patwari') {
-        examName = 'HPRCA Patwari Examination';[cite: 1]
-        totalMarks = '120';[cite: 1]
-        timeAllowed = '90 Minutes';[cite: 1]
+        examName = 'HPRCA Patwari Examination';
+        totalMarks = '120';
+        timeAllowed = '90 Minutes';
     } else if (examType === 'hp_police') {
-        examName = 'HP Police Constable Examination';[cite: 1]
-        totalMarks = '90';[cite: 1]
-        timeAllowed = '120 Minutes (2 Hours)';[cite: 1]
+        examName = 'HP Police Constable Examination';
+        totalMarks = '90';
+        timeAllowed = '120 Minutes';
     }
     
-    const printWindow = window.open('', '_blank');[cite: 1]
-    printWindow.document.write('<html><head><title>Generating PDF...</title></head><body style="font-family:sans-serif; padding:40px; text-align:center;"><h2>⏳ HP Exam Pro... Generating Non-Cutting PDF...</h2></body></html>');[cite: 1]
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write('<html><head><title>Generating PDF...</title></head><body style="font-family:sans-serif; padding:40px; text-align:center;"><h2>⏳ HP Exam Pro... Generating Mock PDF...</h2></body></html>');
 
     try {
-        const response = await fetch(`https://hp-exam-pro-dixk.onrender.com/api/questions/${examType}?user_id=test-user-123&t=${Date.now()}`);[cite: 1]
-        const questions = await response.json();[cite: 1]
+        const response = await fetch(`https://hp-exam-pro-dixk.onrender.com/api/questions/${examType}?user_id=test-user-123&t=${Date.now()}`);
+        const questions = await response.json();
 
         if (!questions || questions.length === 0) {
             alert("Questions load nahi ho paaye!");
-            printWindow.close();[cite: 1]
+            printWindow.close();
             return;
         }
 
-        let questionsHTML = '';[cite: 1]
-        let answerKeyRows = '';[cite: 1]
-        let explanationsHTML = '';[cite: 1]
+        let questionsHTML = '';
+        let answerKeyRows = '';
+        let explanationsHTML = '';
 
         questions.forEach((q, index) => {
-            const qNum = index + 1;[cite: 1]
-            let correctOpt = q.correct_option || q.answer || q.correct_answer || "N/A";[cite: 1]
+            const qNum = index + 1;
+            let correctOpt = q.correct_option || q.answer || q.correct_answer || "N/A";
             if (['1', '2', '3', '4', 1, 2, 3, 4].includes(correctOpt)) {
-                correctOpt = 'Option ' + correctOpt;[cite: 1]
+                correctOpt = 'Option ' + correctOpt;
             }
 
-            // Clean, non-cutting question card container
             questionsHTML += `
                 <div class="question-unit" style="margin-bottom: 22px; page-break-inside: avoid !important; break-inside: avoid !important; display: block;">
                     <p style="font-weight: 700; margin: 0 0 8px 0; color: #0f172a; font-size: 14px; page-break-after: avoid; break-after: avoid;">
@@ -334,14 +334,14 @@ async function generateTestPDF(examType) {
                 <div style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-size: 12px; page-break-inside: avoid; break-inside: avoid;">
                     <b>Q${qNum}:</b> ${correctOpt}
                 </div>
-            `;[cite: 1]
+            `;
 
             if (q.explanation && q.explanation.trim() !== "") {
                 explanationsHTML += `
                     <div style="margin-bottom: 10px; padding: 8px; background: #f8fafc; border-left: 3px solid #2563eb; font-size: 12px; page-break-inside: avoid; break-inside: avoid;">
                         <b>Q${qNum} Sol:</b> ${q.explanation}
                     </div>
-                `;[cite: 1]
+                `;
             }
         });
 
@@ -398,12 +398,12 @@ async function generateTestPDF(examType) {
             </html>
         `;
 
-        printWindow.document.open();[cite: 1]
-        printWindow.document.write(fullHTML);[cite: 1]
-        printWindow.document.close();[cite: 1]
+        printWindow.document.open();
+        printWindow.document.write(fullHTML);
+        printWindow.document.close();
     } catch (e) {
-        alert("PDF Generate Error: " + e.message);[cite: 1]
-        if (printWindow) printWindow.close();[cite: 1]
+        alert("PDF Generate Error: " + e.message);
+        if (printWindow) printWindow.close();
     }
 }
 
@@ -412,49 +412,49 @@ async function togglePro(userId, currentStatus) {
     const { error } = await supabaseClient
         .from('profiles')
         .update({ is_pro: !currentStatus })
-        .eq('id', userId);[cite: 1]
+        .eq('id', userId);
 
-    if (!error) loadUsers();[cite: 1]
-    else alert("Error updating Pro: " + error.message);[cite: 1]
+    if (!error) loadUsers();
+    else alert("Error updating Pro: " + error.message);
 }
 
 async function setCustomUserLimit(userId, currentLimit) {
-    const newLimit = prompt("Test limit dalein:", currentLimit);[cite: 1]
-    if (newLimit === null || newLimit === "") return;[cite: 1]
+    const newLimit = prompt("Test limit dalein:", currentLimit);
+    if (newLimit === null || newLimit === "") return;
 
     const { error } = await supabaseClient
         .from('profiles')
         .update({ custom_limit: parseInt(newLimit) })
-        .eq('id', userId);[cite: 1]
+        .eq('id', userId);
 
-    if (!error) loadUsers();[cite: 1]
-    else alert("Error updating limit: " + error.message);[cite: 1]
+    if (!error) loadUsers();
+    else alert("Error updating limit: " + error.message);
 }
 
 // --- 7. CSV UPLOAD LOGIC ---
 async function triggerCSVUpload() {
-    const fileInput = document.getElementById('csvUpload');[cite: 1]
-    const file = fileInput.files[0];[cite: 1]
+    const fileInput = document.getElementById('csvUpload');
+    const file = fileInput.files[0];
     if (!file) return;
 
     if (log) log.innerHTML += `<br>> Reading: ${file.name}...`;
 
     Papa.parse(file, {
-        header: true,[cite: 1]
-        skipEmptyLines: true,[cite: 1]
+        header: true,
+        skipEmptyLines: true,
         complete: async function(results) {
-            const data = results.data;[cite: 1]
+            const data = results.data;
             if (log) log.innerHTML += `<br>> Uploading ${data.length} questions in batches...`;
 
             for (let i = 0; i < data.length; i += 50) {
-                const batch = data.slice(i, i + 50);[cite: 1]
+                const batch = data.slice(i, i + 50);
                 const { error } = await supabaseClient
-                    .from('exam_questions')
-                    .insert(batch);[cite: 1]
+                    .from('questions')
+                    .insert(batch);
 
                 if (error) {
                     if (log) log.innerHTML += `<br><span style="color:red;">> Error: ${error.message}</span>`;
-                    break;[cite: 1]
+                    break;
                 }
             }
             if (log) log.innerHTML += `<br><span style="color:#22c55e;">> ✅ Done! Questions uploaded.</span>`;
@@ -467,7 +467,7 @@ function generateAIQuestions() {
     if (log) log.innerHTML += `<br>> Triggering AI question generation pipeline...`;
 }
 
-// Listeners
+// Auto Listeners
 document.addEventListener("DOMContentLoaded", () => {
     refreshDashboardStats();
     loadUsers();
