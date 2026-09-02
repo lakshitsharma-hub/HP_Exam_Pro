@@ -3,121 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HP Exam Pro | Admin Dashboard</title>
+    <title>HP Exam Pro | Admin Control Room</title>
     <link rel="stylesheet" href="style.css"> 
     <link rel="icon" type="image/png" href="favicon.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 20px; color: #0f172a; }
+        .admin-wrapper { max-width: 1100px; margin: 0 auto; }
+        .card { background: #ffffff; border-radius: 14px; padding: 22px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        .metric-card { background: #ffffff; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+        .metric-card.total { border-left: 5px solid #2563eb; }
+        .metric-card.easy { border-left: 5px solid #10b981; }
+        .metric-card.medium { border-left: 5px solid #f59e0b; }
+        .metric-card.hard { border-left: 5px solid #ef4444; }
+        .metric-title { font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .metric-value { font-size: 28px; font-weight: 800; color: #0f172a; margin: 8px 0 4px 0; }
+        .metric-sub { font-size: 12px; color: #94a3b8; font-weight: 500; }
+        
+        .table-scroll-container { max-height: 440px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; }
+        .table-scroll-container::-webkit-scrollbar { width: 6px; }
+        .table-scroll-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        .search-box { width: 100%; max-width: 320px; padding: 9px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; }
+        .search-box:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+        
+        /* Modal Styles */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-card { background: white; border-radius: 14px; width: 100%; max-width: 850px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
+        .modal-header { padding: 18px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+    </style>
     <script>
     (function() {
-        // यहाँ अपना कोई  भी खुफिया पासवर्ड/पिन रख लो (जैसे: 'Lakshit@2026' या '9876')
-        const SECRET_PIN = 'Lakshit0703*'; 
-
-        const isAuthenticated = localStorage.getItem('admin_auth_token');
-
+        const SECRET_PIN = 'Lakshit0703*';[cite: 2]
+        const isAuthenticated = localStorage.getItem('admin_auth_token');[cite: 2]
         if (isAuthenticated !== SECRET_PIN) {
-            const userPassword = prompt('🔒 Admin Security Control: Enter PIN to access Admin Panel:');
-            
+            const userPassword = prompt('🔒 Admin Security Control: Enter PIN:');[cite: 2]
             if (userPassword === SECRET_PIN) {
-                // अगर पासवर्ड सही है, तो ब्राउज़र में सेव कर लो ताकि बार-बार न मांगना पड़े
-                localStorage.setItem('admin_auth_token', SECRET_PIN);
+                localStorage.setItem('admin_auth_token', SECRET_PIN);[cite: 2]
             } else {
-                // अगर गलत पासवर्ड डाला या कैंसिल किया, तो तुरंत होमपेज पर लात मारकर बाहर फेंक दो
-                alert('Access Denied! Unauthorized Access.');
-                window.location.href = 'index.html';
+                alert('Access Denied!');[cite: 2]
+                window.location.href = 'index.html';[cite: 2]
             }
         }
     })();
     </script>
 </head>
-<body style="background-color: #f4f7f9; height: auto !important; overflow-y: auto !important;">
+<body>
 
-    <div class="admin-container" style="max-width: 1000px; margin: 20px auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-        
-        <header style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
-            <h2 style="color: #1a73e8; margin: 0;">🏔️ Admin Control Room</h2>
-            <span id="admin-name" style="font-weight: bold; color: #5f6368;">Admin: You</span>
-        </header>
+<div class="admin-wrapper">
+    <!-- Header -->
+    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="color: #0f172a; margin: 0; font-size: 24px; font-weight: 800;">🏔️ Admin Control Room</h2>
+        <span style="font-weight: 600; color: #475569; background: #e2e8f0; padding: 6px 14px; border-radius: 20px; font-size: 13px;">Super Admin</span>
+    </header>
 
-        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-            <div class="stat-card" style="background: #e8f0fe; padding: 20px; border-radius: 12px; border-left: 5px solid #1a73e8;">
-                <h4 style="margin-top: 0;">Mathematics</h4>
-                <p style="font-size: 24px; font-weight: bold; margin: 10px 0;">600</p>
-                <small style="color: #34a853;">Status: Ready ✅</small>
+    <!-- Difficulty & Total Question Metric Cards -->
+    <div class="metric-grid">
+        <div class="metric-card total">
+            <div class="metric-title">Total Questions</div>
+            <div class="metric-value" id="count-total">...</div>
+            <div class="metric-sub">Active in Question Bank</div>
+        </div>
+        <div class="metric-card easy">
+            <div class="metric-title">Easy Questions</div>
+            <div class="metric-value" id="count-easy" style="color: #10b981;">...</div>
+            <div class="metric-sub">Level 1 (Direct GK/Basic)</div>
+        </div>
+        <div class="metric-card medium">
+            <div class="metric-title">Medium Questions</div>
+            <div class="metric-value" id="count-medium" style="color: #f59e0b;">...</div>
+            <div class="metric-sub">Level 2 (Standard Exam)</div>
+        </div>
+        <div class="metric-card hard">
+            <div class="metric-title">Hard Questions</div>
+            <div class="metric-value" id="count-hard" style="color: #ef4444;">...</div>
+            <div class="metric-sub">Level 3 (Analytical)</div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card" style="padding: 16px 20px;">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+            <button onclick="document.getElementById('csvUpload').click()" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                📤 Upload CSV Questions
+            </button>
+            <input type="file" id="csvUpload" style="display: none;" accept=".csv">[cite: 2]
+
+            <button onclick="generateAIQuestions()" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                🤖 AI Generate Questions
+            </button>[cite: 2]
+
+            <button onclick="refreshDashboardStats()" style="padding: 10px 18px; background: #64748b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin-left: auto;">
+                🔄 Refresh Stats
+            </button>
+        </div>
+    </div>
+
+    <!-- Terminal Log -->
+    <div id="admin-log" style="margin-bottom: 20px; padding: 12px 16px; background: #0f172a; color: #22c55e; font-family: monospace; border-radius: 10px; font-size: 13px; height: 110px; overflow-y: auto;">
+        > System Online... Initializing Supabase Connection.
+    </div>
+
+    <!-- Users Management -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+            <div>
+                <h3 style="margin: 0; color: #0f172a; font-size: 18px;">👥 Users Management</h3>
+                <small style="color: #64748b;">Click on any username to inspect attempts & generate report PDF.</small>
             </div>
-            <div class="stat-card" style="background: #fef7e0; padding: 20px; border-radius: 12px; border-left: 5px solid #fbbc04;">
-                <h4 style="margin-top: 0;">Hindi / English</h4>
-                <p style="font-size: 24px; font-weight: bold; margin: 10px 0;">0</p>
-                <small style="color: #d93025;">Status: Needs AI Gen ❌</small>
-            </div>
-            <div class="stat-card" style="background: #e6ffed; padding: 20px; border-radius: 12px; border-left: 5px solid #34a853;">
-                <h4 style="margin-top: 0;">Pro Users</h4>
-                <p style="font-size: 24px; font-weight: bold; margin: 10px 0;">5</p>
-                <small>Conversion: 12% 📈</small>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="user-search-input" class="search-box" placeholder="🔍 Search candidate by name..." onkeyup="filterUsersList()">
+                <button onclick="loadUsers()" style="background: #2563eb; color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600;">🔄</button>
             </div>
         </div>
 
-        <div class="admin-actions" style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 12px;">
-            <h3>Quick Actions</h3>
-            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                <button onclick="document.getElementById('csvUpload').click()" style="padding: 12px 25px; background: #34a853; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                    📤 Upload CSV (Maths/GK)
-                </button>
-                <input type="file" id="csvUpload" style="display: none;" accept=".csv">
-                
-                <button onclick="generateAIQuestions()" style="padding: 12px 25px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                    🤖 AI Generate (Hindi/Comp)
-                </button>
-            </div>
+        <div class="table-scroll-container">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 2;">
+                    <tr style="border-bottom: 2px solid #e2e8f0; color: #475569;">
+                        <th style="padding: 12px 14px;">User (Click to Inspect)</th>
+                        <th style="padding: 12px 14px;">Last Active</th>
+                        <th style="padding: 12px 14px;">Status</th>
+                        <th style="padding: 12px 14px;">Custom Limit</th>
+                        <th style="padding: 12px 14px; text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="user-table-body">
+                    <tr><td colspan="5" style="padding: 20px; text-align: center; color: #64748b;">Loading candidate list...</td></tr>
+                </tbody>
+            </table>
         </div>
+    </div>
 
-        <div id="admin-log" style="margin-top: 30px; padding: 15px; background: #202124; color: #00ff00; font-family: monospace; border-radius: 8px; font-size: 13px; height: 150px; overflow-y: auto;">
-            > System Ready...<br>
-            > Waiting for data upload...
+    <!-- Printable Paper Generator -->
+    <div class="card">
+        <h3 style="margin-top: 0; color: #0f172a; font-size: 18px;">📄 Mock Test Master PDF Generator</h3>[cite: 2]
+        <p style="color: #64748b; font-size: 13px; margin-bottom: 15px;">Official non-cutting layout with anti-split CSS protection.</p>[cite: 2]
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button onclick="generateTestPDF('patwari')" style="background: #059669; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600;">📥 Patwari Test PDF</button>[cite: 2]
+            <button onclick="generateTestPDF('joa_it')" style="background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600;">📥 JOA IT Test PDF</button>[cite: 2]
+            <button onclick="generateTestPDF('hp_police')" style="background: #d97706; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600;">📥 HP Police Test PDF</button>[cite: 2]
         </div>
+    </div>
+</div>
 
-        <!-- 👥 USER MANAGEMENT TABLE (अब यह सही जगह पर है) -->
-        <div style="background: #ffffff; padding: 20px; border-radius: 12px; margin-top: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin: 0; color: #1e293b;">👥 Users, Pro Control & Custom Limits</h3>
-                <button onclick="loadUsers()" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">🔄 Refresh Users</button>
+<!-- Modal: User Attempts List -->
+<div id="userModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div>
+                <h3 id="modalUserName" style="margin: 0; color: #0f172a;">Candidate History</h3>
+                <small id="modalUserEmail" style="color: #64748b;"></small>
             </div>
-
-            <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
-                    <thead>
-                        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #64748b;">
-                            <th style="padding: 12px;">User</th>
-                            <th style="padding: 12px;">Status</th>
-                            <th style="padding: 12px;">Custom Limit</th>
-                            <th style="padding: 12px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="user-table-body">
-                        <tr><td colspan="4" style="padding: 20px; text-align: center;">Loading Users...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+            <button onclick="closeModal('userModal')" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b;">✕</button>
         </div>
-        <!-- 📄 LIVE MOCK TEST PDF GENERATION CARD -->
-        <div style="background: #ffffff; padding: 20px; border-radius: 12px; margin-top: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
-            <h3 style="margin-top: 0; color: #1e293b;">📄 Printable Mock Test & Answer Key Generator</h3>
-            <p style="color: #64748b; font-size: 13px; margin-bottom: 15px;">लाइव बैकएंड से सवाल फेच करके 1-क्लिक में ऑफलाइन प्रैक्टिस हेतु PDF बनाएं।</p>
-            
-            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                <button onclick="generateTestPDF('patwari')" style="background: #059669; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                    📥 Patwari Mock Test PDF
-                </button>
-                <button onclick="generateTestPDF('joa_it')" style="background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                    📥 JOA IT Mock Test PDF
-                </button>
-                <button onclick="generateTestPDF('hp_police')" style="background: #f59e0b; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-left: 8px;">
-    📄 HP Police Mock Test PDF
-</button>
-            </div>
+        <div class="modal-body" id="modalAttemptsContent">
+            Loading attempts...
         </div>
-    </div> <!-- यह admin-container का आख़िरी div है -->
+    </div>
+</div>
 
-    <script src="admin-script.js"></script> 
+<!-- Modal: Question-by-Question Attempt Review -->
+<div id="reviewModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 900px;">
+        <div class="modal-header">
+            <h3 id="reviewModalTitle" style="margin: 0; color: #0f172a;">Detailed Responses Inspection</h3>
+            <button onclick="closeModal('reviewModal')" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b;">✕</button>
+        </div>
+        <div class="modal-body" id="reviewModalContent">
+            Loading review data...
+        </div>
+    </div>
+</div>
+
+<script src="admin-script.js"></script>[cite: 2]
 </body>
 </html>
