@@ -537,3 +537,157 @@ async def claim_free_pro_access(data: SupportClaimInput):
         return {"status": "success", "message": "Request submitted successfully!"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# =====================================================================
+# --- AUTOMATED DAILY CURRENT AFFAIRS SCRAPER & INGESTION (HINDI) ---
+# =====================================================================
+
+from bs4 import BeautifulSoup
+
+def scrape_civilstap_latest():
+    """CivilsTap listing page se sabse latest date ka post extract karega"""
+    listing_url = "https://civilstap.com/news-category/prelims-current-affairs/"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    }
+
+    try:
+        res = requests.get(listing_url, headers=headers, timeout=15)
+        if res.status_code != 200:
+            return None
+
+        soup = BeautifulSoup(res.text, "html.parser")
+        latest_post_url = None
+        for a in soup.find_all("a", href=True):
+            href = a['href']
+            if "/current-affairs-news/" in href and "prelims-current-affairs" in href:
+                latest_post_url = href
+                break
+
+        if not latest_post_url:
+            return None
+
+        article_res = requests.get(latest_post_url, headers=headers, timeout=15)
+        article_soup = BeautifulSoup(article_res.text, "html.parser")
+
+        content_div = (
+            article_soup.find("div", class_=re.compile("elementor-widget-theme-post-content|entry-content|post-content"))
+            or article_soup.find("article")
+        )
+        raw_text = content_div.get_text(separator="\n", strip=True) if content_div else article_soup.get_text(separator="\n", strip=True)
+
+        if "Ask your Query" in raw_text:
+            raw_text = raw_text.split("Ask your Query")[0]
+
+        return raw_text[:3800]
+    except Exception as e:
+        print(f"Scraper error: {e}")
+        return None
+
+
+def generate_hindi_ca_mcqs(context_text: str):
+    """Groq / Fallback AI se 2-3 lines deep explanation wale shuddh Hindi MCQs banayega"""
+    prompt = f"""
+    Aap Himachal Pradesh Competitive Exams (HPRCA / HPPSC) ke senior paper setter hain.
+    Diye gaye Current Affairs content ke aadhar par EXACTLY 5 high-yield MCQs banayein.
+
+    STRICT RULES:
+    1. Language: Poora content (question_text, opt1, opt2, opt3, opt4, explanation) SIRF aur SIRF SHUDDH HINDI mein hona chahiye. English bilkul use na karein.
+    2. explanation: Yeh kam se kam 2-3 poori lines ka descriptive spashtikaran hona chahiye taaki student ko context, background aur objective poora samajh aa sake.
+    3. correct_option: Value number format string honi chahiye -> "1", "2", "3", ya "4".
+    4. q_type: "direct"
+    5. difficulty: "medium"
+    6. subject: "current_affairs"
+
+    CONTEXT:
+    {context_text}
+
+    Return ONLY a valid JSON array of objects without backticks, markdown, or conversational text:
+    [
+      {{
+        "subject": "current_affairs",
+        "question_text": "Hindi question yahan likhein",
+        "opt1": "Vikalp 1",
+        "opt2": "Vikalp 2",
+        "opt3": "Vikalp 3",
+        "opt4": "Vikalp 4",
+        "correct_option": "1",
+        "explanation": "2-3 line ka descriptive spashtikaran jisme poori khabar ka saransh aur mukhya tathya spasht ho.",
+        "q_type": "direct",
+        "difficulty": "medium"
+      }}
+    ]
+    """
+
+    groq_key = os.getenv("GROQ_API_KEY")
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    raw_output = None
+
+    # Primary: Groq
+    if groq_key:
+        try:
+            r = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                json={"model": "llama-3.3-70b-versatile", "messages": [{"role": "user", "content": prompt}], "temperature": 0.2},
+                timeout=25
+            )
+            raw_output = r.json()["choices"][0]["message"]["content"]
+        except Exception as err:
+            print(f"Groq API Error: {err}")
+            raw_output = None
+
+    # Fallback 1: Gemini
+    if not raw_output and gemini_key:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+            r = requests.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=25)
+            raw_output = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+        except Exception as err:
+            print(f"Gemini API Error: {err}")
+            raw_output = None
+
+    # Fallback 2: Local AI Engine
+    if not raw_output:
+        raw_output, _ = engine.get_response(prompt)
+
+    if not raw_output:
+        return None
+
+    cleaned = raw_output.strip()
+    if cleaned.startswith("```json"):
+        cleaned = cleaned[7:-3].strip()
+    elif cleaned.startswith("```"):
+        cleaned = cleaned[3:-3].strip()
+
+    try:
+        return json.loads(cleaned)
+    except Exception as e:
+        print(f"JSON Parse Exception: {e}")
+        return None
+
+
+@app.get("/api/admin/sync-daily-ca")
+async def trigger_daily_ca_sync():
+    """
+    Direct click route: Kisi password ki zaroorat nahi hai.
+    """
+    # 1. CivilsTap se news uthana
+    context = scrape_civilstap_latest()
+    if not context:
+        raise HTTPException(status_code=500, detail="CivilsTap se latest news fetch nahi ho saki.")
+
+    # 2. 5 Hindi MCQs (2-3 lines explanation ke sath) generate karna
+    mcqs = generate_hindi_ca_mcqs(context)
+    if not mcqs:
+        raise HTTPException(status_code=500, detail="AI se questions generate nahi ho sake.")
+
+    # 3. Supabase 'questions' table mein insert karna
+    res = supabase.table("questions").insert(mcqs).execute()
+
+    return {
+        "status": "success",
+        "message": f"🎉 {len(mcqs)} naye Hindi current affairs questions database mein successfully inject ho gaye!",
+        "added_questions": [q.get("question_text") for q in mcqs]
+    }
