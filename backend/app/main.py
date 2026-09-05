@@ -499,12 +499,24 @@ async def get_analytics(user_id: str):
 @app.get("/api/daily-question")
 async def get_daily_question():
     try:
-        response = supabase.table("questions").select("*").execute()
+        # Sabse latest Current Affairs question database se nikaalega
+        response = (
+            supabase.table("questions")
+            .select("*")
+            .eq("subject", "current_affairs")
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
         
         if response.data and len(response.data) > 0:
-            random_question = random.choice(response.data)
-            return {"status": "success", "question": random_question}
+            return {"status": "success", "question": response.data[0]}
             
+        # Fallback agar CA question na mile
+        fallback_resp = supabase.table("questions").select("*").limit(20).execute()
+        if fallback_resp.data:
+            return {"status": "success", "question": random.choice(fallback_resp.data)}
+
         return {"status": "error", "message": "No questions found in database."}
     except Exception as e:
         return {"status": "error", "message": str(e)}
