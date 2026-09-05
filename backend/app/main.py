@@ -546,48 +546,67 @@ async def claim_free_pro_access(data: SupportClaimInput):
 from bs4 import BeautifulSoup
 
 def scrape_civilstap_latest():
-    """CivilsTap listing page se sabse latest date ka post extract karega"""
-    listing_url = "https://civilstap.com/news-category/prelims-current-affairs/"
+    """RSS Feed + Direct Listing fallback se latest date ka content nikalega"""
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     }
 
+    latest_url = None
+
+    # 1. WordPress RSS Feed (100% reliable link resolution)
     try:
-        res = requests.get(listing_url, headers=headers, timeout=15)
-        if res.status_code != 200:
-            return None
+        feed = feedparser.parse("https://civilstap.com/feed/")
+        if feed and feed.entries:
+            for entry in feed.entries:
+                link = entry.get("link", "")
+                title = entry.get("title", "").lower()
+                if "current-affairs" in link or "current affairs" in title:
+                    latest_url = link
+                    break
+    except Exception as e:
+        print(f"Feed error: {e}")
 
-        soup = BeautifulSoup(res.text, "html.parser")
-        latest_post_url = None
-        for a in soup.find_all("a", href=True):
-            href = a['href']
-            if "/current-affairs-news/" in href and "prelims-current-affairs" in href:
-                latest_post_url = href
-                break
+    # 2. Fallback: Direct Category Listing HTML parse
+    if not latest_url:
+        try:
+            listing_url = "https://civilstap.com/news-category/prelims-current-affairs/"
+            res = requests.get(listing_url, headers=headers, timeout=12)
+            if res.status_code == 200:
+                soup = BeautifulSoup(res.text, "html.parser")
+                for a in soup.find_all("a", href=True):
+                    href = a['href']
+                    if "/current-affairs-news/" in href and href.rstrip('/') != listing_url.rstrip('/'):
+                        latest_url = href
+                        break
+        except Exception as e:
+            print(f"Listing fallback error: {e}")
 
-        if not latest_post_url:
-            return None
+    if not latest_url:
+        return None
 
-        article_res = requests.get(latest_post_url, headers=headers, timeout=15)
-        article_soup = BeautifulSoup(article_res.text, "html.parser")
+    # 3. Article page ka actual text extract karna
+    try:
+        art_res = requests.get(latest_url, headers=headers, timeout=15)
+        soup = BeautifulSoup(art_res.text, "html.parser")
 
-        content_div = (
-            article_soup.find("div", class_=re.compile("elementor-widget-theme-post-content|entry-content|post-content"))
-            or article_soup.find("article")
+        content = (
+            soup.find("div", class_=re.compile("entry-content|post-content|elementor-widget-theme-post-content"))
+            or soup.find("article")
         )
-        raw_text = content_div.get_text(separator="\n", strip=True) if content_div else article_soup.get_text(separator="\n", strip=True)
+
+        raw_text = content.get_text(separator="\n", strip=True) if content else soup.get_text(separator="\n", strip=True)
 
         if "Ask your Query" in raw_text:
             raw_text = raw_text.split("Ask your Query")[0]
 
         return raw_text[:3800]
     except Exception as e:
-        print(f"Scraper error: {e}")
+        print(f"Article fetch error: {e}")
         return None
 
 
 def generate_hindi_ca_mcqs(context_text: str):
-    """Groq / Fallback AI se 2-3 lines deep explanation wale shuddh Hindi MCQs banayega"""
+    """2-3 line descriptive explanation ke sath shuddh Hindi MCQs generate karega"""
     prompt = f"""
     Aap Himachal Pradesh Competitive Exams (HPRCA / HPPSC) ke senior paper setter hain.
     Diye gaye Current Affairs content ke aadhar par EXACTLY 5 high-yield MCQs banayein.
@@ -670,20 +689,15 @@ def generate_hindi_ca_mcqs(context_text: str):
 
 @app.get("/api/admin/sync-daily-ca")
 async def trigger_daily_ca_sync():
-    """
-    Direct click route: Kisi password ki zaroorat nahi hai.
-    """
-    # 1. CivilsTap se news uthana
+    """Direct URL trigger route"""
     context = scrape_civilstap_latest()
     if not context:
         raise HTTPException(status_code=500, detail="CivilsTap se latest news fetch nahi ho saki.")
 
-    # 2. 5 Hindi MCQs (2-3 lines explanation ke sath) generate karna
     mcqs = generate_hindi_ca_mcqs(context)
     if not mcqs:
         raise HTTPException(status_code=500, detail="AI se questions generate nahi ho sake.")
 
-    # 3. Supabase 'questions' table mein insert karna
     res = supabase.table("questions").insert(mcqs).execute()
 
     return {
