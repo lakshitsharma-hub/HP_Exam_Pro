@@ -5,6 +5,7 @@ from .engine import AIEngine
 from .database import db
 import os
 import random
+import re
 import feedparser
 from supabase import create_client, Client
 from datetime import datetime
@@ -12,6 +13,8 @@ import razorpay
 import requests
 from .mailer import send_email, get_welcome_html, get_pro_html, get_inactive_html
 from datetime import datetime, timedelta
+import json
+from bs4 import BeautifulSoup
 
 app = FastAPI(title="HP Exam Pro API")
 
@@ -543,8 +546,6 @@ async def claim_free_pro_access(data: SupportClaimInput):
 # --- AUTOMATED DAILY CURRENT AFFAIRS SCRAPER & INGESTION (HINDI) ---
 # =====================================================================
 
-from bs4 import BeautifulSoup
-
 def scrape_civilstap_latest():
     """Diagnostic headers aur multiple fallback strategies ke sath scraper"""
     headers = {
@@ -556,53 +557,33 @@ def scrape_civilstap_latest():
 
     latest_url = None
 
-    # Strategy 1: Direct Category Listing Page
     listing_url = "https://civilstap.com/news-category/prelims-current-affairs/"
     try:
         session = requests.Session()
         res = session.get(listing_url, headers=headers, timeout=15)
-        print(f"DEBUG: Listing HTTP Status: {res.status_code}")
-
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
             for a in soup.find_all("a", href=True):
                 href = a['href']
                 if "/current-affairs-news/" in href and href.rstrip('/') != listing_url.rstrip('/'):
-                    latest_url = href
-                    print(f"DEBUG: Found article link via Listing: {latest_url}")
+                    latest_url = href.split("#")[0]  # '#respond' anchor tag saaf karne ke liye
+                    print(f"DEBUG: Found article link: {latest_url}")
                     break
     except Exception as e:
         print(f"DEBUG: Listing fetch exception: {e}")
 
-    # Strategy 2: RSS Feed fallback
     if not latest_url:
-        try:
-            feed = feedparser.parse("https://civilstap.com/feed/")
-            if feed and feed.entries:
-                for entry in feed.entries:
-                    link = entry.get("link", "")
-                    if "current-affairs" in link:
-                        latest_url = link
-                        print(f"DEBUG: Found article link via RSS: {latest_url}")
-                        break
-        except Exception as e:
-            print(f"DEBUG: Feed fallback exception: {e}")
-
-    if not latest_url:
-        print("DEBUG: Both scraping strategies failed to find any URL.")
         return None
 
-    # Step 3: Article Page Content Extraction
     try:
         art_res = session.get(latest_url, headers=headers, timeout=15)
-        print(f"DEBUG: Article HTTP Status: {art_res.status_code}")
         if art_res.status_code != 200:
             return None
 
         soup = BeautifulSoup(art_res.text, "html.parser")
 
         content = (
-            soup.find("div", class_=re.compile("entry-content|post-content|elementor-widget-theme-post-content"))
+            soup.find("div", class_=re.compile(r"entry-content|post-content|elementor-widget-theme-post-content"))
             or soup.find("article")
         )
 
@@ -616,6 +597,7 @@ def scrape_civilstap_latest():
     except Exception as e:
         print(f"DEBUG: Article content parsing failed: {e}")
         return None
+
 
 def generate_hindi_ca_mcqs(context_text: str):
     """2-3 line descriptive explanation ke sath shuddh Hindi MCQs generate karega"""
@@ -655,7 +637,6 @@ def generate_hindi_ca_mcqs(context_text: str):
     gemini_key = os.getenv("GEMINI_API_KEY")
     raw_output = None
 
-    # Primary: Groq
     if groq_key:
         try:
             r = requests.post(
@@ -669,7 +650,6 @@ def generate_hindi_ca_mcqs(context_text: str):
             print(f"Groq API Error: {err}")
             raw_output = None
 
-    # Fallback 1: Gemini
     if not raw_output and gemini_key:
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
@@ -679,7 +659,6 @@ def generate_hindi_ca_mcqs(context_text: str):
             print(f"Gemini API Error: {err}")
             raw_output = None
 
-    # Fallback 2: Local AI Engine
     if not raw_output:
         raw_output, _ = engine.get_response(prompt)
 
