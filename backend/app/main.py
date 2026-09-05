@@ -598,9 +598,8 @@ def scrape_civilstap_latest():
         print(f"DEBUG: Article content parsing failed: {e}")
         return None
 
-
 def generate_hindi_ca_mcqs(context_text: str):
-    """2-3 line descriptive explanation ke sath shuddh Hindi MCQs generate karega"""
+    """Safe AI invocation using existing engine with fallback diagnostics"""
     prompt = f"""
     Aap Himachal Pradesh Competitive Exams (HPRCA / HPPSC) ke senior paper setter hain.
     Diye gaye Current Affairs content ke aadhar par EXACTLY 5 high-yield MCQs banayein.
@@ -633,50 +632,72 @@ def generate_hindi_ca_mcqs(context_text: str):
     ]
     """
 
+    raw_output = None
     groq_key = os.getenv("GROQ_API_KEY")
     gemini_key = os.getenv("GEMINI_API_KEY")
-    raw_output = None
 
+    # 1. Groq (Safe Call with exact error logging)
     if groq_key:
         try:
             r = requests.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
-                json={"model": "llama-3.3-70b-versatile", "messages": [{"role": "user", "content": prompt}], "temperature": 0.2},
+                json={
+                    "model": "llama-3.3-70b-versatile",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.2
+                },
                 timeout=25
             )
-            raw_output = r.json()["choices"][0]["message"]["content"]
+            res_json = r.json()
+            if "choices" in res_json:
+                raw_output = res_json["choices"][0]["message"]["content"]
+            else:
+                print(f"DEBUG Groq API returned error: {res_json}")
         except Exception as err:
-            print(f"Groq API Error: {err}")
-            raw_output = None
+            print(f"DEBUG Groq Network Error: {err}")
 
+    # 2. Gemini Fallback (v1beta with flash model)
     if not raw_output and gemini_key:
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
-            r = requests.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=25)
-            raw_output = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+            r = requests.post(
+                url,
+                headers={"Content-Type": "application/json"},
+                json={"contents": [{"parts": [{"text": prompt}]}]},
+                timeout=25
+            )
+            res_json = r.json()
+            if "candidates" in res_json:
+                raw_output = res_json["candidates"][0]["content"]["parts"][0]["text"]
+            else:
+                print(f"DEBUG Gemini API returned error: {res_json}")
         except Exception as err:
-            print(f"Gemini API Error: {err}")
-            raw_output = None
+            print(f"DEBUG Gemini Network Error: {err}")
 
+    # 3. Native App Engine Fallback (Aapka pehle se chal raha engine)
     if not raw_output:
-        raw_output, _ = engine.get_response(prompt)
+        try:
+            print("DEBUG: Using native AIEngine fallback...")
+            raw_output, _ = engine.get_response(prompt)
+        except Exception as err:
+            print(f"DEBUG AIEngine fallback error: {err}")
 
     if not raw_output:
         return None
 
+    # Clean JSON format
     cleaned = raw_output.strip()
-    if cleaned.startswith("```json"):
-        cleaned = cleaned[7:-3].strip()
-    elif cleaned.startswith("```"):
-        cleaned = cleaned[3:-3].strip()
+    if "```json" in cleaned:
+        cleaned = cleaned.split("```json")[1].split("```")[0].strip()
+    elif "```" in cleaned:
+        cleaned = cleaned.split("```")[1].split("```")[0].strip()
 
     try:
         return json.loads(cleaned)
     except Exception as e:
-        print(f"JSON Parse Exception: {e}")
+        print(f"DEBUG JSON Parse Exception: {e}\nRaw Output was:\n{raw_output[:300]}")
         return None
-
 
 @app.get("/api/admin/sync-daily-ca")
 async def trigger_daily_ca_sync():
