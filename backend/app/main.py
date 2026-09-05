@@ -546,47 +546,59 @@ async def claim_free_pro_access(data: SupportClaimInput):
 from bs4 import BeautifulSoup
 
 def scrape_civilstap_latest():
-    """RSS Feed + Direct Listing fallback se latest date ka content nikalega"""
+    """Diagnostic headers aur multiple fallback strategies ke sath scraper"""
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9,hi;q=0.8",
+        "Referer": "https://www.google.com/"
     }
 
     latest_url = None
 
-    # 1. WordPress RSS Feed (100% reliable link resolution)
+    # Strategy 1: Direct Category Listing Page
+    listing_url = "https://civilstap.com/news-category/prelims-current-affairs/"
     try:
-        feed = feedparser.parse("https://civilstap.com/feed/")
-        if feed and feed.entries:
-            for entry in feed.entries:
-                link = entry.get("link", "")
-                title = entry.get("title", "").lower()
-                if "current-affairs" in link or "current affairs" in title:
-                    latest_url = link
+        session = requests.Session()
+        res = session.get(listing_url, headers=headers, timeout=15)
+        print(f"DEBUG: Listing HTTP Status: {res.status_code}")
+
+        if res.status_code == 200:
+            soup = BeautifulSoup(res.text, "html.parser")
+            for a in soup.find_all("a", href=True):
+                href = a['href']
+                if "/current-affairs-news/" in href and href.rstrip('/') != listing_url.rstrip('/'):
+                    latest_url = href
+                    print(f"DEBUG: Found article link via Listing: {latest_url}")
                     break
     except Exception as e:
-        print(f"Feed error: {e}")
+        print(f"DEBUG: Listing fetch exception: {e}")
 
-    # 2. Fallback: Direct Category Listing HTML parse
+    # Strategy 2: RSS Feed fallback
     if not latest_url:
         try:
-            listing_url = "https://civilstap.com/news-category/prelims-current-affairs/"
-            res = requests.get(listing_url, headers=headers, timeout=12)
-            if res.status_code == 200:
-                soup = BeautifulSoup(res.text, "html.parser")
-                for a in soup.find_all("a", href=True):
-                    href = a['href']
-                    if "/current-affairs-news/" in href and href.rstrip('/') != listing_url.rstrip('/'):
-                        latest_url = href
+            feed = feedparser.parse("https://civilstap.com/feed/")
+            if feed and feed.entries:
+                for entry in feed.entries:
+                    link = entry.get("link", "")
+                    if "current-affairs" in link:
+                        latest_url = link
+                        print(f"DEBUG: Found article link via RSS: {latest_url}")
                         break
         except Exception as e:
-            print(f"Listing fallback error: {e}")
+            print(f"DEBUG: Feed fallback exception: {e}")
 
     if not latest_url:
+        print("DEBUG: Both scraping strategies failed to find any URL.")
         return None
 
-    # 3. Article page ka actual text extract karna
+    # Step 3: Article Page Content Extraction
     try:
-        art_res = requests.get(latest_url, headers=headers, timeout=15)
+        art_res = session.get(latest_url, headers=headers, timeout=15)
+        print(f"DEBUG: Article HTTP Status: {art_res.status_code}")
+        if art_res.status_code != 200:
+            return None
+
         soup = BeautifulSoup(art_res.text, "html.parser")
 
         content = (
@@ -599,11 +611,11 @@ def scrape_civilstap_latest():
         if "Ask your Query" in raw_text:
             raw_text = raw_text.split("Ask your Query")[0]
 
+        print(f"DEBUG: Successfully extracted text! Length: {len(raw_text)}")
         return raw_text[:3800]
     except Exception as e:
-        print(f"Article fetch error: {e}")
+        print(f"DEBUG: Article content parsing failed: {e}")
         return None
-
 
 def generate_hindi_ca_mcqs(context_text: str):
     """2-3 line descriptive explanation ke sath shuddh Hindi MCQs generate karega"""
