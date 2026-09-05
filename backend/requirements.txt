@@ -9,3 +9,4 @@ supabase
 feedparser
 razorpay
 requests
+beautifulsoup4
