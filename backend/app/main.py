@@ -59,55 +59,44 @@ class ChatRequest(BaseModel):
     message: str
 
 
-# --- 1. CURRENT AFFAIRS / NEWS ENDPOINT (STRICT POSITIVE INCLUSION FILTER) ---
+# --- 1. CURRENT AFFAIRS / NEWS ENDPOINT ---
 @app.get("/api/news")
 async def get_hp_news():
-    sources = [
-        "https://www.amarujala.com/rss/himachal-pradesh.xml",  # हिमाचल न्यूज़
-        "https://www.tribuneindia.com/rss/feed.aspx?cat_id=40", # हिमाचल न्यूज़
-        "https://www.thehindu.com/news/national/feeder/default.rss" # 🇮🇳 नेशनल न्यूज़
-    ]
-    all_news = []
-    
-    # ✅ STRICT INCLUSION KEYWORDS (सिर्फ इन एग्जाम-ओरिएंटेड शब्दों वाले आर्टिकल्स ही चुने जाएंगे)
-    mandatory_exam_keywords = [
-        "योजना", "स्कीम", "लॉन्च", "उद्घाटन", "शिलान्यास", "पुरस्कार", "अवार्ड", "नियुक्ति", 
-        "बजट", "शिक्षा", "परीक्षा", "भर्ती", "कैबिनेट", "फैसला", "मंजूरी", "रैंकिंग", "खेल", 
-        "गोल्ड", "मेडल", "स्टार्टअप", "पोर्टल", "नीति", "सम्मेलन", "घोषणा", "समझौता",
-        "scheme", "award", "appointed", "budget", "education", "exam", "cabinet", 
-        "sports", "medal", "policy", "summit", "launch", "agreement", "portal"
-    ]
+    try:
+        # Supabase se latest Current Affairs ke 5 sawal aur unka 2-3 line ka explanation uthayega
+        res = (
+            supabase.table("questions")
+            .select("question_text, explanation")
+            .eq("subject", "current_affairs")
+            .order("created_at", desc=True)
+            .limit(5)
+            .execute()
+        )
 
-    for url in sources:
-        try:
-            feed = feedparser.parse(url)
-            if feed.entries:
-                for entry in feed.entries[:25]:
-                    title = entry.title
-                    title_lower = title.lower()
-                    
-                    # चेक: क्या टाइटल में कम से कम एक भी आधिकारिक एग्जाम कीवर्ड मौजूद है?
-                    has_required_keyword = any(word in title_lower for word in mandatory_exam_keywords)
-                    
-                    if has_required_keyword:
-                        all_news.append(title)
-        except Exception as e:
-            print(f"Error fetching from {url}: {e}")
-            
-    if all_news:
-        # डुप्लीकेट हटाकर टॉप 10 शुद्ध एग्जाम न्यूज़ रिटर्न करना
-        unique_news = list(dict.fromkeys(all_news))
-        return {"news": unique_news[:10]}
-        
+        if res.data and len(res.data) > 0:
+            formatted_news = []
+            for item in res.data:
+                q = item.get("question_text", "")
+                exp = item.get("explanation", "")
+                # Agar explanation hai toh question + 2-3 line detail dono dikhayega
+                if exp:
+                    formatted_news.append(f"{q} — {exp}")
+                else:
+                    formatted_news.append(q)
+            return {"news": formatted_news}
+
+    except Exception as e:
+        print(f"Error fetching news from DB: {e}")
+
+    # Fallback default agar DB mein koi news na ho
     return {
         "news": [
-            "हिमाचल प्रदेश सरकार ने 'मुख्यमंत्री सुख-आश्रय योजना' के तहत नए दिशा-निर्देश जारी किए।",
-            "केंद्र सरकार ने राष्ट्रीय स्तर पर नई छात्रवृत्ति योजना (National Scholarship Scheme) की घोषणा की।",
-            "कांगड़ा के शाहपुर में नए आईटी पार्क के निर्माण की प्रक्रिया तेज़ हुई।",
-            "इस वर्ष के राष्ट्रीय खेल पुरस्कारों (National Sports Awards) की आधिकारिक घोषणा की गई।"
+            "जापान क्रेडिट रेटिंग एजेंसी (JCR) ने भारत की सॉवरेन क्रेडिट रेटिंग को अपग्रेड करके 'A-' कर दिया है।",
+            "सुकन्या समृद्धि योजना (SSY) वित्त मंत्रालय के आर्थिक कार्य विभाग द्वारा संचालित 15 वर्ष की निवेश योजना है।",
+            "कर्नाटक के हम्पी/कलबुर्गी क्षेत्र में स्थित गोललगुड़ी मंदिर को राष्ट्रीय महत्व का स्मारक घोषित किया गया।",
+            "V-Dem डेमोक्रेसी रिपोर्ट 2026 के इलेक्टोरल डेमोक्रेसी इंडेक्स में भारत की स्थिति का आकलन जारी।"
         ]
     }
-
 
 # --- 2. CORE SYSTEM ENDPOINTS ---
 @app.get("/")
