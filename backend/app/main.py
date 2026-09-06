@@ -546,57 +546,82 @@ async def claim_free_pro_access(data: SupportClaimInput):
 # =====================================================================
 # --- AUTOMATED DAILY CURRENT AFFAIRS SCRAPER & INGESTION (HINDI) ---
 # =====================================================================
-
 def scrape_civilstap_latest():
-    """Diagnostic headers aur multiple fallback strategies ke sath scraper"""
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9,hi;q=0.8",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Referer": "https://www.google.com/"
     }
 
+    session = requests.Session()
     latest_url = None
 
+    # Step 1: Category Listing se saare article links collect karo
     listing_url = "https://civilstap.com/news-category/prelims-current-affairs/"
     try:
-        session = requests.Session()
         res = session.get(listing_url, headers=headers, timeout=15)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
+            
+            # Category page ke main content area ke links dhoondho
+            candidate_links = []
             for a in soup.find_all("a", href=True):
-                href = a['href']
-                if "/current-affairs-news/" in href and href.rstrip('/') != listing_url.rstrip('/'):
-                    latest_url = href.split("#")[0]  # '#respond' anchor tag saaf karne ke liye
-                    print(f"DEBUG: Found article link: {latest_url}")
-                    break
+                href = a['href'].split("#")[0].rstrip('/')
+                # Check karo agar link current affairs news article ka hai
+                if "/current-affairs-news/" in href and href != listing_url.rstrip('/'):
+                    if href not in candidate_links:
+                        candidate_links.append(href)
+
+            # Debug ke liye top 3 links print karo
+            print(f"DEBUG: Found {len(candidate_links)} article candidates: {candidate_links[:3]}")
+
+            if candidate_links:
+                # Top candidate jo listing mein sabse pehla actual post hai
+                latest_url = candidate_links[0]
+                
     except Exception as e:
-        print(f"DEBUG: Listing fetch exception: {e}")
+        print(f"DEBUG: Listing parse failed: {e}")
+
+    # Fallback: Agar listing fail ho toh RSS feed se direct entry
+    if not latest_url:
+        try:
+            import feedparser
+            feed = feedparser.parse("https://civilstap.com/feed/")
+            for entry in feed.entries:
+                link = entry.get("link", "").split("#")[0].rstrip('/')
+                if "current-affairs" in link:
+                    latest_url = link
+                    print(f"DEBUG: Picked via RSS Feed: {latest_url}")
+                    break
+        except Exception as e:
+            print(f"DEBUG: RSS fallback failed: {e}")
 
     if not latest_url:
+        print("DEBUG: Koi bhi article URL nahi mila.")
         return None
 
+    print(f"DEBUG: Final Target URL to scrape: {latest_url}")
+
+    # Step 2: Article Page Content Extract karo
     try:
         art_res = session.get(latest_url, headers=headers, timeout=15)
         if art_res.status_code != 200:
             return None
 
         soup = BeautifulSoup(art_res.text, "html.parser")
-
         content = (
             soup.find("div", class_=re.compile(r"entry-content|post-content|elementor-widget-theme-post-content"))
             or soup.find("article")
         )
 
         raw_text = content.get_text(separator="\n", strip=True) if content else soup.get_text(separator="\n", strip=True)
-
         if "Ask your Query" in raw_text:
             raw_text = raw_text.split("Ask your Query")[0]
 
-        print(f"DEBUG: Successfully extracted text! Length: {len(raw_text)}")
+        print(f"DEBUG: Extracted Content Length: {len(raw_text)} chars")
         return raw_text[:3800]
     except Exception as e:
-        print(f"DEBUG: Article content parsing failed: {e}")
+        print(f"DEBUG: Content extraction failed: {e}")
         return None
 
 def generate_hindi_ca_mcqs(context_text: str):
