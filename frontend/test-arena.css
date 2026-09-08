@@ -659,3 +659,147 @@ body {
   background: #0f172a;
   color: #ffffff;
 }
+
+/* =========================================================
+   LIGHT / TCS EXAM THEME (CLASSIC CBT INTERFACE)
+   ========================================================= */
+
+.theme-switch-btn {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: #f8fafc;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.theme-switch-btn:hover {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+}
+
+/* --- When Light Mode is Active --- */
+body[data-theme="light"] {
+  --bg-cbt: #f1f5f9;
+  --panel-bg: #ffffff;
+  --border-cbt: #cbd5e1;
+  --text-cbt-main: #0f172a;
+  --text-cbt-muted: #64748b;
+  --accent-cbt: #0284c7;
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+body[data-theme="light"] .exam-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+body[data-theme="light"] .font-resizer-box,
+body[data-theme="light"] .cbt-timer-box,
+body[data-theme="light"] .lang-switch-box,
+body[data-theme="light"] .theme-switch-btn {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+body[data-theme="light"] .font-btn {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+body[data-theme="light"] .lang-select {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+body[data-theme="light"] .lang-select option {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+body[data-theme="light"] .t-val {
+  color: #16a34a;
+}
+
+/* Question Section Light Mode */
+body[data-theme="light"] .question-viewport {
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+}
+
+body[data-theme="light"] .q-text-card {
+  color: #0f172a;
+}
+
+body[data-theme="light"] .option-btn {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  color: #1e293b;
+}
+
+body[data-theme="light"] .option-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+body[data-theme="light"] .option-btn .opt-prefix {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+body[data-theme="light"] .option-btn.selected-green {
+  background: #f0fdf4 !important;
+  border-color: #22c55e !important;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+}
+
+body[data-theme="light"] .option-btn.selected-green .opt-prefix {
+  background: #22c55e;
+  color: #ffffff;
+}
+
+body[data-theme="light"] .btn-nav-outline {
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+body[data-theme="light"] .btn-nav-secondary {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+/* Palette Sidebar Light Mode */
+body[data-theme="light"] .palette-sidebar {
+  background: #f8fafc;
+}
+
+body[data-theme="light"] .palette-bubble {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #334155;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+body[data-theme="light"] .palette-bubble.current {
+  outline: 2px solid #0284c7;
+}
+
+/* Mobile Sticky Bar Light Mode */
+@media (max-width: 860px) {
+  body[data-theme="light"] .q-action-footer {
+    background: #ffffff !important;
+    border-top: 1px solid #cbd5e1 !important;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.08) !important;
+  }
+}
