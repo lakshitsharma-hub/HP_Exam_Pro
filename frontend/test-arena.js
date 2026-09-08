@@ -279,10 +279,17 @@ async function loadQuestion(index) {
     const btn = document.createElement("button");
     btn.className = `option-btn ${isSelected ? "selected-green" : ""}`;
     btn.onclick = () => selectOption(optionKey);
-    btn.innerHTML = `
-      <span class="opt-prefix">${prefixes[optIndex]}</span>
-      <span class="opt-text">${opt}</span>
-    `;
+
+    const prefixSpan = document.createElement("span");
+    prefixSpan.className = "opt-prefix";
+    prefixSpan.textContent = prefixes[optIndex];
+
+    const textSpan = document.createElement("span");
+    textSpan.className = "opt-text";
+    textSpan.textContent = String(opt); // Safe plain-text render
+
+    btn.appendChild(prefixSpan);
+    btn.appendChild(textSpan);
     container.appendChild(btn);
   });
 
@@ -299,7 +306,6 @@ async function loadQuestion(index) {
   updatePaletteStatus();
   saveTestState();
 }
-
 function selectOption(optionKey) {
   examQuestions[currentIndex].userSelected = optionKey;
   examQuestions[currentIndex].state = "answered";
