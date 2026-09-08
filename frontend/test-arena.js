@@ -1,3 +1,23 @@
+// ==================== THEME CONTROLLER ====================
+function initExamTheme() {
+  const savedTheme = localStorage.getItem("hp_exam_theme") || "dark";
+  document.body.setAttribute("data-theme", savedTheme);
+  const btn = document.getElementById("themeToggleBtn");
+  if (btn) {
+    btn.innerHTML = savedTheme === "light" ? "🌙 Dark" : "☀️ Light";
+  }
+}
+
+function toggleExamTheme() {
+  const current = document.body.getAttribute("data-theme") || "dark";
+  const newTheme = current === "dark" ? "light" : "dark";
+  document.body.setAttribute("data-theme", newTheme);
+  localStorage.setItem("hp_exam_theme", newTheme);
+  const btn = document.getElementById("themeToggleBtn");
+  if (btn) {
+    btn.innerHTML = newTheme === "light" ? "🌙 Dark" : "☀️ Light";
+  }
+}
 const API_BASE_URL = "https://hp-exam-pro-dixk.onrender.com";
 
 let rawQuestionsData = [];
