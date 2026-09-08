@@ -64,6 +64,13 @@ async function loadUsers() {
     }
 
     allLoadedUsers = users || [];
+    
+    // Total User Count Update
+    const userBadge = document.getElementById('total-users-badge');
+    if (userBadge) {
+        userBadge.innerText = `Total: ${allLoadedUsers.length}`;
+    }
+
     renderUserRows(allLoadedUsers);
 }
 
