@@ -548,3 +548,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const csvElem = document.getElementById('csvUpload');
     if (csvElem) csvElem.addEventListener('change', triggerCSVUpload);
 });
+
+// --- MODAL CLOSE HANDLER ---
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Bahar (Backdrop) click karne par ya 'Escape' key dabane par bhi close ho jaye
+window.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal-overlay')) {
+        e.target.style.display = 'none';
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const userMod = document.getElementById('userModal');
+        const revMod = document.getElementById('reviewModal');
+        if (revMod && revMod.style.display === 'flex') {
+            revMod.style.display = 'none';
+        } else if (userMod && userMod.style.display === 'flex') {
+            userMod.style.display = 'none';
+        }
+    }
+});
