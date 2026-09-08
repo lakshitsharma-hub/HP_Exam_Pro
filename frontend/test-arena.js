@@ -92,6 +92,8 @@ function clearTestState() {
 // ====================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
+  initExamTheme(); // <--- Yeh line yahan aayegi
+
   const urlParams = new URLSearchParams(window.location.search);
   let examParam = urlParams.get('exam');
   
