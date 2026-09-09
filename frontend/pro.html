@@ -138,44 +138,58 @@
 
     <a href="https://hp-exam-pro.vercel.app" class="back-link">← Return to Dashboard</a>
 </div>
-<!-- Supabase JS Client (Agar pehle se load nahi hai) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase JS Client -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   (async function checkProRedirect() {
     try {
-      // 1. Storage se session pakdo
-      let session = null;
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.startsWith('sb-') || key.includes('auth-token'))) {
-          try {
-            const parsed = JSON.parse(localStorage.getItem(key));
-            if (parsed?.user?.id || parsed?.currentSession?.user?.id) {
-              session = parsed.user || parsed.currentSession.user;
-              break;
-            }
-          } catch(e) {}
+      // 1. Storage se session user ID nikalna
+      let userId = localStorage.getItem("current_user_id");
+
+      if (!userId) {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('sb-') || key.includes('auth-token'))) {
+            try {
+              const parsed = JSON.parse(localStorage.getItem(key));
+              const userObj = parsed?.user || parsed?.currentSession?.user;
+              if (userObj?.id) {
+                userId = userObj.id;
+                break;
+              }
+            } catch (e) {}
+          }
         }
       }
 
-      if (!session || !session.id) return;
+      if (!userId || userId === "test-user-123") return;
 
-      // 2. Apne Supabase Project details
-      const SUPABASE_URL = "https://jitkmfqxojfppnpoxeff.supabase.co"; // <-- Replace with your URL
-      const SUPABASE_ANON_KEY = "sb_publishable_6H4ld2wexzzNexqTfOtvIw_xLkWKsif";                 // <-- Replace with your Anon Key
-
+      // 2. Supabase client initialize karein
+      const SUPABASE_URL = "https://jitkmfqxojfppnpoxeff.supabase.co";
+      const SUPABASE_ANON_KEY = "sb_publishable_6H4ld2wexzzNexqTfOtvIw_xLkWKsif";
       const sb = window.supabaseClient || supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      const { data: profile } = await sb
-        .from('profiles')
-        .select('is_pro')
-        .eq('id', session.id)
-        .maybeSingle();
+      // 3. User profile aur completed test results parallel fetch karein
+      const [profileRes, resultsRes] = await Promise.all([
+        sb.from('profiles').select('is_pro, custom_limit').eq('id', userId).maybeSingle(),
+        sb.from('test_results').select('id', { count: 'exact', head: true }).eq('user_id', userId)
+      ]);
 
+      const profile = profileRes.data;
+      const totalAttempted = resultsRes.count || 0;
+      const allowedQuota = profile?.custom_limit !== null && profile?.custom_limit !== undefined 
+        ? profile.custom_limit 
+        : 15;
+
+      // 4. Redirect sirf tab karein jab user Pro ho AUR uski limit bachi ho
       if (profile && (profile.is_pro === true || profile.is_pro === 'true')) {
-        localStorage.setItem('user_is_pro', 'true');
-        window.location.replace("index.html");
+        if (totalAttempted < allowedQuota) {
+          localStorage.setItem('user_is_pro', 'true');
+          window.location.replace("index.html");
+        } else {
+          // Quota pura ho chuka hai: User ko recharge ke liye pro.html par hi rok kar rakhein
+          localStorage.setItem('user_is_pro', 'false');
+        }
       }
     } catch (err) {
       console.error("Pro check failed:", err);
