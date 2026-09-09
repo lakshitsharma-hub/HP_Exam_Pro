@@ -169,8 +169,8 @@ async function fetchQuestionsFromBackend() {
       
       if (response.status === 403) {
         const errorData = await response.json();
-        alert('👑 Pro Feature: ' + errorData.detail);
-        window.location.href = "index.html";
+        alert('👑 Quota Reached: ' + errorData.detail);
+        window.location.href = "pro.html";
         return;
       }
 
