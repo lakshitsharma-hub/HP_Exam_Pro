@@ -586,8 +586,10 @@ document.addEventListener('keydown', (e) => {
 });
 
 // =========================================================================
-// 8. RAISED QUERIES & LIVE NOTIFICATION ENGINE (WITH QUESTION INSPECTOR)
+// 8. RAISED QUERIES & NOTIFICATION ENGINE (STRICT SINGLE INCREMENT GUARD)
 // =========================================================================
+
+let isQueryProcessing = false;
 
 // 🔴 1. Pending Queries Count & Badge Fetch
 async function refreshQueryNotificationBadge() {
@@ -713,10 +715,10 @@ async function openQueriesModal() {
                     <td style="padding: 10px 8px;">${statusPill}</td>
                     <td style="padding: 10px 8px; text-align: right; white-space: nowrap;">
                         ${isPending ? `
-                            <button onclick="approveQueryAction(${q.id}, '${q.user_id}')" style="background: #10b981; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; margin-right: 4px;">
+                            <button onclick="approveQueryAction(${q.id}, '${q.user_id}', this)" style="background: #10b981; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; margin-right: 4px;">
                                 ✅ Approve (+1)
                             </button>
-                            <button onclick="rejectQueryAction(${q.id})" style="background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px;">
+                            <button onclick="rejectQueryAction(${q.id}, this)" style="background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px;">
                                 ❌ Reject
                             </button>
                         ` : `
@@ -734,39 +736,64 @@ async function openQueriesModal() {
     }
 }
 
-// 🟢 3. Approve Action: Status 'approved' + Candidate ka +1 Mark increment
-async function approveQueryAction(queryId, userId) {
-    if (!confirm("Is query ko Approve karke candidate ka +1 mark add karna hai?")) return;
+// 🟢 3. Approve Action: Strict Single +1 Increment & Button Lock
+async function approveQueryAction(queryId, userId, btnElement) {
+    if (isQueryProcessing) return;
+
+    if (!confirm("Is query ko Approve karke candidate ka +1 mark add karna hai?")) {
+        return;
+    }
+
+    isQueryProcessing = true;
+    if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.innerText = "⏳ Updating...";
+    }
 
     try {
         const numericId = parseInt(queryId);
 
-        const { data, error: queryErr } = await supabaseClient
+        // A. Check karein ki status already approved toh nahi hai
+        const { data: currentQuery } = await supabaseClient
             .from('query_raises')
-            .update({ status: 'approved' })
+            .select('status')
             .eq('id', numericId)
-            .select();
+            .single();
 
-        if (queryErr) throw queryErr;
-        if (!data || data.length === 0) {
-            throw new Error("Update blocked by Supabase RLS policies! Check query_raises UPDATE permissions.");
+        if (currentQuery && currentQuery.status === 'approved') {
+            alert("Yeh query pehle hi approve ho chuki hai!");
+            return;
         }
 
-        // Candidate ke latest test attempt me +1 mark add karein
+        // B. Update query status to 'approved'
+        const { error: queryErr } = await supabaseClient
+            .from('query_raises')
+            .update({ status: 'approved' })
+            .eq('id', numericId);
+
+        if (queryErr) throw queryErr;
+
+        // C. Candidate ke latest test result me strictly 1 mark badhana
         if (userId) {
-            const { data: latestTest } = await supabaseClient
+            const { data: latestTest, error: testErr } = await supabaseClient
                 .from('test_results')
-                .select('id, score')
+                .select('id, score, correct_answers')
                 .eq('user_id', userId)
                 .order('created_at', { ascending: false })
                 .limit(1)
                 .maybeSingle();
 
-            if (latestTest) {
-                const updatedScore = parseFloat(((latestTest.score || 0) + 1).toFixed(2));
+            if (latestTest && !testErr) {
+                const currentScore = Number(latestTest.score) || 0;
+                const newScore = parseFloat((currentScore + 1.0).toFixed(2));
+                const currentCorrect = Number(latestTest.correct_answers) || 0;
+
                 await supabaseClient
                     .from('test_results')
-                    .update({ score: updatedScore })
+                    .update({ 
+                        score: newScore,
+                        correct_answers: currentCorrect + 1
+                    })
                     .eq('id', latestTest.id);
             }
         }
@@ -776,30 +803,42 @@ async function approveQueryAction(queryId, userId) {
     } catch (err) {
         alert("Action Error: " + err.message);
         console.error("Approve failed:", err);
+    } finally {
+        setTimeout(() => {
+            isQueryProcessing = false;
+        }, 800);
     }
 }
 
-// 🔴 4. Reject Action: Status 'rejected' mark karein
-async function rejectQueryAction(queryId) {
+// 🔴 4. Reject Action
+async function rejectQueryAction(queryId, btnElement) {
+    if (isQueryProcessing) return;
+    isQueryProcessing = true;
+
+    if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.innerText = "⏳...";
+    }
+
     try {
         const numericId = parseInt(queryId);
 
-        const { data, error } = await supabaseClient
+        const { error } = await supabaseClient
             .from('query_raises')
             .update({ status: 'rejected' })
-            .eq('id', numericId)
-            .select();
+            .eq('id', numericId);
 
         if (error) throw error;
-        if (!data || data.length === 0) {
-            throw new Error("Update blocked by Supabase RLS policies! Check query_raises UPDATE permissions.");
-        }
 
         openQueriesModal();
         refreshQueryNotificationBadge();
     } catch (err) {
         alert("Action Error: " + err.message);
         console.error("Reject failed:", err);
+    } finally {
+        setTimeout(() => {
+            isQueryProcessing = false;
+        }, 800);
     }
 }
 
