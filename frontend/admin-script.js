@@ -582,3 +582,225 @@ document.addEventListener('keydown', (e) => {
         }
     }
 });
+
+// ==================== 8. RAISED QUERIES & NOTIFICATION ENGINE ====================
+
+// 🔴 1. Pending Queries Count & Red Badge
+async function refreshQueryNotificationBadge() {
+    try {
+        const { count, error } = await supabaseClient
+            .from('query_raises')
+            .select('id', { count: 'exact', head: true })
+            .eq('status', 'pending');
+
+        if (error) throw error;
+
+        const badge = document.getElementById('query-notification-badge');
+        const modalBadge = document.getElementById('modal-pending-badge');
+        const pendingCount = count || 0;
+
+        if (badge) {
+            if (pendingCount > 0) {
+                badge.innerText = pendingCount > 99 ? '99+' : pendingCount;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        if (modalBadge) {
+            modalBadge.innerText = `${pendingCount} Pending`;
+        }
+    } catch (err) {
+        console.warn("Query badge fetch error:", err);
+    }
+}
+
+// 📂 2. Open Queries Modal with Name, Question & Exact Time
+async function openQueriesModal() {
+    const modal = document.getElementById('queriesModal');
+    const content = document.getElementById('queriesModalContent');
+    if (!modal || !content) return;
+
+    content.innerHTML = '<p style="text-align: center; color: #64748b; padding: 25px;">Loading raised queries...</p>';
+    modal.style.display = 'flex';
+
+    try {
+        // Fetch Queries
+        const { data: queries, error } = await supabaseClient
+            .from('query_raises')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(50);
+
+        if (error) throw error;
+
+        if (!queries || queries.length === 0) {
+            content.innerHTML = '<div style="padding: 35px; text-align: center; color: #94a3b8;">Koi objection/query nahi mili.</div>';
+            return;
+        }
+
+        // Candidate Names map karna
+        const userIds = [...new Set(queries.map(q => q.user_id).filter(Boolean))];
+        let profileMap = {};
+        if (userIds.length > 0) {
+            const { data: profiles } = await supabaseClient
+                .from('profiles')
+                .select('id, display_name')
+                .in('id', userIds);
+            
+            if (profiles) {
+                profiles.forEach(p => {
+                    profileMap[p.id] = p.display_name || 'Anonymous';
+                });
+            }
+        }
+
+        // Question text preview map karna
+        const questionIds = [...new Set(queries.map(q => q.question_id).filter(Boolean))];
+        let questionMap = {};
+        if (questionIds.length > 0) {
+            const { data: questions } = await supabaseClient
+                .from('questions')
+                .select('id, question_text, question')
+                .in('id', questionIds);
+            
+            if (questions) {
+                questions.forEach(q => {
+                    questionMap[q.id] = q.question_text || q.question || 'N/A';
+                });
+            }
+        }
+
+        let tableHtml = `
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #e2e8f0; text-align: left; color: #64748b;">
+                        <th style="padding: 10px 8px;">Candidate</th>
+                        <th style="padding: 10px 8px;">Question Info</th>
+                        <th style="padding: 10px 8px;">Objection / Issue</th>
+                        <th style="padding: 10px 8px;">Raised Time</th>
+                        <th style="padding: 10px 8px;">Status</th>
+                        <th style="padding: 10px 8px; text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        queries.forEach(q => {
+            const dateObj = q.created_at ? new Date(q.created_at) : null;
+            const formattedTime = dateObj ? dateObj.toLocaleDateString('en-IN', { 
+                day: '2-digit', 
+                month: 'short', 
+                year: 'numeric',
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+            }) : 'Unknown Time';
+
+            const candidateName = profileMap[q.user_id] || (q.user_id ? q.user_id.slice(0, 8) + '...' : 'Student');
+            const qPreview = questionMap[q.question_id] || 'View Question';
+
+            const isPending = (q.status === 'pending');
+            const isApproved = (q.status === 'approved');
+
+            const statusPill = isPending
+                ? '<span style="background: #fee2e2; color: #dc2626; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 11px;">PENDING</span>'
+                : (isApproved 
+                    ? '<span style="background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 11px;">APPROVED</span>'
+                    : '<span style="background: #f1f5f9; color: #64748b; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 11px;">REJECTED</span>');
+
+            tableHtml += `
+                <tr style="border-bottom: 1px solid #f1f5f9; ${isPending ? 'background: rgba(254, 242, 242, 0.3);' : ''}">
+                    <td style="padding: 10px 8px;">
+                        <b style="color: #2563eb; font-size: 13.5px;">${candidateName}</b>
+                    </td>
+                    <td style="padding: 10px 8px; max-width: 200px;">
+                        <span style="font-weight: 700; color: #0f172a;">Q-ID: #${q.question_id}</span><br>
+                        <small style="color: #64748b; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${qPreview}">
+                            ${qPreview}
+                        </small>
+                    </td>
+                    <td style="padding: 10px 8px; max-width: 250px; word-break: break-word; color: #0f172a; font-weight: 500;">
+                        ${q.issue_text || 'No description provided'}
+                    </td>
+                    <td style="padding: 10px 8px; font-size: 12px; color: #475569; white-space: nowrap;">
+                        🕒 ${formattedTime}
+                    </td>
+                    <td style="padding: 10px 8px;">${statusPill}</td>
+                    <td style="padding: 10px 8px; text-align: right; white-space: nowrap;">
+                        ${isPending ? `
+                            <button onclick="approveQueryAction('${q.id}', '${q.user_id}')" style="background: #10b981; color: white; border: none; padding: 5px 9px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; margin-right: 4px;">
+                                ✅ Approve (+1)
+                            </button>
+                            <button onclick="rejectQueryAction('${q.id}')" style="background: #ef4444; color: white; border: none; padding: 5px 9px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px;">
+                                ❌ Reject
+                            </button>
+                        ` : `
+                            <span style="color: #94a3b8; font-size: 12px;">Resolved</span>
+                        `}
+                    </td>
+                </tr>
+            `;
+        });
+
+        tableHtml += '</tbody></table>';
+        content.innerHTML = tableHtml;
+    } catch (e) {
+        content.innerHTML = `<p style="color: red; padding: 15px;">Error loading queries: ${e.message}</p>`;
+    }
+}
+
+// 🟢 3. Approve Action: Status 'approved' + User ka 1 Mark increment
+async function approveQueryAction(queryId, userId) {
+    if (!confirm("Is query ko Approve karke candidate ka +1 mark add karna hai?")) return;
+
+    try {
+        const { error: queryErr } = await supabaseClient
+            .from('query_raises')
+            .update({ status: 'approved' })
+            .eq('id', queryId);
+
+        if (queryErr) throw queryErr;
+
+        if (userId) {
+            const { data: latestTest } = await supabaseClient
+                .from('test_results')
+                .select('id, score')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (latestTest) {
+                const updatedScore = parseFloat(((latestTest.score || 0) + 1).toFixed(2));
+                await supabaseClient
+                    .from('test_results')
+                    .update({ score: updatedScore })
+                    .eq('id', latestTest.id);
+            }
+        }
+
+        openQueriesModal();
+        refreshQueryNotificationBadge();
+    } catch (err) {
+        alert("Action failed: " + err.message);
+    }
+}
+
+// 🔴 4. Reject Action: Status 'rejected' (badge clear ho jayega)
+async function rejectQueryAction(queryId) {
+    try {
+        const { error } = await supabaseClient
+            .from('query_raises')
+            .update({ status: 'rejected' })
+            .eq('id', queryId);
+
+        if (error) throw error;
+
+        openQueriesModal();
+        refreshQueryNotificationBadge();
+    } catch (err) {
+        alert("Action failed: " + err.message);
+    }
+}
