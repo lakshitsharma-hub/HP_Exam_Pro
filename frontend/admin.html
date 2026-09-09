@@ -192,6 +192,18 @@
         </div>
     </div>
 </div>
+<!-- Question Details Modal -->
+<div id="questionDetailModal" class="modal-overlay" style="z-index: 3000;">
+    <div class="modal-card" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3 style="margin: 0; color: #0f172a;" id="qdModalTitle">Question Details</h3>
+            <button onclick="closeModal('questionDetailModal')" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b;">✕</button>
+        </div>
+        <div class="modal-body" id="qdModalContent" style="padding: 20px;">
+            Loading question...
+        </div>
+    </div>
+</div>
 <script src="admin-script.js"></script>
 </body>
 </html>
