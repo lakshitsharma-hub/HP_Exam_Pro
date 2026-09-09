@@ -552,6 +552,8 @@ function generateAIQuestions() {
 document.addEventListener("DOMContentLoaded", () => {
     refreshDashboardStats();
     loadUsers();
+    refreshQueryNotificationBadge(); // 👈 Nayi line: Badge load karega
+    setInterval(refreshQueryNotificationBadge, 15000); // 👈 Nayi line: Har 15 sec me auto-sync
     const csvElem = document.getElementById('csvUpload');
     if (csvElem) csvElem.addEventListener('change', triggerCSVUpload);
 });
