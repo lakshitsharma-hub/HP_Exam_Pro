@@ -736,67 +736,30 @@ async function openQueriesModal() {
     }
 }
 
-// 🟢 3. Approve Action: Strict Single +1 Increment & Button Lock
+// 🟢 3. Approve Action: Sirf Status 'approved' karega (Score backend auto-update karega)
 async function approveQueryAction(queryId, userId, btnElement) {
     if (isQueryProcessing) return;
 
-    if (!confirm("Is query ko Approve karke candidate ka +1 mark add karna hai?")) {
+    if (!confirm("Is query ko Approve karna hai? (Score automatically sync hoga)")) {
         return;
     }
 
     isQueryProcessing = true;
     if (btnElement) {
         btnElement.disabled = true;
-        btnElement.innerText = "⏳ Updating...";
+        btnElement.innerText = "⏳...";
     }
 
     try {
         const numericId = parseInt(queryId);
 
-        // A. Check karein ki status already approved toh nahi hai
-        const { data: currentQuery } = await supabaseClient
-            .from('query_raises')
-            .select('status')
-            .eq('id', numericId)
-            .single();
-
-        if (currentQuery && currentQuery.status === 'approved') {
-            alert("Yeh query pehle hi approve ho chuki hai!");
-            return;
-        }
-
-        // B. Update query status to 'approved'
+        // Sirf status ko 'approved' karein (backend score khud handle karega)
         const { error: queryErr } = await supabaseClient
             .from('query_raises')
             .update({ status: 'approved' })
             .eq('id', numericId);
 
         if (queryErr) throw queryErr;
-
-        // C. Candidate ke latest test result me strictly 1 mark badhana
-        if (userId) {
-            const { data: latestTest, error: testErr } = await supabaseClient
-                .from('test_results')
-                .select('id, score, correct_answers')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .maybeSingle();
-
-            if (latestTest && !testErr) {
-                const currentScore = Number(latestTest.score) || 0;
-                const newScore = parseFloat((currentScore + 1.0).toFixed(2));
-                const currentCorrect = Number(latestTest.correct_answers) || 0;
-
-                await supabaseClient
-                    .from('test_results')
-                    .update({ 
-                        score: newScore,
-                        correct_answers: currentCorrect + 1
-                    })
-                    .eq('id', latestTest.id);
-            }
-        }
 
         openQueriesModal();
         refreshQueryNotificationBadge();
@@ -809,7 +772,6 @@ async function approveQueryAction(queryId, userId, btnElement) {
         }, 800);
     }
 }
-
 // 🔴 4. Reject Action
 async function rejectQueryAction(queryId, btnElement) {
     if (isQueryProcessing) return;
