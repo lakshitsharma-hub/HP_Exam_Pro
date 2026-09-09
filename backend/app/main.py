@@ -129,7 +129,7 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
     try:
         is_pro = False
         
-        # 👑 Freemium & Pro Monthly Limit Logic
+        # 👑 Universal Test Quota Logic (Default: 15, Overridable via custom_limit)
         if user_id and user_id != "test-user-123":
             profile_resp = supabase.table("profiles").select("is_pro", "custom_limit").eq("id", user_id).execute()
             profile_data = profile_resp.data
@@ -138,23 +138,24 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
             is_pro = user_row.get("is_pro", False)
             custom_limit = user_row.get("custom_limit")
 
-            if is_pro:
-                first_day_of_month = datetime.today().replace(day=1).strftime('%Y-%m-%d')
-                tests_resp = supabase.table("test_results").select("id").eq("user_id", user_id).gte("created_at", first_day_of_month).execute()
-                total_attempted = len(tests_resp.data) if tests_resp.data else 0
-                
-                max_allowed = custom_limit if custom_limit is not None else 15
-                
-                if total_attempted >= max_allowed:
-                    raise HTTPException(status_code=403, detail=f"⚠️ आप इस महीने के अपने {max_allowed} Pro मॉक टेस्ट पूरे कर चुके हैं! अगले महीने नए टेस्ट अनलॉक हो जाएंगे। 👑")
-            else:
-                tests_resp = supabase.table("test_results").select("id").eq("user_id", user_id).execute()
-                total_past_tests = len(tests_resp.data) if tests_resp.data else 0
-                
-                max_allowed = custom_limit if custom_limit is not None else 1
-                
-                if total_past_tests >= max_allowed:
-                    raise HTTPException(status_code=403, detail=f"आप अपने {max_allowed} मुफ़्त मॉक टेस्ट दे चुके हैं! असीमित और प्रीमियम टेस्ट अनलॉक करने के लिए प्रो एक्सेस लें। 👑")
+            # Determine limit: admin override if present, else standard default 15
+            max_allowed = custom_limit if custom_limit is not None else 15
+
+            # Fetch total lifetime completed mock tests
+            tests_resp = (
+                supabase.table("test_results")
+                .select("id")
+                .eq("user_id", user_id)
+                .execute()
+            )
+            total_attempted = len(tests_resp.data) if tests_resp.data else 0
+
+            # Restrict access once quota ceiling is reached
+            if total_attempted >= max_allowed:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Test Limit Reached: You have completed all {max_allowed} mock tests allocated to your account."
+                )
 
         final_questions = []
         selected_ids = set()
