@@ -920,3 +920,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
   syncUserProfile();
 });
+
+// =========================================================
+// 12. TELEGRAM PRO ACTIVATION MODAL ENGINE
+// =========================================================
+function showTelegramModal(customMsg) {
+  // Purana modal ho toh hatao
+  const existingModal = document.getElementById("telegram-activation-modal");
+  if (existingModal) existingModal.remove();
+
+  const messageText = customMsg || "You have reached your mock test limit. Upgrade or contact admin on Telegram to extend your quota!";
+
+  const modalHtml = `
+    <div id="telegram-activation-modal" style="
+      position: fixed; inset: 0; background: rgba(11, 17, 32, 0.85); backdrop-filter: blur(8px);
+      z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 20px;
+    ">
+      <div style="
+        background: #0f172a; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px;
+        max-width: 440px; width: 100%; padding: 28px; text-align: center; color: white;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      ">
+        <div style="font-size: 45px; margin-bottom: 12px;">👑</div>
+        <h3 style="margin: 0 0 10px 0; font-size: 20px; font-weight: 700; color: #f8fafc;">Test Limit Exceeded</h3>
+        <p style="color: #94a3b8; font-size: 14px; line-height: 1.5; margin-bottom: 24px;">
+          ${messageText}
+        </p>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <a href="https://t.me/lakshitsharma" target="_blank" style="
+            background: linear-gradient(135deg, #0284c7, #0ea5e9); color: white; padding: 12px 20px;
+            border-radius: 10px; font-weight: 600; text-decoration: none; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+          ">
+            ✈️ Activate / Unlock via Telegram
+          </a>
+          
+          <button onclick="document.getElementById('telegram-activation-modal').remove()" style="
+            background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #94a3b8;
+            padding: 10px 20px; border-radius: 10px; font-size: 13px; cursor: pointer;
+          ">
+            Dismiss
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
+}
+window.showTelegramModal = showTelegramModal;
