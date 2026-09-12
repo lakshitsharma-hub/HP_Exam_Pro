@@ -748,3 +748,39 @@ async def trigger_daily_ca_sync():
         "message": f"🎉 {len(mcqs)} naye Hindi current affairs questions database mein successfully inject ho gaye!",
         "added_questions": [q.get("question_text") for q in mcqs]
     }
+
+@app.get("/api/debug/mail-test")
+async def debug_mail_test(target_email: str):
+    import os
+    import requests
+    
+    key = os.getenv("BREVO_API_KEY")
+    sender = os.getenv("SENDER_EMAIL", "hpexamproai@gmail.com")
+    
+    if not key:
+        return {"status": "error", "message": "BREVO_API_KEY Render Environment Variables mein missing hai!"}
+    
+    # Brevo API Payload
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "api-key": key.strip(),
+        "accept": "application/json",
+        "content-type": "application/json"
+    }
+    payload = {
+        "sender": {"name": "HP Exam Pro", "email": sender.strip()},
+        "to": [{"email": target_email.strip()}],
+        "subject": "Diagnostic Test Mail",
+        "htmlContent": "<h3>System Check: Brevo API successfully working!</h3>"
+    }
+    
+    try:
+        r = requests.post(url, json=payload, headers=headers, timeout=15)
+        return {
+            "http_status": r.status_code,
+            "brevo_response": r.json() if r.text else "No response body",
+            "sender_used": sender,
+            "key_preview": f"{key[:6]}...{key[-4:]}"
+        }
+    except Exception as e:
+        return {"status": "network_exception", "error": str(e)}
