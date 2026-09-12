@@ -430,18 +430,41 @@ async def welcome_mail_trigger(payload: dict):
             print(f"❌ [MAIL ERROR]: {str(e)}")
             return {"status": "error", "message": str(e)}
     return {"status": "skipped", "message": "No email provided"}
-# 2. Inactive Users Automated Check (Cron Job ke liye)
+    
+# 2. Inactive Users Automated Check (Synced with profiles.email & last_active)
 @app.get("/api/cron/inactive-reminder")
 async def trigger_inactive_emails():
-    cutoff = (datetime.utcnow() - timedelta(days=15)).strftime('%Y-%m-%d')
-    res = supabase.table("profiles").select("email, display_name").lte("last_active", cutoff).execute()
+    cutoff = (datetime.utcnow() - timedelta(days=15)).isoformat()
+    
+    # Ab 'email' column directly available hai
+    res = supabase.table("profiles").select("id, email, display_name, last_active").lte("last_active", cutoff).execute()
     
     users = res.data or []
+    sent_count = 0
+    failed_count = 0
+    skipped_no_email = 0
+
     for u in users:
-        if u.get("email"):
-            send_email(u["email"], "We Miss You on HP Exam Pro! 🔥", get_inactive_html(u.get("display_name", "Aspirant")))
+        email = u.get("email")
+        name = u.get("display_name") or "Aspirant"
+        
+        if not email or "@" not in email:
+            skipped_no_email += 1
+            continue
             
-    return {"status": "success", "processed_users": len(users)}
+        success = send_email(email, "We Miss You on HP Exam Pro! 🔥", get_inactive_html(name))
+        if success:
+            sent_count += 1
+        else:
+            failed_count += 1
+            
+    return {
+        "status": "success", 
+        "total_inactive_found": len(users), 
+        "delivered": sent_count, 
+        "failed": failed_count,
+        "skipped_no_email": skipped_no_email
+    }
 
 # --- 6. LIVE ANALYTICS ENDPOINT ---
 @app.get("/api/analytics/{user_id}")
