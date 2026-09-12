@@ -663,9 +663,9 @@ def generate_hindi_ca_mcqs(context_text: str):
     groq_key = os.getenv("GROQ_API_KEY")
     gemini_key = os.getenv("GEMINI_API_KEY")
 
-    # 1. Groq (Primary: Active and fast LLaMA models)
+    # 1. Groq (Active Supported Models)
     if groq_key:
-        for model_id in ["llama-3.1-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"]:
+        for model_id in ["llama-3.3-70b-specdec", "llama3-70b-8192", "llama3-8b-8192"]:
             try:
                 r = requests.post(
                     "https://api.groq.com/openai/v1/chat/completions",
@@ -687,29 +687,24 @@ def generate_hindi_ca_mcqs(context_text: str):
             except Exception as err:
                 print(f"DEBUG Groq Network Error ({model_id}): {err}")
 
-    # 2. Gemini Fallback (Stable v1 & v1beta fallback)
+    # 2. Gemini Fallback
     if not raw_output and gemini_key:
-        gemini_urls = [
-            f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={gemini_key}",
-            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={gemini_key}"
-        ]
-        for url in gemini_urls:
-            try:
-                r = requests.post(
-                    url,
-                    headers={"Content-Type": "application/json"},
-                    json={"contents": [{"parts": [{"text": prompt}]}]},
-                    timeout=25
-                )
-                res_json = r.json()
-                if "candidates" in res_json:
-                    raw_output = res_json["candidates"][0]["content"]["parts"][0]["text"]
-                    print(f"DEBUG: Gemini success using endpoint: {url.split('?')[0]}")
-                    break
-                else:
-                    print(f"DEBUG Gemini API returned error: {res_json}")
-            except Exception as err:
-                print(f"DEBUG Gemini Network Error: {err}")
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+            r = requests.post(
+                url,
+                headers={"Content-Type": "application/json"},
+                json={"contents": [{"parts": [{"text": prompt}]}]},
+                timeout=25
+            )
+            res_json = r.json()
+            if "candidates" in res_json:
+                raw_output = res_json["candidates"][0]["content"]["parts"][0]["text"]
+                print("DEBUG: Gemini success using gemini-1.5-flash")
+            else:
+                print(f"DEBUG Gemini API returned error: {res_json}")
+        except Exception as err:
+            print(f"DEBUG Gemini Network Error: {err}")
 
     # 3. Native App Engine Fallback (Safe invocation)
     if not raw_output:
@@ -735,7 +730,6 @@ def generate_hindi_ca_mcqs(context_text: str):
     except Exception as e:
         print(f"DEBUG JSON Parse Exception: {e}\nRaw Output was:\n{raw_output[:300]}")
         return None
-
 @app.get("/api/admin/sync-daily-ca")
 async def trigger_daily_ca_sync():
     """Direct URL trigger route"""
