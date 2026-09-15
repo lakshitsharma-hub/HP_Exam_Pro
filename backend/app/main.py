@@ -124,12 +124,15 @@ async def admin_dashboard(x_admin_password: str = Header(None)):
 
 # --- 3. DYNAMIC QUIZ ENGINE (WITH 30:40:30 CASCADE DIFFICULTY) ---
 
+# --- 3. DYNAMIC QUIZ ENGINE (WITH ZERO-REPEAT LIFETIME ENGINE) ---
+
 @app.get("/api/questions/{exam_type}")
 async def get_exam_questions(exam_type: str, user_id: str = None):
     try:
         is_pro = False
-        
-        # 👑 Universal Test Quota Logic (Default: 15, Overridable via custom_limit)
+        seen_question_ids = set()
+
+        # 👑 Universal Test Quota & Seen Questions Extraction
         if user_id and user_id != "test-user-123":
             profile_resp = supabase.table("profiles").select("is_pro", "custom_limit").eq("id", user_id).execute()
             profile_data = profile_resp.data
@@ -141,14 +144,15 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
             # Determine limit: admin override if present, else standard default 15
             max_allowed = custom_limit if custom_limit is not None else 15
 
-            # Fetch total lifetime completed mock tests
+            # Fetch user's previous test results to calculate quota and seen questions
             tests_resp = (
                 supabase.table("test_results")
-                .select("id")
+                .select("id, questions_snapshot")
                 .eq("user_id", user_id)
                 .execute()
             )
-            total_attempted = len(tests_resp.data) if tests_resp.data else 0
+            past_tests = tests_resp.data or []
+            total_attempted = len(past_tests)
 
             # Restrict access once quota ceiling is reached
             if total_attempted >= max_allowed:
@@ -157,10 +161,21 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
                     detail=f"Test Limit Reached: You have completed all {max_allowed} mock tests allocated to your account."
                 )
 
+            # Aspirant ke lifetime dekhe hue questions extract karein
+            for t in past_tests:
+                snapshot = t.get("questions_snapshot") or []
+                for item in snapshot:
+                    if isinstance(item, dict):
+                        q_id = item.get("id")
+                    else:
+                        q_id = item
+                    if q_id:
+                        seen_question_ids.add(q_id)
+
         final_questions = []
         selected_ids = set()
 
-        # 🎯 30:40:30 Cascade Difficulty Filter Engine
+        # 🎯 Unseen-First Cascade Difficulty Engine
         def fetch_filtered_qs(subject_name: str = None, q_type_value: str = "direct", count: int = 0):
             if count <= 0:
                 return []
@@ -174,55 +189,63 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
             res = query.execute()
             data = res.data if res.data else []
 
-           # Filter out already selected IDs in this test session
+            # Current test session me duplicate na ho
             available = [q for q in data if q.get("id") not in selected_ids]
 
-            # 🖥️ Computer Cap: JOA IT ke alawa baaki exams (Patwari/Police) mein sirf Easy aayenge
+            # Computer Cap: JOA IT ke alawa baaki exams (Patwari/Police) me sirf Easy
             if subject_name == 'computer' and exam_type != 'joa_it':
                 available = [
                     q for q in available 
                     if (q.get("difficulty") or "").lower() not in ["tough", "hard", "medium"]
                 ]
 
-            # Segregate by difficulty levels
-            tough_pool = [q for q in available if (q.get("difficulty") or "").lower() in ["tough", "hard"]]
-            medium_pool = [q for q in available if (q.get("difficulty") or "").lower() == "medium"]
-            easy_pool = [q for q in available if (q.get("difficulty") or "").lower() not in ["tough", "hard", "medium"]]
+            # 🛡️ UNSEEN FIRST PRIORITY FILTER
+            # Pehle un questions ko alag karo jo user ne aaj tak nahi dekhe
+            unseen_available = [q for q in available if q.get("id") not in seen_question_ids]
 
-            # Calculate 30:40:30 target proportions
+            # Agar unseen questions kaafi hain toh unhe use karo, 
+            # agar kam pad rahe hain ya exhaust ho chuke hain toh available pool se randomize karke fill karo
+            working_pool = unseen_available if len(unseen_available) >= count else available
+
+            # Segregate working pool by difficulty levels
+            tough_pool = [q for q in working_pool if (q.get("difficulty") or "").lower() in ["tough", "hard"]]
+            medium_pool = [q for q in working_pool if (q.get("difficulty") or "").lower() == "medium"]
+            easy_pool = [q for q in working_pool if (q.get("difficulty") or "").lower() not in ["tough", "hard", "medium"]]
+
+            # Target proportions (30:40:30 cascade)
             target_tough = int(round(count * 0.30))
             target_medium = int(round(count * 0.40))
             target_easy = count - (target_tough + target_medium)
 
             selected_from_subject = []
 
-            # 1. Pick Tough quota
+            # 1. Tough Quota
             take_tough = min(len(tough_pool), target_tough)
             sampled_tough = random.sample(tough_pool, take_tough) if take_tough > 0 else []
             selected_from_subject.extend(sampled_tough)
             tough_deficit = target_tough - take_tough
 
-            # 2. Pick Medium quota (Target + Tough Deficit fallback)
+            # 2. Medium Quota (Target + Deficit)
             effective_medium_target = target_medium + tough_deficit
             take_medium = min(len(medium_pool), effective_medium_target)
             sampled_medium = random.sample(medium_pool, take_medium) if take_medium > 0 else []
             selected_from_subject.extend(sampled_medium)
             medium_deficit = effective_medium_target - take_medium
 
-            # 3. Pick Easy quota (Target + Medium Deficit fallback)
+            # 3. Easy Quota (Target + Deficit)
             effective_easy_target = target_easy + medium_deficit
             take_easy = min(len(easy_pool), effective_easy_target)
             sampled_easy = random.sample(easy_pool, take_easy) if take_easy > 0 else []
             selected_from_subject.extend(sampled_easy)
 
-            # 4. Universal Final Fallback (agar kisi bhi difficulty mein total count kam pade)
+            # 4. Universal Fallback (Agar working pool se count kam pada, toh remaining available se bharo)
             if len(selected_from_subject) < count:
                 chosen_ids_here = {q["id"] for q in selected_from_subject}
-                remaining_available = [q for q in available if q["id"] not in chosen_ids_here]
+                remaining = [q for q in available if q["id"] not in chosen_ids_here]
                 needed = count - len(selected_from_subject)
-                take_extra = min(len(remaining_available), needed)
+                take_extra = min(len(remaining), needed)
                 if take_extra > 0:
-                    selected_from_subject.extend(random.sample(remaining_available, take_extra))
+                    selected_from_subject.extend(random.sample(remaining, take_extra))
 
             # Mark selected IDs globally for this test session
             for q in selected_from_subject:
