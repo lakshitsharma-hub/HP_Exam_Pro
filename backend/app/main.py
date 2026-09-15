@@ -830,3 +830,21 @@ async def debug_mail_test(target_email: str):
         }
     except Exception as e:
         return {"status": "network_exception", "error": str(e)}
+
+
+@app.get("/api/debug/test-simulation")
+async def debug_simulation(exam: str = "patwari"):
+    # Yeh API hit karne par back-to-back 15 simulated tests ka report JSON mein return karegi
+    results = []
+    seen = set()
+    
+    for i in range(1, 16):
+        # Ek fake user session simulate karein
+        # (Yahan aapka unseen logic run hoga)
+        ...
+        results.append({
+            "test_number": i,
+            "total_questions": 120,
+            "repeated_questions": repeats_count
+        })
+    return {"exam": exam, "simulation_results": results}
