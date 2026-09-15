@@ -832,11 +832,10 @@ async def debug_mail_test(target_email: str):
         return {"status": "network_exception", "error": str(e)}
 
 
-# --- SIMULATION DEBUG ENDPOINT (FULL PAGINATION + ZERO DB WRITES) ---
+# --- ENHANCED SIMULATION DEBUG ENDPOINT (SUBJECT-WISE BREAKDOWN) ---
 @app.get("/api/debug/test-simulation")
 async def debug_simulation(exam_type: str = "patwari", total_runs: int = 15):
     try:
-        # 1. Supabase Pagination Loop: Saare questions memory me load karein (bypass 1000 limit)
         all_questions = []
         page_size = 1000
         start = 0
@@ -899,8 +898,12 @@ async def debug_simulation(exam_type: str = "patwari", total_runs: int = 15):
         for run_idx in range(1, total_runs + 1):
             session_ids = set()
             test_questions = []
+            subject_counts = {}
+            repeated_by_subject = {}
 
             for subject_name, q_type_value, count in selected_blueprint:
+                label = "statement" if q_type_value == "statement" else subject_name
+                
                 data = [
                     q for q in all_questions
                     if (not subject_name or q.get("subject") == subject_name)
@@ -909,7 +912,6 @@ async def debug_simulation(exam_type: str = "patwari", total_runs: int = 15):
 
                 available = [q for q in data if q.get("id") not in session_ids]
 
-                # Computer cap for non-JOA IT exams
                 if subject_name == 'computer' and exam_type != 'joa_it':
                     available = [
                         q for q in available
@@ -941,13 +943,18 @@ async def debug_simulation(exam_type: str = "patwari", total_runs: int = 15):
                 e_take = min(len(easy_pool), eff_e)
                 selected.extend(random.sample(easy_pool, e_take) if e_take > 0 else [])
 
-                # Universal Fallback
                 if len(selected) < count:
                     chosen = {q["id"] for q in selected}
                     rem = [q for q in available if q["id"] not in chosen]
                     needed = count - len(selected)
                     if len(rem) > 0:
                         selected.extend(random.sample(rem, min(len(rem), needed)))
+
+                # Track subject counts and repeated questions for this subject
+                rep_count_here = sum(1 for q in selected if q["id"] in simulated_seen_ids)
+                subject_counts[label] = len(selected)
+                if rep_count_here > 0:
+                    repeated_by_subject[label] = rep_count_here
 
                 for q in selected:
                     session_ids.add(q["id"])
@@ -958,9 +965,10 @@ async def debug_simulation(exam_type: str = "patwari", total_runs: int = 15):
 
             simulation_report.append({
                 "test_number": run_idx,
-                "total_questions_in_test": len(q_ids_this_test),
-                "repeated_questions_count": len(repeated_ids),
-                "is_100_percent_fresh": len(repeated_ids) == 0
+                "total_questions": len(q_ids_this_test),
+                "total_repeated": len(repeated_ids),
+                "subject_distribution": subject_counts,       # 👈 Kis subject ke kitne sawal aaye
+                "repeated_breakdown": repeated_by_subject     # 👈 Kaunse subject me kitne repeat hue
             })
 
             simulated_seen_ids.update(q_ids_this_test)
@@ -968,8 +976,6 @@ async def debug_simulation(exam_type: str = "patwari", total_runs: int = 15):
         return {
             "status": "success",
             "exam": exam_type,
-            "total_tests_simulated": total_runs,
-            "total_unique_consumed": len(simulated_seen_ids),
             "total_questions_in_db": len(all_questions),
             "report": simulation_report
         }
