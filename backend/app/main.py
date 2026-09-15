@@ -832,13 +832,27 @@ async def debug_mail_test(target_email: str):
         return {"status": "network_exception", "error": str(e)}
 
 
-# --- SIMULATION DEBUG ENDPOINT (ZERO DB WRITES) ---
+# --- SIMULATION DEBUG ENDPOINT (FULL PAGINATION + ZERO DB WRITES) ---
 @app.get("/api/debug/test-simulation")
 async def debug_simulation(exam_type: str = "patwari", total_runs: int = 15):
     try:
-        # 1. Poore questions ek hi baar memory me load karein
-        all_qs_resp = supabase.table("questions").select("id, subject, q_type, difficulty").execute()
-        all_questions = all_qs_resp.data or []
+        # 1. Supabase Pagination Loop: Saare questions memory me load karein (bypass 1000 limit)
+        all_questions = []
+        page_size = 1000
+        start = 0
+
+        while True:
+            res = (
+                supabase.table("questions")
+                .select("id, subject, q_type, difficulty")
+                .range(start, start + page_size - 1)
+                .execute()
+            )
+            batch = res.data or []
+            all_questions.extend(batch)
+            if len(batch) < page_size:
+                break
+            start += page_size
 
         blueprints = {
             "patwari": [
@@ -895,6 +909,7 @@ async def debug_simulation(exam_type: str = "patwari", total_runs: int = 15):
 
                 available = [q for q in data if q.get("id") not in session_ids]
 
+                # Computer cap for non-JOA IT exams
                 if subject_name == 'computer' and exam_type != 'joa_it':
                     available = [
                         q for q in available
@@ -926,6 +941,7 @@ async def debug_simulation(exam_type: str = "patwari", total_runs: int = 15):
                 e_take = min(len(easy_pool), eff_e)
                 selected.extend(random.sample(easy_pool, e_take) if e_take > 0 else [])
 
+                # Universal Fallback
                 if len(selected) < count:
                     chosen = {q["id"] for q in selected}
                     rem = [q for q in available if q["id"] not in chosen]
