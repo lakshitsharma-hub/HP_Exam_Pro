@@ -832,19 +832,130 @@ async def debug_mail_test(target_email: str):
         return {"status": "network_exception", "error": str(e)}
 
 
+# --- SIMULATION DEBUG ENDPOINT (ZERO DB WRITES) ---
 @app.get("/api/debug/test-simulation")
-async def debug_simulation(exam: str = "patwari"):
-    # Yeh API hit karne par back-to-back 15 simulated tests ka report JSON mein return karegi
-    results = []
-    seen = set()
-    
-    for i in range(1, 16):
-        # Ek fake user session simulate karein
-        # (Yahan aapka unseen logic run hoga)
-        ...
-        results.append({
-            "test_number": i,
-            "total_questions": 120,
-            "repeated_questions": repeats_count
-        })
-    return {"exam": exam, "simulation_results": results}
+async def debug_simulation(exam_type: str = "patwari", total_runs: int = 15):
+    try:
+        # 1. Poore questions ek hi baar memory me load karein
+        all_qs_resp = supabase.table("questions").select("id, subject, q_type, difficulty").execute()
+        all_questions = all_qs_resp.data or []
+
+        blueprints = {
+            "patwari": [
+                ("maths", "direct", 20),
+                (None, "statement", 10),
+                ("hindi", "direct", 15),
+                ("english", "direct", 15),
+                ("science", "direct", 15),
+                ("geography", "direct", 5),
+                ("polity", "direct", 5),
+                ("history", "direct", 5),
+                ("reasoning", "direct", 7),
+                ("hp_gk", "direct", 5),
+                ("current_affairs", "direct", 8),
+                ("computer", "direct", 10)
+            ],
+            "joa_it": [
+                ("computer", "direct", 80),
+                ("science", "direct", 10),
+                ("maths", "direct", 10),
+                ("hp_gk", "direct", 5),
+                ("reasoning", "direct", 5),
+                (None, "statement", 5),
+                ("current_affairs", "direct", 5)
+            ],
+            "hp_police": [
+                ("hindi", "direct", 20),
+                ("english", "direct", 20),
+                ("maths", "direct", 20),
+                ("reasoning", "direct", 10),
+                ("hp_gk", "direct", 7),
+                ("current_affairs", "direct", 7),
+                ("science", "direct", 6)
+            ]
+        }
+
+        selected_blueprint = blueprints.get(exam_type)
+        if not selected_blueprint:
+            raise HTTPException(status_code=400, detail="Invalid exam type for simulation")
+
+        simulated_seen_ids = set()
+        simulation_report = []
+
+        for run_idx in range(1, total_runs + 1):
+            session_ids = set()
+            test_questions = []
+
+            for subject_name, q_type_value, count in selected_blueprint:
+                data = [
+                    q for q in all_questions
+                    if (not subject_name or q.get("subject") == subject_name)
+                    and (not q_type_value or q.get("q_type") == q_type_value)
+                ]
+
+                available = [q for q in data if q.get("id") not in session_ids]
+
+                if subject_name == 'computer' and exam_type != 'joa_it':
+                    available = [
+                        q for q in available
+                        if (q.get("difficulty") or "").lower() not in ["tough", "hard", "medium"]
+                    ]
+
+                unseen_available = [q for q in available if q.get("id") not in simulated_seen_ids]
+                working_pool = unseen_available if len(unseen_available) >= count else available
+
+                tough_pool = [q for q in working_pool if (q.get("difficulty") or "").lower() in ["tough", "hard"]]
+                medium_pool = [q for q in working_pool if (q.get("difficulty") or "").lower() == "medium"]
+                easy_pool = [q for q in working_pool if (q.get("difficulty") or "").lower() not in ["tough", "hard", "medium"]]
+
+                target_tough = int(round(count * 0.30))
+                target_medium = int(round(count * 0.40))
+                target_easy = count - (target_tough + target_medium)
+
+                selected = []
+                t_take = min(len(tough_pool), target_tough)
+                selected.extend(random.sample(tough_pool, t_take) if t_take > 0 else [])
+                t_def = target_tough - t_take
+
+                eff_m = target_medium + t_def
+                m_take = min(len(medium_pool), eff_m)
+                selected.extend(random.sample(medium_pool, m_take) if m_take > 0 else [])
+                m_def = eff_m - m_take
+
+                eff_e = target_easy + m_def
+                e_take = min(len(easy_pool), eff_e)
+                selected.extend(random.sample(easy_pool, e_take) if e_take > 0 else [])
+
+                if len(selected) < count:
+                    chosen = {q["id"] for q in selected}
+                    rem = [q for q in available if q["id"] not in chosen]
+                    needed = count - len(selected)
+                    if len(rem) > 0:
+                        selected.extend(random.sample(rem, min(len(rem), needed)))
+
+                for q in selected:
+                    session_ids.add(q["id"])
+                test_questions.extend(selected)
+
+            q_ids_this_test = [q["id"] for q in test_questions]
+            repeated_ids = [qid for qid in q_ids_this_test if qid in simulated_seen_ids]
+
+            simulation_report.append({
+                "test_number": run_idx,
+                "total_questions_in_test": len(q_ids_this_test),
+                "repeated_questions_count": len(repeated_ids),
+                "is_100_percent_fresh": len(repeated_ids) == 0
+            })
+
+            simulated_seen_ids.update(q_ids_this_test)
+
+        return {
+            "status": "success",
+            "exam": exam_type,
+            "total_tests_simulated": total_runs,
+            "total_unique_consumed": len(simulated_seen_ids),
+            "total_questions_in_db": len(all_questions),
+            "report": simulation_report
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
