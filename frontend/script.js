@@ -377,7 +377,7 @@ async function renderLeaderboardData(examType = 'hp_police') {
       });
 
       for (const [uName, maxScore] of Object.entries(realUserMaxScores)) {
-        if (uName.includes('lakshitsharma8080')) continue;
+       // if (uName.includes('lakshitsharma8080')) continue;
         allUsers.push({
           name: uName,
           score: maxScore,
