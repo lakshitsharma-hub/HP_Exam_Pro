@@ -369,6 +369,17 @@ async function generateTestPDF(examType) {
         timeAllowed = '120 Minutes';
     }
     
+    // HTML Tags (<input>, <select>, etc.) ko raw text render karne ke liye escape helper
+    const escapeHtml = (str) => {
+        if (!str) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    };
+
     const printWindow = window.open('', '_blank');
     printWindow.document.write('<html><head><title>Generating PDF...</title></head><body style="font-family:sans-serif; padding:40px; text-align:center;"><h2>⏳ HP Exam Pro... Generating Mock PDF...</h2></body></html>');
 
@@ -393,19 +404,25 @@ async function generateTestPDF(examType) {
                 correctOpt = 'Option ' + correctOpt;
             }
 
+            const qText = escapeHtml(q.question_text || q.question || "");
+            const optA = escapeHtml(q.opt1 || "");
+            const optB = escapeHtml(q.opt2 || "");
+            const optC = escapeHtml(q.opt3 || "");
+            const optD = escapeHtml(q.opt4 || "");
+
             questionsHTML += `
                 <div class="question-unit" style="margin-bottom: 22px; page-break-inside: avoid !important; break-inside: avoid !important; display: block;">
                     <p style="font-weight: 700; margin: 0 0 8px 0; color: #0f172a; font-size: 14px; page-break-after: avoid; break-after: avoid;">
-                        Q${qNum}. ${q.question_text || q.question}
+                        Q${qNum}. ${qText}
                     </p>
                     <table style="width: 100%; border: none; font-size: 13px; color: #334155; margin-left: 8px;">
                         <tr>
-                            <td style="width: 50%; padding: 4px 0;">(A) ${q.opt1 || ''}</td>
-                            <td style="width: 50%; padding: 4px 0;">(B) ${q.opt2 || ''}</td>
+                            <td style="width: 50%; padding: 4px 0;">(A) ${optA}</td>
+                            <td style="width: 50%; padding: 4px 0;">(B) ${optB}</td>
                         </tr>
                         <tr>
-                            <td style="width: 50%; padding: 4px 0;">(C) ${q.opt3 || ''}</td>
-                            <td style="width: 50%; padding: 4px 0;">(D) ${q.opt4 || ''}</td>
+                            <td style="width: 50%; padding: 4px 0;">(C) ${optC}</td>
+                            <td style="width: 50%; padding: 4px 0;">(D) ${optD}</td>
                         </tr>
                     </table>
                 </div>
@@ -413,14 +430,14 @@ async function generateTestPDF(examType) {
 
             answerKeyRows += `
                 <div style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-size: 12px; page-break-inside: avoid; break-inside: avoid;">
-                    <b>Q${qNum}:</b> ${correctOpt}
+                    <b>Q${qNum}:</b> ${escapeHtml(correctOpt)}
                 </div>
             `;
 
             if (q.explanation && q.explanation.trim() !== "") {
                 explanationsHTML += `
                     <div style="margin-bottom: 10px; padding: 8px; background: #f8fafc; border-left: 3px solid #2563eb; font-size: 12px; page-break-inside: avoid; break-inside: avoid;">
-                        <b>Q${qNum} Sol:</b> ${q.explanation}
+                        <b>Q${qNum} Sol:</b> ${escapeHtml(q.explanation)}
                     </div>
                 `;
             }
@@ -432,26 +449,111 @@ async function generateTestPDF(examType) {
             <head>
                 <title>${examName} - Mock Test</title>
                 <style>
-                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; padding-bottom: 50px; color: #0f172a; line-height: 1.4; position: relative; }
-                    .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 110px; font-weight: bold; color: rgba(148, 163, 184, 0.12); z-index: -1; pointer-events: none; }
-                    .pdf-footer { position: fixed; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 11px; color: #64748b; background: white; }
-                    .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 20px; }
-                    .meta-info { display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
-                    .page-break { page-break-before: always; break-before: always; }
-                    .answer-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 15px; }
+                    @page {
+                        size: A4;
+                        margin: 15mm 15mm 22mm 15mm; /* Bottom margin reserved so options won't collide with footer */
+                    }
+                    body { 
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                        margin: 0;
+                        padding: 10px; 
+                        padding-bottom: 50px; 
+                        color: #0f172a; 
+                        line-height: 1.4; 
+                        position: relative; 
+                    }
+                    .watermark { 
+                        position: fixed; 
+                        top: 50%; 
+                        left: 50%; 
+                        transform: translate(-50%, -50%) rotate(-45deg); 
+                        font-size: 100px; 
+                        font-weight: bold; 
+                        color: rgba(148, 163, 184, 0.10); 
+                        z-index: -1; 
+                        pointer-events: none; 
+                    }
+                    .pdf-footer { 
+                        position: fixed; 
+                        bottom: 0; 
+                        left: 0; 
+                        width: 100%; 
+                        text-align: center; 
+                        font-size: 11px; 
+                        color: #475569; 
+                        background: white; 
+                        border-top: 1px solid #e2e8f0;
+                        padding: 6px 0 4px 0;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        box-sizing: border-box;
+                    }
+                    .pdf-footer a {
+                        color: #2563eb;
+                        text-decoration: none;
+                        font-weight: 600;
+                    }
+                    .header { 
+                        text-align: center; 
+                        border-bottom: 2px solid #0f172a; 
+                        padding-bottom: 10px; 
+                        margin-bottom: 20px; 
+                    }
+                    .meta-info { 
+                        display: flex; 
+                        justify-content: space-between; 
+                        font-weight: bold; 
+                        font-size: 13px; 
+                        margin-bottom: 20px; 
+                        border-bottom: 1px solid #e2e8f0; 
+                        padding-bottom: 8px; 
+                    }
+                    .page-break { 
+                        page-break-before: always; 
+                        break-before: always; 
+                    }
+                    .answer-grid { 
+                        display: grid; 
+                        grid-template-columns: repeat(6, 1fr); 
+                        gap: 4px; 
+                        margin-top: 15px; 
+                    }
                     
                     @media print {
-                        body { padding: 0; padding-bottom: 40px; }
-                        button { display: none; }
-                        .question-unit { page-break-inside: avoid !important; break-inside: avoid !important; display: block !important; }
-                        .watermark { color: rgba(148, 163, 184, 0.15) !important; -webkit-print-color-adjust: exact; }
-                        .pdf-footer { bottom: 0; -webkit-print-color-adjust: exact; }
+                        body { 
+                            padding: 0; 
+                            margin: 0;
+                        }
+                        button { 
+                            display: none; 
+                        }
+                        .question-unit { 
+                            page-break-inside: avoid !important; 
+                            break-inside: avoid !important; 
+                            display: block !important; 
+                            margin-bottom: 18px !important;
+                        }
+                        .watermark { 
+                            color: rgba(148, 163, 184, 0.12) !important; 
+                            -webkit-print-color-adjust: exact; 
+                        }
+                        .pdf-footer { 
+                            position: fixed;
+                            bottom: 0; 
+                            left: 0;
+                            width: 100%;
+                            -webkit-print-color-adjust: exact; 
+                        }
                     }
                 </style>
             </head>
             <body>
                 <div class="watermark">HP EXAM PRO</div>
-                <div class="pdf-footer">© 2026 HP EXAM PRO | Practice Mock Paper</div>
+                <div class="pdf-footer">
+                    <span>© 2026 HP EXAM PRO | Mock Test Series</span>
+                    <span>🌐 Practice Online: <a href="https://hp-exam-pro.vercel.app">https://hp-exam-pro.vercel.app</a></span>
+                </div>
                 <div style="text-align: right; margin-bottom: 10px;">
                     <button onclick="window.print()" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">🖨️ Print / Save PDF</button>
                 </div>
@@ -487,7 +589,6 @@ async function generateTestPDF(examType) {
         if (printWindow) printWindow.close();
     }
 }
-
 // --- 6. PRO & LIMIT TOGGLES ---
 async function togglePro(userId, currentStatus) {
     const { error } = await supabaseClient
