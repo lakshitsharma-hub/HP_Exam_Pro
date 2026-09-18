@@ -207,6 +207,49 @@ function bindObjectionButton() {
 // Fetch Questions
 async function fetchQuestionsFromBackend() {
   try {
+    // 1. Refresh hone par Active Session check karein aur Alert poochein
+    const sessionKey = typeof getTestSessionKey === 'function' ? getTestSessionKey() : `test_session_${currentExamType}`;
+    const savedSession = localStorage.getItem(sessionKey);
+
+    if (savedSession) {
+      try {
+        const parsed = JSON.parse(savedSession);
+        const isRecent = (Date.now() - parsed.timestamp) < (3 * 60 * 60 * 1000); // 3 ghante tak valid
+
+        if (isRecent && parsed.timeLeft > 0 && parsed.examQuestions && parsed.examQuestions.length > 0) {
+          const shouldResume = confirm("⚠️ Test Interrupted!\n\nAapka active test session mila hai. Kya aap test wahin se CONTINUE karna chahte hain jahan chhoda tha?");
+
+          if (shouldResume) {
+            console.log("⚡ Resuming active session as confirmed by candidate...");
+            rawQuestionsData = parsed.rawQuestionsData || [];
+            examQuestions = parsed.examQuestions || [];
+            currentIndex = parsed.currentIndex || 0;
+            timeLeft = parsed.timeLeft;
+            currentLanguage = parsed.currentLanguage || "hi";
+
+            // Mode select modal agar open ho toh band karein
+            const modal = document.getElementById("modeSelectModal");
+            if (modal) modal.style.display = "none";
+
+            renderPalette();
+            await loadQuestion(currentIndex);
+            startTimer();
+            return; // Wapas naya API call karne ki zarurat nahi, yahin se resume
+          } else {
+            // Agar candidate 'Cancel' kare toh purana data clear karke fresh test start karein
+            if (typeof clearTestState === 'function') {
+              clearTestState();
+            } else {
+              localStorage.removeItem(sessionKey);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("Session restore parse error:", e);
+      }
+    }
+
+    // 2. Normal API Call (agar koi interrupted session nahi hai ya user ne fresh start choose kiya)
     const attemptedIds = getAttemptedQuestionIds();
     const excludeParam = attemptedIds.length > 0 ? `&exclude_ids=${attemptedIds.join(',')}` : '';
     const response = await fetch(`${API_BASE_URL}/api/questions/${currentExamType}?user_id=${currentUserId}&t=${Date.now()}${excludeParam}`);
@@ -250,7 +293,6 @@ async function fetchQuestionsFromBackend() {
     console.error("Error loading questions:", error);
   }
 }
-
 // ==================== TRANSLATION ENGINE ====================
 async function autoTranslate(text) {
   if (!text || currentLanguage === 'hi') return text;
