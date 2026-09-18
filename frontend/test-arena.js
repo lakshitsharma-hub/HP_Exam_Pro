@@ -125,17 +125,24 @@ function confirmModeAndLaunchTest() {
   if (modal) modal.style.display = "none";
   document.body.setAttribute("data-view", activeExamMode);
 
+  const cbtView = document.getElementById("cbtViewContainer");
+  const tabView = document.getElementById("tabletViewContainer");
+
   if (activeExamMode === "tablet") {
-    const cbtView = document.getElementById("cbtViewContainer");
-    const tabView = document.getElementById("tabletViewContainer");
+    // 🟢 Digital OMR Mode Active: Class lagayein taaki blank screen na ho
+    document.body.classList.add("digital-omr-active");
     if (cbtView) cbtView.style.display = "none";
-    if (tabView) tabView.style.display = "flex";
+    if (tabView) {
+      tabView.style.display = "flex";
+      tabView.style.visibility = "visible";
+      tabView.style.opacity = "1";
+    }
     renderTabletPaperFeed();
     renderTabletOmrBubbles();
     initTabletSplitter();
   } else {
-    const cbtView = document.getElementById("cbtViewContainer");
-    const tabView = document.getElementById("tabletViewContainer");
+    // 🔵 CBT Mode Active: Class hatayein
+    document.body.classList.remove("digital-omr-active");
     if (cbtView) cbtView.style.display = "flex";
     if (tabView) tabView.style.display = "none";
     renderPalette();
