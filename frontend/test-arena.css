@@ -1,7 +1,10 @@
 /* =========================================================
    HP EXAM PRO - TEST ARENA COMPLETE STYLESHEET
-   Supports: Dark/Light Mode, CBT Mode, Digital OMR Tablet Mode,
-   Fully Responsive (Mobile, Tablet, Laptop)
+   Features:
+   - Mobile & Laptop Safe Modal (No Screen Overflow)
+   - Single Professional Question View (No Duplicates)
+   - Modern Pill-Handle Split Resizer
+   - Pink Digital OMR Tablet Interface
    ========================================================= */
 
 :root {
@@ -46,7 +49,7 @@ body {
 }
 
 /* =========================================================
-   0. MODAL & INSTRUCTIONS (RESPONSIVE & SCROLL-SAFE)
+   1. INSTRUCTION / MODE MODAL (RESPONSIVE & SCROLL-SAFE)
    ========================================================= */
 .mode-modal-backdrop {
   position: fixed;
@@ -70,7 +73,7 @@ body {
   max-height: 94vh;
   display: flex;
   flex-direction: column;
-  padding: 20px 22px;
+  padding: 18px 22px;
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
   color: #f8fafc;
   overflow-y: auto;
@@ -93,14 +96,14 @@ body {
 }
 
 .mode-modal-header h2 {
-  font-size: 1.18rem;
+  font-size: 1.15rem;
   font-weight: 700;
   margin-bottom: 4px;
 }
 
 .mode-modal-header p {
   color: #94a3b8;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   line-height: 1.4;
 }
 
@@ -139,7 +142,7 @@ body {
 }
 
 .mode-icon {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   margin-bottom: 4px;
 }
 
@@ -240,7 +243,7 @@ body {
 }
 
 /* =========================================================
-   1. STANDARD CBT VIEW LAYOUT
+   2. STANDARD CBT INTERFACE
    ========================================================= */
 .view-wrapper {
   height: 100vh;
@@ -252,7 +255,7 @@ body {
 .exam-header {
   background: var(--bg-cbt-card);
   border-bottom: 1px solid var(--border-cbt);
-  height: 60px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -263,20 +266,20 @@ body {
 .exam-header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .brand-badge {
   background: linear-gradient(135deg, #0284c7, #38bdf8);
   color: #04121e;
   font-weight: 900;
-  font-size: 0.78rem;
-  padding: 4px 8px;
+  font-size: 0.75rem;
+  padding: 3px 8px;
   border-radius: 6px;
 }
 
 .test-title-group h2 {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
 }
 
@@ -288,7 +291,7 @@ body {
 .exam-header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .font-resizer-box {
@@ -320,7 +323,7 @@ body {
   color: var(--text-cbt-main);
   padding: 4px 8px;
   border-radius: 6px;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   cursor: pointer;
 }
 
@@ -340,14 +343,14 @@ body {
 }
 
 .t-label {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   color: #f43f5e;
   font-weight: 700;
   text-transform: uppercase;
 }
 
 .t-val {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 800;
   color: #fb7185;
 }
@@ -373,7 +376,7 @@ body {
 .question-viewport {
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 18px 24px;
   overflow-y: auto;
   border-right: 1px solid var(--border-cbt);
 }
@@ -460,7 +463,7 @@ body {
 .btn-nav-outline, .btn-nav-secondary, .btn-nav-primary {
   padding: 8px 14px;
   border-radius: 6px;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -491,14 +494,14 @@ body {
   background: transparent;
   border: none;
   color: #f59e0b;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
-/* Question Palette */
+/* Palette */
 .palette-sidebar {
   background: var(--bg-cbt-card);
   display: flex;
@@ -566,10 +569,10 @@ body {
 .palette-bubble.state-review { background: #facc15; color: #000; border-color: #facc15; }
 
 /* =========================================================
-   2. DIGITAL OMR TABLET VIEW LAYOUT
+   3. DIGITAL OMR TABLET VIEW (SINGLE PAPER & MODERN RESIZER)
    ========================================================= */
 .tablet-header {
-  height: 48px;
+  height: 46px;
   background: #0f172a;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
@@ -603,7 +606,7 @@ body {
   background: rgba(244, 63, 94, 0.12);
   border: 1px solid rgba(244, 63, 94, 0.3);
   color: #fb7185;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 800;
   padding: 3px 12px;
   border-radius: 20px;
@@ -640,13 +643,13 @@ body {
   position: relative;
 }
 
-/* Paper Feed */
+/* Single Paper Questions Feed */
 .tablet-paper-pane {
   flex: 1;
   overflow-y: auto;
   background: #ffffff;
   color: #0f172a;
-  padding: 16px;
+  padding: 16px 20px;
 }
 
 .tablet-paper-banner {
@@ -672,53 +675,103 @@ body {
 }
 
 .tab-question-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px dashed #cbd5e1;
-  font-size: 0.85rem;
-  line-height: 1.45;
+  display: block;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  background: #ffffff;
+}
+
+.tab-question-row:nth-child(even) {
+  background: #f8fafc;
 }
 
 .tab-q-text {
   font-weight: 700;
-  margin-bottom: 6px;
+  color: #0f172a;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
-.tab-opts-table {
+.q-badge {
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.tab-opts-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  font-size: 0.8rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding-left: 4px;
 }
 
-/* Resizer Divider */
+.opt-cell {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.84rem;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.opt-tag {
+  font-weight: 800;
+  color: #0284c7;
+}
+
+/* Modern Pill-Handle Split Resizer */
 .tab-resizer {
-  height: 10px;
-  background: #1e293b;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  height: 16px;
+  background: #0f172a;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 2px solid #be123c;
   cursor: row-resize;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.tab-resizer:hover {
+  background: #1e293b;
+}
+
+.tab-resizer-dots {
+  background: #334155;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 50px;
+  height: 6px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 .tab-resizer-dots span {
   display: inline-block;
   width: 4px;
   height: 4px;
-  background: #64748b;
+  background: #94a3b8;
   border-radius: 50%;
-  margin: 0 2px;
 }
 
 /* OMR Section */
 .tablet-omr-pane {
   height: 240px;
-  background: #fdf2f8; /* HP TBT Pink Tint */
+  background: #fdf2f8;
   border-top: 2px solid #f43f5e;
   display: flex;
   flex-direction: column;
@@ -858,7 +911,7 @@ body {
 }
 
 /* =========================================================
-   3. SUBMIT & SCORECARD MODALS
+   4. MODALS (SUBMIT / SCORECARD / OBJECTION)
    ========================================================= */
 .submit-modal-backdrop {
   position: fixed;
@@ -937,10 +990,10 @@ body {
 }
 
 /* =========================================================
-   4. RESPONSIVE OPTIMIZATIONS (MOBILE & TABLET FIX)
+   5. RESPONSIVE MOBILE & TABLET MEDIA QUERIES
    ========================================================= */
 @media (max-width: 768px) {
-  /* Instructions Modal - Phone Fix */
+  /* Modal Screen Safe on Phones */
   .mode-modal-backdrop {
     padding: 8px;
     align-items: flex-start;
@@ -975,13 +1028,13 @@ body {
     padding: 9px;
   }
 
-  /* CBT View Mobile */
+  /* CBT Layout Mobile */
   .exam-body-grid {
     grid-template-columns: 1fr;
   }
 
   .palette-sidebar {
-    display: none; /* Palette toggle will be needed on mobile or stacked */
+    display: none;
   }
 
   .exam-header {
@@ -993,10 +1046,14 @@ body {
     display: none;
   }
 
-  /* Tablet OMR View Mobile */
+  /* Tablet OMR Layout Mobile */
   .tab-question-row {
-    grid-template-columns: 1fr;
-    gap: 10px;
+    padding: 12px 10px;
+  }
+
+  .tab-opts-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 
   .tab-legend-group {
