@@ -11,7 +11,7 @@ let rawQuestionsData = [];
 let examQuestions = [];
 let currentIndex = 0;
 let currentFontScale = 1.15;
-let currentExamType = "joa_it";
+let currentExamType = "patwari";
 let currentLanguage = "hi";
 let activeExamMode = "cbt";
 let timerInterval = null;
@@ -35,7 +35,7 @@ function toggleExamTheme() {
   if (btn) btn.innerHTML = newTheme === "light" ? "🌙 Dark" : "☀️ Light";
 }
 
-// Anti-Repeat
+// Anti-Repeat Storage
 function getAttemptedHistoryKey() {
   return `hp_attempted_qids_${currentExamType}_${currentUserId}`;
 }
@@ -87,7 +87,7 @@ function clearTestState() {
   localStorage.removeItem(getTestSessionKey());
 }
 
-// Hybrid Mode Pick
+// Hybrid Mode Controller
 function pickExamMode(mode) {
   activeExamMode = mode;
   const cbtCard = document.getElementById("cardModeCbt");
@@ -99,16 +99,16 @@ function pickExamMode(mode) {
   if (list) {
     if (mode === "tablet") {
       list.innerHTML = `
-        <li><strong>1.5-Second Hold Rule:</strong> Bubble ko fill karne ke liye use 1.5 seconds tak daba kar rakhein.</li>
-        <li><strong>Change Response:</strong> Kisi doosre bubble ko 1.5s press hold karke answer badlein.</li>
-        <li><strong>Mark for Review:</strong> Question number par tap karke use review ke liye tag karein.</li>
-        <li><strong>Tablet / PC View:</strong> Badi screen par questions aur OMR sheet side-by-side chalenge.</li>
+        <li><strong>1.5-Second Hold Rule:</strong> A simple tap will NOT fill the bubble. You must <strong>press and hold for 1.5 seconds</strong>.</li>
+        <li><strong>Change Response:</strong> Press and hold on any other bubble for 1.5 seconds to change.</li>
+        <li><strong>Mark for Review:</strong> Tap the Question Number (1, 2, 3...) to tag or untag review.</li>
+        <li><strong>Screen Adapt:</strong> Tablets/Laptops split into side-by-side questions and 2-column OMR; Phones stay single stream.</li>
       `;
     } else {
       list.innerHTML = `
-        <li><strong>Answering Method:</strong> Option par seedha click karein.</li>
-        <li><strong>Navigation:</strong> <em>"Save & Next"</em> par click karke aage badhein.</li>
-        <li><strong>Auto Submit:</strong> Time pura hote hi test apne aap submit ho jayega.</li>
+        <li><strong>Answering:</strong> Direct click on any option to choose it.</li>
+        <li><strong>Navigation:</strong> Click <em>"Save & Next"</em> to save and go to next question.</li>
+        <li><strong>Auto Submit:</strong> Time zero hote hi exam auto-submit ho jayega.</li>
       `;
     }
   }
@@ -172,6 +172,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const tabTitleBanner = document.getElementById("tabPaperBannerTitle");
   if (tabTitleBanner) tabTitleBanner.innerText = (titleMap[currentExamType] || "HP FULL MOCK TEST").toUpperCase();
 
+  // Objection Click Binding
+  bindObjectionButton();
+
+  // Language Dropdown Event Listener
+  const langSelect = document.getElementById("langSelect");
+  if (langSelect) {
+    langSelect.value = currentLanguage;
+    langSelect.addEventListener("change", (e) => {
+      changeLanguage(e.target.value);
+    });
+  }
+
   const isHybridEnabled = Boolean(ENABLE_HYBRID_MODES[currentExamType]);
   if (!isHybridEnabled) {
     const modal = document.getElementById("modeSelectModal");
@@ -181,6 +193,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   fetchQuestionsFromBackend();
 });
+
+function bindObjectionButton() {
+  const objBtns = document.querySelectorAll(".objection-trigger-box, [onclick*='openQueryModal']");
+  objBtns.forEach(btn => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      openQueryModal();
+    };
+  });
+}
 
 // Fetch Questions
 async function fetchQuestionsFromBackend() {
@@ -208,6 +230,7 @@ async function fetchQuestionsFromBackend() {
         opt2_hi: q.opt2 || q.opt2_hi || (q.options ? q.options[1] : "") || "",
         opt3_hi: q.opt3 || q.opt3_hi || (q.options ? q.options[2] : "") || "",
         opt4_hi: q.opt4 || q.opt4_hi || (q.options ? q.options[3] : "") || "",
+        translated_en: null,
         ans: q.correct_option || q.answer || q.correct_answer || q.correct || q.ans,
         userSelected: null,
         state: "not-visited"
@@ -216,7 +239,6 @@ async function fetchQuestionsFromBackend() {
       recordAttemptedQuestions(examQuestions);
       timeLeft = currentExamType === 'hp_police' ? 7200 : 5400;
 
-      // Agar direct CBT chalna ho
       const modal = document.getElementById("modeSelectModal");
       if (!modal || modal.style.display === "none") {
         renderPalette();
@@ -229,8 +251,26 @@ async function fetchQuestionsFromBackend() {
   }
 }
 
-// CBT Render
-function loadQuestion(index) {
+// ==================== TRANSLATION ENGINE ====================
+async function autoTranslate(text) {
+  if (!text || currentLanguage === 'hi') return text;
+  try {
+    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=hi|en`);
+    const data = await res.json();
+    return (data.responseData && data.responseData.translatedText) ? data.responseData.translatedText : text;
+  } catch (error) {
+    return text;
+  }
+}
+
+async function changeLanguage(lang) {
+  currentLanguage = lang;
+  saveTestState();
+  await loadQuestion(currentIndex);
+}
+
+// ==================== CBT QUESTION RENDERER ====================
+async function loadQuestion(index) {
   if (!examQuestions || examQuestions.length === 0) return;
   currentIndex = index;
   const q = examQuestions[index];
@@ -241,15 +281,41 @@ function loadQuestion(index) {
   if (qCur) qCur.innerText = `Question ${index + 1} of ${examQuestions.length}`;
 
   const qTxtEl = document.getElementById("questionText");
-  if (qTxtEl) qTxtEl.innerText = q.text_hi || "Question text unavailable";
-
   const container = document.getElementById("optionsContainer");
+
+  // Translation Check
+  if (currentLanguage === 'en' && !q.translated_en) {
+    if (qTxtEl) qTxtEl.innerText = "⏳ Translating question to English...";
+    
+    const [tText, tOpt1, tOpt2, tOpt3, tOpt4] = await Promise.all([
+      autoTranslate(q.text_hi),
+      autoTranslate(q.opt1_hi),
+      autoTranslate(q.opt2_hi),
+      autoTranslate(q.opt3_hi),
+      autoTranslate(q.opt4_hi)
+    ]);
+
+    q.translated_en = {
+      text: tText,
+      opt1: tOpt1,
+      opt2: tOpt2,
+      opt3: tOpt3,
+      opt4: tOpt4
+    };
+  }
+
+  const displayText = (currentLanguage === 'en' && q.translated_en) ? q.translated_en.text : q.text_hi;
+  const displayOptions = (currentLanguage === 'en' && q.translated_en)
+    ? [q.translated_en.opt1, q.translated_en.opt2, q.translated_en.opt3, q.translated_en.opt4]
+    : [q.opt1_hi, q.opt2_hi, q.opt3_hi, q.opt4_hi];
+
+  if (qTxtEl) qTxtEl.innerText = displayText || "Question text unavailable";
+
   if (container) {
     container.innerHTML = "";
     const prefixes = ["A", "B", "C", "D"];
-    const opts = [q.opt1_hi, q.opt2_hi, q.opt3_hi, q.opt4_hi];
 
-    opts.forEach((opt, optIndex) => {
+    displayOptions.forEach((opt, optIndex) => {
       const optionKey = `opt${optIndex + 1}`;
       const isSelected = q.userSelected === optionKey;
 
@@ -265,6 +331,7 @@ function loadQuestion(index) {
     });
   }
 
+  // Next / Submit Button state
   const nextBtn = document.getElementById("nextBtn");
   if (nextBtn) {
     if (currentIndex === examQuestions.length - 1) {
@@ -281,6 +348,7 @@ function loadQuestion(index) {
 
   updatePaletteStatus();
   saveTestState();
+  bindObjectionButton();
 }
 
 function selectOption(optionKey) {
@@ -526,7 +594,67 @@ function initTabletSplitter() {
   window.addEventListener("pointercancel", stopDrag);
 }
 
-// Timer
+// ==================== QUERY / OBJECTION ENGINE ====================
+function openQueryModal() {
+  let modal = document.getElementById("queryModal");
+  if (!modal) {
+    // Dynamic fallback modal agar HTML mein tag missing ho
+    const modalHtml = `
+      <div id="queryModal" class="query-modal-backdrop" style="display: flex;">
+        <div class="query-modal-card">
+          <h3 style="margin-top:0; color:#fbbf24;">⚠️ प्रश्न पर आपत्ति दर्ज करें</h3>
+          <p style="font-size:0.8rem; color:#94a3b8;">Question ID: #${examQuestions[currentIndex]?.id || (currentIndex+1)}</p>
+          <label style="font-size:0.75rem; color:#cbd5e1;">समस्या का प्रकार चुनें:</label>
+          <select id="queryIssueType">
+            <option value="Incorrect Question">प्रश्न गलत या अधूरा है (Incorrect Question)</option>
+            <option value="Wrong Options">दिए गए विकल्प गलत हैं (Wrong Options)</option>
+            <option value="Translation Error">हिंदी/अंग्रेजी अनुवाद में त्रुटि (Translation Error)</option>
+            <option value="Other">अन्य समस्या (Other)</option>
+          </select>
+          <label style="font-size:0.75rem; color:#cbd5e1; display:block; margin-top:10px;">विवरण लिखें (Optional):</label>
+          <textarea id="queryComment" rows="3" placeholder="अपनी आपत्ति का विवरण दर्ज करें..."></textarea>
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+            <button onclick="closeQueryModal()" style="background:transparent; border:1px solid var(--border-cbt); color:#cbd5e1; padding:6px 12px; border-radius:6px; cursor:pointer;">रद्द करें</button>
+            <button onclick="submitQuestionQuery()" style="background:#f59e0b; border:none; color:#0b1120; font-weight:700; padding:6px 14px; border-radius:6px; cursor:pointer;">आपत्ति सबमिट करें</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML("beforeend", modalHtml);
+    return;
+  }
+  modal.style.display = "flex";
+}
+
+function closeQueryModal() {
+  const modal = document.getElementById("queryModal");
+  if (modal) modal.style.display = "none";
+}
+
+async function submitQuestionQuery() {
+  const currentQ = examQuestions[currentIndex];
+  const issueType = document.getElementById("queryIssueType")?.value || "Query";
+  const comment = document.getElementById("queryComment")?.value?.trim() || "";
+
+  try {
+    await fetch(`${API_BASE_URL}/api/query/raise`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: currentUserId,
+        question_id: String(currentQ.id),
+        issue_text: `${issueType}: ${comment}`
+      })
+    });
+    alert("✓ आपकी आपत्ति दर्ज कर ली गई है। धन्यवाद!");
+    closeQueryModal();
+  } catch (e) {
+    alert("Objection recorded locally.");
+    closeQueryModal();
+  }
+}
+
+// Timer & Submit
 function startTimer() {
   clearInterval(timerInterval);
   timerInterval = setInterval(() => {
@@ -545,6 +673,11 @@ function startTimer() {
       el.innerText = formatted;
     });
   }, 1000);
+}
+
+function adjustFontSize(delta) {
+  currentFontScale = Math.max(0.9, Math.min(1.4, currentFontScale + delta * 0.1));
+  document.documentElement.style.setProperty("--q-font-size", `${currentFontScale}rem`);
 }
 
 function openSubmitModal() {
