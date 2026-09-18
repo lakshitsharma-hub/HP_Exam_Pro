@@ -685,37 +685,44 @@ function initTabletSplitter() {
 
   let isDragging = false;
 
-  const onDragStart = (e) => {
+  const startDrag = (e) => {
     isDragging = true;
     document.body.style.userSelect = "none";
   };
 
-  const onDragMove = (e) => {
+  const doDrag = (e) => {
     if (!isDragging) return;
+    
+    // Touch ya Mouse clientY capture karein
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     if (!clientY) return;
+
+    if (e.cancelable) e.preventDefault(); // Mobile page scroll ko rokein drag ke dauran
 
     const windowH = window.innerHeight;
     const newOmrH = windowH - clientY;
 
-    if (newOmrH >= 120 && newOmrH <= (windowH - 120)) {
+    if (newOmrH >= 100 && newOmrH <= (windowH - 100)) {
       omrPane.style.height = `${newOmrH}px`;
     }
   };
 
-  const onDragEnd = () => {
+  const endDrag = () => {
+    if (!isDragging) return;
     isDragging = false;
     document.body.style.userSelect = "";
   };
 
-  // Pointer & Touch Listeners
-  resizer.addEventListener("pointerdown", onDragStart);
-  window.addEventListener("pointermove", onDragMove);
-  window.addEventListener("pointerup", onDragEnd);
+  // Laptop / Mouse
+  resizer.addEventListener("mousedown", startDrag);
+  window.addEventListener("mousemove", doDrag);
+  window.addEventListener("mouseup", endDrag);
 
-  resizer.addEventListener("touchstart", onDragStart, { passive: true });
-  window.addEventListener("touchmove", onDragMove, { passive: true });
-  window.addEventListener("touchend", onDragEnd);
+  // Phone / Touch
+  resizer.addEventListener("touchstart", startDrag, { passive: false });
+  window.addEventListener("touchmove", doDrag, { passive: false });
+  window.addEventListener("touchend", endDrag);
+  window.addEventListener("touchcancel", endDrag);
 }
 // ==================== QUERY / OBJECTION ENGINE ====================
 function openQueryModal() {
