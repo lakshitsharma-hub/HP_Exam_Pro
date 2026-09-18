@@ -2,117 +2,216 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Live Examination Arena | HP Exam Pro</title>
   <link rel="stylesheet" href="test-arena.css">
   <link rel="icon" type="image/png" href="favicon.png">
 </head>
-<body data-theme="dark">
+<body data-theme="dark" data-view="cbt">
 
-  <!-- CBT Exam Top Header -->
-  <header class="exam-header">
-    <div class="exam-header-left">
-      <div class="brand-badge">HP Exam Pro</div>
-      <div class="test-title-group">
-        <h2 id="activeExamTitle">HP Full Mock Test</h2>
-        <span class="test-sub-meta">Pattern: 2026 Latest CBT</span>
+  <!-- ================= 0. HYBRID MODE & INSTRUCTION MODAL ================= -->
+  <div class="mode-modal-backdrop" id="modeSelectModal">
+    <div class="mode-modal-card">
+      <div class="mode-modal-header">
+        <span class="mode-badge">NEW PATTERN SIMULATION</span>
+        <h2>Choose Exam Interface Mode</h2>
+        <p>Aap is mock test ko official CBT screen ya Digital OMR Tablet format mein de sakte hain.</p>
+      </div>
+
+      <div class="mode-cards-grid">
+        <!-- CBT Mode Card -->
+        <label class="mode-option-card active" id="cardModeCbt" onclick="pickExamMode('cbt')">
+          <input type="radio" name="exam_mode_choice" value="cbt" checked>
+          <div class="mode-card-body">
+            <div class="mode-icon">💻</div>
+            <div class="mode-title">Standard CBT Mode</div>
+            <div class="mode-desc">Single question view, click-to-select options, side question palette navigation.</div>
+            <div class="mode-tag">Classic Online Pattern</div>
+          </div>
+        </label>
+
+        <!-- Tablet OMR Mode Card -->
+        <label class="mode-option-card" id="cardModeTablet" onclick="pickExamMode('tablet')">
+          <input type="radio" name="exam_mode_choice" value="tablet">
+          <div class="mode-card-body">
+            <div class="mode-icon">📱</div>
+            <div class="mode-title">Digital OMR Tablet Mode</div>
+            <div class="mode-desc">Split-screen question paper with 2-column pink OMR grid & resizer handle.</div>
+            <div class="mode-tag highlight">Official HP TBT Pattern</div>
+          </div>
+        </label>
+      </div>
+
+      <!-- Instructions Box -->
+      <div class="instructions-accordion" id="instructionsBox">
+        <div class="inst-head">⚠️ Crucial Exam Instructions:</div>
+        <ul class="inst-list" id="instructionItemsList">
+          <li><strong>CBT Mode:</strong> Single click par option select hoga. "Save & Next" se aage badhein.</li>
+          <li><strong>Timer:</strong> Test start hote hi reverse countdown trigger ho jayega.</li>
+        </ul>
+      </div>
+
+      <div class="mode-confirm-action">
+        <label class="terms-chk">
+          <input type="checkbox" id="acceptInstructionsChk" checked>
+          <span>Maine saare nirdesh (instructions) dhyanpurvak padh liye hain aur main samajhta/samajhti hoon.</span>
+        </label>
+        <button class="btn-start-test" onclick="confirmModeAndLaunchTest()">Accept & Start Examination 🚀</button>
       </div>
     </div>
+  </div>
 
-    <div class="exam-header-right">
-      <!-- Font Size Adjuster -->
-      <div class="font-resizer-box">
-        <button class="font-btn" onclick="adjustFontSize(-1)" title="Decrease font size">A-</button>
-        <span class="font-label">Font</span>
-        <button class="font-btn" onclick="adjustFontSize(1)" title="Increase font size">A+</button>
-      </div>
-
-      <button id="themeToggleBtn" class="theme-switch-btn" onclick="toggleExamTheme()" title="Switch to TCS / Light Interface">
-        ☀️ Light
-      </button>
-      <!-- Language Selector -->
-      <div class="lang-switch-box">
-        <span class="lang-label">🌐 Lang:</span>
-        <select id="langSelector" class="lang-select" onchange="changeLanguage(this.value)">
-          <option value="hi" selected>हिंदी</option>
-          <option value="en">English</option>
-        </select>
-      </div>
-
-      <!-- Live Countdown Timer -->
-      <div class="cbt-timer-box">
-        <span class="timer-icon">⏱️</span>
-        <div class="timer-digits">
-          <span class="t-label">Time Left</span>
-          <span class="t-val" id="timeRemaining">90:00</span>
+  <!-- ================= 1. STANDARD CBT VIEW ================= -->
+  <div id="cbtViewContainer" class="view-wrapper">
+    <!-- CBT Top Header -->
+    <header class="exam-header">
+      <div class="exam-header-left">
+        <div class="brand-badge">HP Exam Pro</div>
+        <div class="test-title-group">
+          <h2 id="activeExamTitle">HP Full Mock Test</h2>
+          <span class="test-sub-meta">Pattern: 2026 Latest CBT</span>
         </div>
       </div>
 
-      <button class="btn-end-test" onclick="openSubmitModal()">Submit Test 🏁</button>
-    </div>
-  </header>
-
-  <!-- Main CBT Grid -->
-  <main class="exam-body-grid">
-    
-    <!-- Left: Question & Options Viewport -->
-    <section class="question-viewport">
-      <div class="q-meta-strip">
-        <span class="q-counter" id="qCurrentIndex">Question 1 of 120</span>
-        <span class="q-marks-tag" id="qMarksTag">+1.00 Marks</span>
-      </div>
-
-      <div class="q-text-card">
-        <p id="questionText">Loading question from server...</p>
-      </div>
-
-      <!-- Options Container -->
-      <div class="options-group" id="optionsContainer">
-        <!-- Rendered dynamically -->
-      </div>
-
-      <!-- Action Footer -->
-      <div class="q-action-footer">
-        <div class="footer-left-actions">
-          <button class="btn-nav-outline" onclick="markForReviewAndNext()">⭐ Mark for Review</button>
-          <button class="btn-nav-outline" onclick="clearSelection()">Clear Selection</button>
+      <div class="exam-header-right">
+        <div class="font-resizer-box">
+          <button class="font-btn" onclick="adjustFontSize(-1)" title="Decrease font size">A-</button>
+          <span class="font-label">Font</span>
+          <button class="font-btn" onclick="adjustFontSize(1)" title="Increase font size">A+</button>
         </div>
-        <div class="footer-right-nav">
-          <button class="btn-nav-secondary" id="prevBtn" onclick="prevQuestion()">← Previous</button>
-          <button class="btn-nav-primary" id="nextBtn" onclick="saveAndNext()">Save & Next →</button>
-        </div>
-      </div>
 
-      <!-- Objection Strip -->
-      <div class="question-query-strip">
-        <button class="btn-report-query" onclick="openQueryModal()">
-          <span class="warn-icon">⚠️</span>
-          <span>इस सवाल में कोई गड़बड़ है? आपत्ति दर्ज करें</span>
+        <button id="themeToggleBtn" class="theme-switch-btn" onclick="toggleExamTheme()" title="Switch to TCS / Light Interface">
+          ☀️ Light
         </button>
-      </div>
-    </section>
 
-    <!-- Right: Question Palette Sidebar -->
-    <aside class="palette-sidebar">
-      <div class="palette-header">
-        <h3>Question Palette</h3>
+        <div class="lang-switch-box">
+          <span class="lang-label">🌐 Lang:</span>
+          <select id="langSelector" class="lang-select" onchange="changeLanguage(this.value)">
+            <option value="hi" selected>हिंदी</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
+        <div class="cbt-timer-box">
+          <span class="timer-icon">⏱️</span>
+          <div class="timer-digits">
+            <span class="t-label">Time Left</span>
+            <span class="t-val shared-timer-display">90:00</span>
+          </div>
+        </div>
+
+        <button class="btn-end-test" onclick="openSubmitModal()">Submit Test 🏁</button>
+      </div>
+    </header>
+
+    <!-- CBT Body Grid -->
+    <main class="exam-body-grid">
+      <section class="question-viewport">
+        <div class="q-meta-strip">
+          <span class="q-counter" id="qCurrentIndex">Question 1 of 120</span>
+          <span class="q-marks-tag" id="qMarksTag">+1.00 Marks</span>
+        </div>
+
+        <div class="q-text-card">
+          <p id="questionText">Loading question from server...</p>
+        </div>
+
+        <div class="options-group" id="optionsContainer"></div>
+
+        <div class="q-action-footer">
+          <div class="footer-left-actions">
+            <button class="btn-nav-outline" onclick="markForReviewAndNext()">⭐ Mark for Review</button>
+            <button class="btn-nav-outline" onclick="clearSelection()">Clear Selection</button>
+          </div>
+          <div class="footer-right-nav">
+            <button class="btn-nav-secondary" id="prevBtn" onclick="prevQuestion()">← Previous</button>
+            <button class="btn-nav-primary" id="nextBtn" onclick="saveAndNext()">Save & Next →</button>
+          </div>
+        </div>
+
+        <div class="question-query-strip">
+          <button class="btn-report-query" onclick="openQueryModal()">
+            <span class="warn-icon">⚠️</span>
+            <span>इस सवाल में कोई गड़बड़ है? आपत्ति दर्ज करें</span>
+          </button>
+        </div>
+      </section>
+
+      <aside class="palette-sidebar">
+        <div class="palette-header">
+          <h3>Question Palette</h3>
+        </div>
+        <div class="palette-legend">
+          <div class="legend-item"><span class="dot answered"></span> Answered (<span id="countAnswered">0</span>)</div>
+          <div class="legend-item"><span class="dot not-answered"></span> Unanswered (<span id="countUnanswered">0</span>)</div>
+          <div class="legend-item"><span class="dot review"></span> Marked (<span id="countReview">0</span>)</div>
+          <div class="legend-item"><span class="dot not-visited"></span> Not Visited (<span id="countNotVisited">0</span>)</div>
+        </div>
+        <div class="palette-number-grid" id="paletteGrid"></div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- ================= 2. DIGITAL OMR TABLET VIEW ================= -->
+  <div id="tabletViewContainer" class="view-wrapper" style="display: none;">
+    <!-- Tablet Teal Header -->
+    <header class="tablet-header">
+      <div class="tab-header-left">
+        <span class="tab-set-badge" id="tabSetBadge">SET A</span>
+        <span class="tab-sub-info">Paper 1 &nbsp;|&nbsp; 🔋 100 %</span>
       </div>
 
-      <!-- Palette Legend Status -->
-      <div class="palette-legend">
-        <div class="legend-item"><span class="dot answered"></span> Answered (<span id="countAnswered">0</span>)</div>
-        <div class="legend-item"><span class="dot not-answered"></span> Unanswered (<span id="countUnanswered">0</span>)</div>
-        <div class="legend-item"><span class="dot review"></span> Marked (<span id="countReview">0</span>)</div>
-        <div class="legend-item"><span class="dot not-visited"></span> Not Visited (<span id="countNotVisited">0</span>)</div>
+      <div class="tab-timer-pill">
+        ⏱️ Time Left : <span class="shared-timer-display" id="tabTimerDisplay">90:00</span>
       </div>
 
-      <!-- Grid of Question Numbers -->
-      <div class="palette-number-grid" id="paletteGrid">
-        <!-- Populated dynamically via JS -->
+      <div class="tab-header-right">
+        <span class="tab-candidate-id" id="tabCandidateId">ID: CAND-2026</span>
+        <div class="tab-avatar-box">👤</div>
       </div>
-    </aside>
+    </header>
 
-  </main>
+    <!-- Split Screen Workarea -->
+    <div class="tablet-split-area">
+      <!-- Upper Section: Complete Question Paper View -->
+      <section class="tablet-paper-pane" id="tabPaperPane">
+        <div class="tablet-paper-banner">
+          <h3 id="tabPaperBannerTitle">HP JOA IT - PAPER I EXAMINATION</h3>
+          <button class="tab-calc-btn" onclick="handleTabletCalc()">🧮 Calculator</button>
+        </div>
+        <div id="tabQuestionsFeed" class="tab-questions-feed">
+          <!-- Rendered dynamically (Dual Hindi/English columns) -->
+        </div>
+      </section>
+
+      <!-- Middle Draggable Blue Resizer -->
+      <div id="tabSplitResizer" class="tab-resizer">
+        <div class="tab-resizer-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+
+      <!-- Lower Section: Pink/Lavender Digital OMR Grid -->
+      <section class="tablet-omr-pane" id="tabOmrPane">
+        <div class="tab-omr-topbar">
+          <div class="tab-omr-title-group">
+            <span class="tab-omr-title">ANSWERS</span>
+            <div class="tab-legend-group">
+              <span class="tab-legend-item"><span class="omr-legend-bubble not-att"></span> Not Attempted (<span id="tabCountUnanswered">0</span>)</span>
+              <span class="tab-legend-item"><span class="omr-legend-bubble att"></span> Attempted (<span id="tabCountAnswered">0</span>)</span>
+              <span class="tab-legend-item"><span class="omr-legend-bubble review"></span> Marked for Review (<span id="tabCountReview">0</span>)</span>
+            </div>
+          </div>
+          <button class="tab-btn-submit" onclick="openSubmitModal()">REVIEW & SUBMIT ➔</button>
+        </div>
+
+        <div class="tab-omr-scroll-grid">
+          <div class="tab-omr-col" id="tabOmrColLeft"></div>
+          <div class="tab-omr-col" id="tabOmrColRight"></div>
+        </div>
+      </section>
+    </div>
+  </div>
 
   <!-- Submit Test Confirmation Modal -->
   <div class="submit-modal-backdrop" id="submitModal">
@@ -146,20 +245,18 @@
     </div>
   </div>
 
-  <!-- ================= RESULT SCORECARD MODAL ================= -->
+  <!-- Scorecard Result Modal -->
   <div class="submit-modal-backdrop" id="scorecardModal" style="display: none; z-index: 3000;">
     <div class="submit-modal-card" style="text-align: center; max-width: 500px; padding: 30px 24px;">
       <div style="font-size: 50px; margin-bottom: 10px;">🎉</div>
       <h2 style="color: #f8fafc; font-size: 1.4rem; margin-bottom: 4px;">Mock Test Completed!</h2>
       <p style="color: var(--text-cbt-muted); font-size: 0.85rem; margin-bottom: 20px;">Aapka detailed scorecard calculate ho chuka hai.</p>
 
-      <!-- Score Circle -->
       <div style="width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%); color: #0b1120; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 20px auto; box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);">
         <span id="resFinalScore" style="font-size: 2rem; font-weight: 800; line-height: 1;">0.0</span>
         <span style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase;">Total Score</span>
       </div>
 
-      <!-- Stats Summary -->
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
         <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.25); padding: 10px; border-radius: 10px;">
           <span style="color: #4ade80; font-size: 1.2rem; font-weight: 800;" id="resCorrectCount">0</span>
@@ -175,7 +272,6 @@
         </div>
       </div>
 
-      <!-- Actions -->
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <button onclick="toggleSolutionsReview()" style="background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; padding: 11px; border-radius: 10px; font-weight: 700; cursor: pointer;">
           👁️ Review Solutions & Explanations
@@ -185,7 +281,6 @@
         </button>
       </div>
 
-      <!-- Solutions Accordion -->
       <div id="solutionsReviewContainer" style="display: none; max-height: 250px; overflow-y: auto; text-align: left; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px;"></div>
     </div>
   </div>
