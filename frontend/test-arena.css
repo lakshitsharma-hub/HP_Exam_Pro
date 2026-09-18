@@ -39,7 +39,7 @@ body {
   overflow: hidden;
 }
 
-/* Modal */
+/* ==================== 1. MODE SELECTION MODAL ==================== */
 .mode-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -107,7 +107,7 @@ body {
   width: 100%;
 }
 
-/* ==================== CBT VIEW ==================== */
+/* ==================== 2. CBT HEADER (MOBILE OPTIMIZED) ==================== */
 .view-wrapper {
   height: 100vh;
   display: flex;
@@ -118,18 +118,21 @@ body {
 .exam-header {
   background: var(--bg-cbt-card);
   border-bottom: 1px solid var(--border-cbt);
-  height: 56px;
+  min-height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
   flex-shrink: 0;
+  gap: 8px;
+  flex-wrap: nowrap;
 }
 
-.exam-header-left, .exam-header-right {
+.exam-header-left {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .brand-badge {
@@ -139,15 +142,38 @@ body {
   font-size: 0.75rem;
   padding: 3px 8px;
   border-radius: 6px;
+  white-space: nowrap;
 }
 
-.test-title-group h2 { font-size: 0.95rem; font-weight: 700; }
-.test-sub-meta { font-size: 0.7rem; color: var(--text-cbt-muted); }
+.test-title-group {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.test-title-group h2 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.test-sub-meta {
+  font-size: 0.7rem;
+  color: var(--text-cbt-muted);
+}
+
+.exam-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
 
 .font-resizer-box {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   background: var(--bg-cbt-hover);
   padding: 3px 6px;
   border-radius: 6px;
@@ -166,7 +192,7 @@ body {
   background: var(--bg-cbt-hover);
   border: 1px solid var(--border-cbt);
   color: var(--text-cbt-main);
-  padding: 5px 10px;
+  padding: 5px 8px;
   border-radius: 6px;
   font-size: 0.75rem;
   cursor: pointer;
@@ -175,11 +201,15 @@ body {
 .cbt-timer-box {
   background: rgba(244, 63, 94, 0.12);
   border: 1px solid rgba(244, 63, 94, 0.3);
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: 8px;
   font-weight: 800;
   color: #fb7185;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .btn-end-test {
@@ -191,8 +221,10 @@ body {
   border-radius: 6px;
   font-size: 0.8rem;
   cursor: pointer;
+  white-space: nowrap;
 }
 
+/* ==================== 3. CBT VIEWPORT & OBJECTION BOX ==================== */
 .exam-body-grid {
   flex: 1;
   display: grid;
@@ -203,7 +235,7 @@ body {
 .question-viewport {
   display: flex;
   flex-direction: column;
-  padding: 20px 26px;
+  padding: 18px 22px;
   overflow-y: auto;
   border-right: 1px solid var(--border-cbt);
 }
@@ -224,17 +256,17 @@ body {
 }
 
 .q-text-card {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   line-height: 1.6;
   font-size: var(--q-font-size);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .options-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .option-btn {
@@ -271,12 +303,36 @@ body {
   flex-shrink: 0;
 }
 
+/* Styled Objection Box (Appati Box Fix) */
+.objection-trigger-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(245, 158, 11, 0.12) !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+  border-radius: 6px;
+  color: #fbbf24 !important;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+  width: fit-content;
+  transition: all 0.2s ease;
+}
+
+.objection-trigger-box:hover {
+  background: rgba(245, 158, 11, 0.22) !important;
+  border-color: #f59e0b !important;
+  transform: translateY(-1px);
+}
+
 .q-action-footer {
   margin-top: auto;
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  padding-top: 16px;
+  padding-top: 14px;
   border-top: 1px solid var(--border-cbt);
 }
 
@@ -286,9 +342,9 @@ body {
 }
 
 .btn-nav-outline, .btn-nav-secondary, .btn-nav-primary {
-  padding: 9px 16px;
+  padding: 9px 15px;
   border-radius: 6px;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -306,12 +362,12 @@ body {
   overflow: hidden;
 }
 
-.palette-header h3 { font-size: 0.9rem; margin-bottom: 12px; }
+.palette-header h3 { font-size: 0.9rem; margin-bottom: 10px; }
 .palette-legend {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   font-size: 0.72rem;
 }
 
@@ -350,7 +406,7 @@ body {
 .palette-bubble.state-unanswered { background: #ef4444; color: #fff; border-color: #ef4444; }
 .palette-bubble.state-review { background: #facc15; color: #000; border-color: #facc15; }
 
-/* ==================== TABLET VIEW ==================== */
+/* ==================== 4. TABLET & OMR VIEW ==================== */
 .tablet-header {
   height: 48px;
   background: #0f172a;
@@ -599,6 +655,40 @@ body {
   border-color: #0f172a !important;
 }
 
+/* Query / Objection Modal Styles */
+.query-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 17, 32, 0.85);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 5500;
+  padding: 16px;
+}
+
+.query-modal-card {
+  background: #0f172a;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 14px;
+  max-width: 460px;
+  width: 100%;
+  padding: 22px;
+  color: #f8fafc;
+}
+
+.query-modal-card select, .query-modal-card textarea {
+  width: 100%;
+  background: #1e293b;
+  border: 1px solid var(--border-cbt);
+  color: #f8fafc;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 8px;
+  font-family: inherit;
+}
+
 /* Modals */
 .submit-modal-backdrop {
   position: fixed;
@@ -630,8 +720,51 @@ body {
 .btn-modal-cancel { background: transparent; border: 1px solid var(--border-cbt); color: #cbd5e1; padding: 8px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 .btn-modal-confirm { background: #22c55e; border: none; color: #0b1120; padding: 8px 16px; border-radius: 6px; font-weight: 800; cursor: pointer; }
 
+/* ==================== 5. MOBILE SCREEN FIXES ==================== */
 @media (max-width: 768px) {
-  .exam-body-grid { grid-template-columns: 1fr; }
-  .palette-sidebar { display: none; }
-  .tablet-omr-pane { height: 230px; }
+  .exam-header {
+    padding: 0 10px;
+    height: auto;
+    min-height: 50px;
+    flex-wrap: wrap;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+  .font-resizer-box, .test-sub-meta {
+    display: none;
+  }
+  .brand-badge {
+    font-size: 0.68rem;
+    padding: 2px 6px;
+  }
+  .test-title-group h2 {
+    font-size: 0.82rem;
+  }
+  .exam-header-right {
+    gap: 5px;
+  }
+  .lang-select, .theme-switch-btn {
+    padding: 4px 6px;
+    font-size: 0.7rem;
+  }
+  .cbt-timer-box {
+    font-size: 0.78rem;
+    padding: 4px 6px;
+  }
+  .btn-end-test {
+    padding: 5px 8px;
+    font-size: 0.75rem;
+  }
+  .exam-body-grid {
+    grid-template-columns: 1fr;
+  }
+  .palette-sidebar {
+    display: none;
+  }
+  .question-viewport {
+    padding: 14px;
+  }
+  .tablet-omr-pane {
+    height: 230px;
+  }
 }
