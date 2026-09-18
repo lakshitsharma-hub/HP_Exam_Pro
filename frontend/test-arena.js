@@ -269,7 +269,6 @@ async function changeLanguage(lang) {
   await loadQuestion(currentIndex);
 }
 
-// ==================== CBT QUESTION RENDERER ====================
 async function loadQuestion(index) {
   if (!examQuestions || examQuestions.length === 0) return;
   currentIndex = index;
@@ -287,21 +286,25 @@ async function loadQuestion(index) {
   if (currentLanguage === 'en' && !q.translated_en) {
     if (qTxtEl) qTxtEl.innerText = "⏳ Translating question to English...";
     
-    const [tText, tOpt1, tOpt2, tOpt3, tOpt4] = await Promise.all([
-      autoTranslate(q.text_hi),
-      autoTranslate(q.opt1_hi),
-      autoTranslate(q.opt2_hi),
-      autoTranslate(q.opt3_hi),
-      autoTranslate(q.opt4_hi)
-    ]);
+    try {
+      const [tText, tOpt1, tOpt2, tOpt3, tOpt4] = await Promise.all([
+        autoTranslate(q.text_hi),
+        autoTranslate(q.opt1_hi),
+        autoTranslate(q.opt2_hi),
+        autoTranslate(q.opt3_hi),
+        autoTranslate(q.opt4_hi)
+      ]);
 
-    q.translated_en = {
-      text: tText,
-      opt1: tOpt1,
-      opt2: tOpt2,
-      opt3: tOpt3,
-      opt4: tOpt4
-    };
+      q.translated_en = {
+        text: tText,
+        opt1: tOpt1,
+        opt2: tOpt2,
+        opt3: tOpt3,
+        opt4: tOpt4
+      };
+    } catch (err) {
+      console.warn("Translation failed, falling back to Hindi:", err);
+    }
   }
 
   const displayText = (currentLanguage === 'en' && q.translated_en) ? q.translated_en.text : q.text_hi;
@@ -345,6 +348,12 @@ async function loadQuestion(index) {
 
   const prevBtn = document.getElementById("prevBtn");
   if (prevBtn) prevBtn.disabled = (currentIndex === 0);
+
+  // Phone screen par question load hote hi palette drawer auto-close ho jaye
+  const palette = document.querySelector(".palette-sidebar");
+  if (palette && window.innerWidth <= 768) {
+    palette.classList.remove("drawer-open");
+  }
 
   updatePaletteStatus();
   saveTestState();
