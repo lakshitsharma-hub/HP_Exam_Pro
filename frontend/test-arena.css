@@ -720,55 +720,93 @@ body {
 .btn-modal-cancel { background: transparent; border: 1px solid var(--border-cbt); color: #cbd5e1; padding: 8px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 .btn-modal-confirm { background: #22c55e; border: none; color: #0b1120; padding: 8px 16px; border-radius: 6px; font-weight: 800; cursor: pointer; }
 
-/* ==================== ORIGINAL MOBILE BOTTOM PALETTE ==================== */
 @media (max-width: 768px) {
-  .exam-body-grid {
+  /* 1. Header Cluster Fix: Single-line Horizontal Swipe Bar */
+  .exam-header,
+  .cbt-header-bar,
+  header {
     display: flex !important;
-    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 8px 12px !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .exam-header::-webkit-scrollbar,
+  .cbt-header-bar::-webkit-scrollbar,
+  header::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+  }
+
+  /* Header ke buttons aur items chipakne se bachane ke liye */
+  .exam-header > *,
+  .cbt-header-bar > *,
+  header > * {
+    flex-shrink: 0 !important;
+  }
+
+  /* 2. Digital OMR Blank Screen Fix */
+  /* Har OMR wrapper ko full width, visible aur scrollable rakhein */
+  .digital-omr-container,
+  #digitalOmrRoot,
+  #digitalOmrSection,
+  #omrModal,
+  .omr-sheet-wrapper,
+  .omr-body,
+  .omr-grid-container {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    min-height: 100vh !important;
     overflow-y: auto !important;
-    height: calc(100vh - 56px - 64px) !important; /* Header aur Footer ke beech full scroll */
-    padding-bottom: 30px !important;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Question Viewport: options & objection */
-  .question-viewport {
+  /* 3. CBT Question + Bottom Palette Viewport Safety */
+  body:not(.digital-omr-active) .exam-body-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    height: calc(100vh - 56px - 60px) !important;
+    padding-bottom: 25px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body:not(.digital-omr-active) .question-viewport {
     border-right: none !important;
-    border-bottom: 1px solid var(--border-cbt);
     padding: 14px 14px 18px 14px !important;
     overflow: visible !important;
     flex: none !important;
   }
 
-  /* Palette: Seedha question ke neeche continuous render hoga */
-  .palette-sidebar {
+  body:not(.digital-omr-active) .palette-sidebar {
     display: flex !important;
     position: static !important;
     width: 100% !important;
     height: auto !important;
-    background: var(--bg-cbt-card) !important;
+    background: var(--bg-cbt-card, #ffffff) !important;
     border-left: none !important;
     box-shadow: none !important;
-    padding: 16px 14px !important;
+    padding: 16px 14px 30px 14px !important;
     overflow: visible !important;
   }
 
-  .palette-number-grid {
+  body:not(.digital-omr-active) .palette-number-grid {
     display: grid !important;
-    grid-template-columns: repeat(6, 1fr) !important; /* 6 Columns jaisa screenshot me hai */
+    grid-template-columns: repeat(6, 1fr) !important;
     gap: 8px !important;
-    max-height: 220px !important;
+    max-height: 280px !important;
     overflow-y: auto !important;
-    padding-right: 2px;
+    padding-bottom: 25px !important;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .palette-bubble {
-    height: 40px !important;
-    font-size: 0.85rem !important;
-    border-radius: 6px !important;
-  }
-
-  /* Fixed Bottom Nav Actions Bar */
+  /* Bottom Action Bar */
   .q-action-footer {
     position: fixed !important;
     bottom: 0 !important;
@@ -782,25 +820,5 @@ body {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-  }
-
-  .footer-left-actions {
-    display: flex !important;
-    gap: 6px !important;
-  }
-
-  .footer-right-nav {
-    display: flex !important;
-    gap: 6px !important;
-  }
-
-  .btn-nav-outline, .btn-nav-secondary, .btn-nav-primary {
-    padding: 8px 12px !important;
-    font-size: 0.76rem !important;
-  }
-
-  /* Header compact rules */
-  .font-resizer-box, .test-sub-meta {
-    display: none !important;
   }
 }
