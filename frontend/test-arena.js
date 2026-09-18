@@ -233,17 +233,35 @@ async function fetchQuestionsFromBackend() {
             currentIndex = parsed.currentIndex || 0;
             timeLeft = parsed.timeLeft;
             currentLanguage = parsed.currentLanguage || "hi";
+            activeExamMode = parsed.activeExamMode || "cbt";
 
             // Mode select modal agar open ho toh band karein
             const modal = document.getElementById("modeSelectModal");
             if (modal) modal.style.display = "none";
+            document.body.setAttribute("data-view", activeExamMode);
 
-            renderPalette();
-            await loadQuestion(currentIndex);
+            if (activeExamMode === "tablet") {
+              document.body.classList.add("digital-omr-active");
+              const cbtView = document.getElementById("cbtViewContainer");
+              const tabView = document.getElementById("tabletViewContainer");
+              if (cbtView) cbtView.style.display = "none";
+              if (tabView) tabView.style.display = "flex";
+              renderTabletPaperFeed();
+              renderTabletOmrBubbles();
+              initTabletSplitter();
+            } else {
+              document.body.classList.remove("digital-omr-active");
+              const cbtView = document.getElementById("cbtViewContainer");
+              const tabView = document.getElementById("tabletViewContainer");
+              if (cbtView) cbtView.style.display = "flex";
+              if (tabView) tabView.style.display = "none";
+              renderPalette();
+              await loadQuestion(currentIndex);
+            }
+
             startTimer();
-            return; // Wapas naya API call karne ki zarurat nahi, yahin se resume
+            return; // Yahin se resume, naya API call nahi hoga
           } else {
-            // Agar candidate 'Cancel' kare toh purana data clear karke fresh test start karein
             if (typeof clearTestState === 'function') {
               clearTestState();
             } else {
@@ -256,7 +274,7 @@ async function fetchQuestionsFromBackend() {
       }
     }
 
-    // 2. Normal API Call (agar koi interrupted session nahi hai ya user ne fresh start choose kiya)
+    // 2. Normal API Call
     const attemptedIds = getAttemptedQuestionIds();
     const excludeParam = attemptedIds.length > 0 ? `&exclude_ids=${attemptedIds.join(',')}` : '';
     const response = await fetch(`${API_BASE_URL}/api/questions/${currentExamType}?user_id=${currentUserId}&t=${Date.now()}${excludeParam}`);
@@ -289,11 +307,32 @@ async function fetchQuestionsFromBackend() {
       recordAttemptedQuestions(examQuestions);
       timeLeft = currentExamType === 'hp_police' ? 7200 : 5400;
 
+      // Agar Mode Select Modal band ho chuka ho tabhi render aur timer start karein
       const modal = document.getElementById("modeSelectModal");
-      if (!modal || modal.style.display === "none") {
-        renderPalette();
-        loadQuestion(0);
+      const isModalVisible = modal && modal.style.display !== "none";
+
+      if (!isModalVisible) {
+        if (activeExamMode === "tablet") {
+          document.body.classList.add("digital-omr-active");
+          renderTabletPaperFeed();
+          renderTabletOmrBubbles();
+          initTabletSplitter();
+        } else {
+          document.body.classList.remove("digital-omr-active");
+          renderPalette();
+          loadQuestion(0);
+        }
         startTimer();
+      } else {
+        // Agar user pehle se Confirm button daba chuka hai aur screen khul chuki hai
+        if (activeExamMode === "tablet") {
+          renderTabletPaperFeed();
+          renderTabletOmrBubbles();
+          initTabletSplitter();
+        } else {
+          renderPalette();
+          loadQuestion(0);
+        }
       }
     }
   } catch (error) {
