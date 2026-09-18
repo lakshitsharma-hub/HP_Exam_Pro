@@ -1,12 +1,3 @@
-/* =========================================================
-   HP EXAM PRO - TEST ARENA COMPLETE STYLESHEET
-   Features:
-   - Side-by-Side Questions (Q1 & Q2, Q3 & Q4 on Tablets/Laptops)
-   - Dual-Column OMR Sheet (1-60 & 61-120)
-   - Real-time Radial Fill Animation on 1.5s Hold
-   - Mobile Touch-Safe Split Resizer with Smooth Drag
-   ========================================================= */
-
 :root {
   --bg-cbt-base: #0b1120;
   --bg-cbt-card: #0f172a;
@@ -238,7 +229,7 @@ body {
 }
 
 /* =========================================================
-   2. STANDARD CBT INTERFACE
+   2. CBT INTERFACE
    ========================================================= */
 .view-wrapper {
   height: 100vh;
@@ -481,7 +472,6 @@ body {
   color: #fff;
 }
 
-/* Palette */
 .palette-sidebar {
   background: var(--bg-cbt-card);
   display: flex;
@@ -549,7 +539,7 @@ body {
 .palette-bubble.state-review { background: #facc15; color: #000; border-color: #facc15; }
 
 /* =========================================================
-   3. DIGITAL OMR TABLET VIEW
+   3. TABLET & OMR WORKSPACE (RESPONSIVE + SCROLL FIX)
    ========================================================= */
 .tablet-header {
   height: 48px;
@@ -609,16 +599,18 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  position: relative;
+  height: calc(100vh - 48px);
 }
 
-/* Question Feed: Phone = 1 Col, Tablet/Laptop = 2 Cols */
 .tablet-paper-pane {
   flex: 1;
   overflow-y: auto;
   background: #f8fafc;
   color: #0f172a;
   padding: 16px;
+  /* 120th Question Cut-off Fix */
+  padding-bottom: 110px !important;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tablet-paper-banner {
@@ -636,15 +628,29 @@ body {
   letter-spacing: 0.5px;
 }
 
+.tab-calc-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  font-size: 0.72rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+/* Phone Layout: Strictly Single Column */
 #tabQuestionsFeed {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
-@media (min-width: 768px) {
+/* Tablet & Laptop Screens (>= 900px): Q1 & Q2 Aamne-Saamne, Fir Q3 & Q4 */
+@media (min-width: 900px) {
   #tabQuestionsFeed {
-    grid-template-columns: 1fr 1fr; /* Q1 & Q2 aamne saamne, fir Q3 & Q4 */
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
     gap: 16px;
   }
 }
@@ -655,9 +661,6 @@ body {
   border-radius: 8px;
   padding: 12px 14px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
 }
 
 .tab-q-text {
@@ -690,7 +693,7 @@ body {
 .opt-cell {
   background: #f8fafc;
   border: 1px solid #cbd5e1;
-  padding: 7px 10px;
+  padding: 6px 10px;
   border-radius: 6px;
   font-size: 0.82rem;
   color: #334155;
@@ -704,7 +707,7 @@ body {
   color: #0284c7;
 }
 
-/* Touch-Safe Split Resizer */
+/* Split Resizer */
 .tab-resizer {
   height: 20px;
   background: #0f172a;
@@ -715,37 +718,18 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background 0.2s ease;
   touch-action: none;
   user-select: none;
-  -webkit-user-select: none;
-}
-
-.tab-resizer:hover {
-  background: #1e293b;
 }
 
 .tab-resizer-dots {
   background: #334155;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  width: 50px;
-  height: 6px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
+  width: 44px;
+  height: 5px;
+  border-radius: 6px;
 }
 
-.tab-resizer-dots span {
-  display: inline-block;
-  width: 4px;
-  height: 4px;
-  background: #94a3b8;
-  border-radius: 50%;
-}
-
-/* OMR Section: Dual-Column (1-60 & 61-120) */
+/* OMR Section */
 .tablet-omr-pane {
   height: 250px;
   background: #fff1f2;
@@ -763,6 +747,7 @@ body {
   padding: 6px 14px;
   background: #ffffff;
   border-bottom: 1px solid #fbcfe8;
+  flex-shrink: 0;
 }
 
 .tab-omr-title {
@@ -777,7 +762,7 @@ body {
   color: #fff;
   font-weight: 800;
   font-size: 0.75rem;
-  padding: 5px 12px;
+  padding: 5px 14px;
   border-radius: 4px;
   cursor: pointer;
 }
@@ -785,15 +770,20 @@ body {
 .tab-omr-scroll-grid {
   flex: 1;
   overflow-y: auto;
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   padding: 8px 12px;
-  gap: 12px;
+  /* 120th OMR Bubble Cut-off Fix */
+  padding-bottom: 75px !important;
+  gap: 6px;
+  -webkit-overflow-scrolling: touch;
 }
 
-@media (min-width: 768px) {
+/* Tablet & Laptop: Dual Column OMR (1-60 Left | 61-120 Right) */
+@media (min-width: 900px) {
   .tab-omr-scroll-grid {
-    grid-template-columns: 1fr 1fr; /* Col 1: 1-60 | Col 2: 61-120 */
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
     column-gap: 24px;
   }
 }
@@ -818,7 +808,15 @@ body {
   font-size: 0.8rem;
   font-weight: 800;
   color: #475569;
-  width: 28px;
+  width: 32px;
+  cursor: pointer;
+}
+
+.tab-omr-num.review-marked {
+  background: #facc15;
+  color: #000;
+  padding: 1px 4px;
+  border-radius: 4px;
 }
 
 .tab-bubbles-wrap {
@@ -826,7 +824,7 @@ body {
   gap: 8px;
 }
 
-/* Bubble Design with Radial Fill on 1.5s Hold */
+/* Bubble Design with Radial Fill (1.5s Hold) */
 .tab-bubble {
   width: 28px;
   height: 28px;
@@ -842,10 +840,8 @@ body {
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  user-select: none;
-  -webkit-user-select: none;
   touch-action: none;
-  transition: transform 0.12s ease, border-color 0.12s ease;
+  transition: transform 0.1s ease;
 }
 
 .tab-bubble::before {
@@ -855,7 +851,7 @@ body {
   border-radius: 50%;
   background: #be123c;
   transform: scale(0);
-  opacity: 0.25;
+  opacity: 0.3;
   transition: transform 1.5s cubic-bezier(0.1, 0.7, 0.1, 1), opacity 1.5s ease;
   pointer-events: none;
 }
@@ -882,7 +878,7 @@ body {
 }
 
 /* =========================================================
-   4. MODALS (SUBMIT / SCORECARD)
+   4. MODALS & MOBILE FALLBACKS
    ========================================================= */
 .submit-modal-backdrop {
   position: fixed;
@@ -960,9 +956,6 @@ body {
   cursor: pointer;
 }
 
-/* =========================================================
-   5. MOBILE ADJUSTMENTS
-   ========================================================= */
 @media (max-width: 768px) {
   .exam-body-grid { grid-template-columns: 1fr; }
   .palette-sidebar { display: none; }
