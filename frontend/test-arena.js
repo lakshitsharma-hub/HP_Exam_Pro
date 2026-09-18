@@ -638,6 +638,7 @@ function toggleTabletReview(qIndex) {
   saveTestState();
 }
 
+// 3. Mobile Touch-Friendly Splitter (Pointer + Touch Events)
 function initTabletSplitter() {
   const resizer = document.getElementById("tabSplitResizer");
   const omrPane = document.getElementById("tabOmrPane");
@@ -645,34 +646,38 @@ function initTabletSplitter() {
 
   let isDragging = false;
 
-  resizer.addEventListener("pointerdown", (e) => {
+  const onDragStart = (e) => {
     isDragging = true;
-    resizer.setPointerCapture(e.pointerId);
     document.body.style.userSelect = "none";
-  });
+  };
 
-  window.addEventListener("pointermove", (e) => {
+  const onDragMove = (e) => {
     if (!isDragging) return;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    if (!clientY) return;
+
     const windowH = window.innerHeight;
-    const newOmrH = windowH - e.clientY;
-    if (newOmrH >= 130 && newOmrH <= (windowH - 140)) {
+    const newOmrH = windowH - clientY;
+
+    if (newOmrH >= 120 && newOmrH <= (windowH - 120)) {
       omrPane.style.height = `${newOmrH}px`;
     }
-  });
+  };
 
-  const stopDrag = (e) => {
-    if (!isDragging) return;
+  const onDragEnd = () => {
     isDragging = false;
-    if (e.pointerId && resizer.hasPointerCapture(e.pointerId)) {
-      resizer.releasePointerCapture(e.pointerId);
-    }
     document.body.style.userSelect = "";
   };
 
-  window.addEventListener("pointerup", stopDrag);
-  window.addEventListener("pointercancel", stopDrag);
-}
+  // Pointer & Touch Listeners
+  resizer.addEventListener("pointerdown", onDragStart);
+  window.addEventListener("pointermove", onDragMove);
+  window.addEventListener("pointerup", onDragEnd);
 
+  resizer.addEventListener("touchstart", onDragStart, { passive: true });
+  window.addEventListener("touchmove", onDragMove, { passive: true });
+  window.addEventListener("touchend", onDragEnd);
+}
 // ==================== QUERY / OBJECTION ENGINE ====================
 function openQueryModal() {
   let modal = document.getElementById("queryModal");
