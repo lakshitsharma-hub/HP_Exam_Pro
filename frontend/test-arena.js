@@ -851,23 +851,3 @@ function toggleSolutionsReview() {
 }
 
 // ==================== MOBILE PALETTE TOGGLE ENGINE ====================
-function toggleMobilePalette() {
-  const palette = document.querySelector(".palette-sidebar");
-  if (palette) {
-    palette.classList.toggle("drawer-open");
-  }
-}
-
-// Bubble click hone par mobile drawer automatically close ho jaye
-const originalBubbleClickHandler = window.loadQuestion;
-document.addEventListener("DOMContentLoaded", () => {
-  // Mobile Floating Palette Button Add Karna
-  if (!document.getElementById("btnMobilePaletteToggle")) {
-    const btn = document.createElement("button");
-    btn.id = "btnMobilePaletteToggle";
-    btn.className = "mobile-palette-toggle-btn";
-    btn.innerHTML = `📑 <span>Palette</span>`;
-    btn.onclick = toggleMobilePalette;
-    document.body.appendChild(btn);
-  }
-});
