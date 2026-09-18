@@ -443,19 +443,44 @@ function initTabletSplitter() {
   const resizer = document.getElementById("tabSplitResizer");
   const omrPane = document.getElementById("tabOmrPane");
   if (!resizer || !omrPane) return;
-  
-  let isDragging = false;
 
-  resizer.addEventListener("pointerdown", () => { isDragging = true; });
+  let isDragging = false;
+  let animationFrameId = null;
+
+  resizer.addEventListener("pointerdown", (e) => {
+    isDragging = true;
+    resizer.setPointerCapture(e.pointerId); // Ungli kitni bhi tez hile, drag lock rahega
+    document.body.style.userSelect = "none";
+  });
+
   window.addEventListener("pointermove", (e) => {
     if (!isDragging) return;
-    const windowH = window.innerHeight;
-    const newOmrH = windowH - e.clientY;
-    if (newOmrH >= 130 && newOmrH <= (windowH - 140)) {
-      omrPane.style.height = `${newOmrH}px`;
-    }
+
+    // 60 FPS smooth mobile animation frame
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+    animationFrameId = requestAnimationFrame(() => {
+      const windowH = window.innerHeight;
+      const newOmrH = windowH - e.clientY;
+
+      if (newOmrH >= 130 && newOmrH <= (windowH - 140)) {
+        omrPane.style.height = `${newOmrH}px`;
+      }
+    });
   });
-  window.addEventListener("pointerup", () => { isDragging = false; });
+
+  const stopDrag = (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    if (e.pointerId && resizer.hasPointerCapture(e.pointerId)) {
+      resizer.releasePointerCapture(e.pointerId);
+    }
+    document.body.style.userSelect = "";
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  };
+
+  window.addEventListener("pointerup", stopDrag);
+  window.addEventListener("pointercancel", stopDrag);
 }
 
 function handleTabletCalc() {
