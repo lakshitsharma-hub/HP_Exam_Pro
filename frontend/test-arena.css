@@ -729,24 +729,98 @@ body {
 .btn-modal-confirm { background: #22c55e; border: none; color: #0b1120; padding: 8px 16px; border-radius: 6px; font-weight: 800; cursor: pointer; }
 
 @media (max-width: 768px) {
+  /* 1. Body ko scroll hone ki permission dein */
+  body:not(.digital-omr-active),
+  html {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .view-wrapper {
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow: visible !important;
+  }
+
+  /* 2. Top Header Swipe-Friendly */
   .exam-header {
     display: flex !important;
     overflow-x: auto !important;
     white-space: nowrap !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
     scrollbar-width: none !important;
   }
   .exam-header::-webkit-scrollbar { display: none !important; }
   .exam-header > * { flex-shrink: 0 !important; }
 
+  /* 3. CBT Grid ko normal natural vertical stack banayein */
   body:not(.digital-omr-active) .exam-body-grid {
     display: flex !important;
     flex-direction: column !important;
-    overflow-y: auto !important;
-    height: calc(100vh - 56px) !important;
+    height: auto !important;
+    min-height: calc(100vh - 56px) !important;
+    overflow: visible !important;
+    padding-bottom: 90px !important; /* Bottom fixed buttons ke liye space */
   }
 
-  body:not(.digital-omr-active) .palette-sidebar {
-    display: flex !important;
+  /* 4. Question Viewport: Pura question aur chaaron options bina cut hue khulenge */
+  body:not(.digital-omr-active) .question-viewport {
+    flex: none !important;
     width: 100% !important;
+    height: auto !important;
+    border-right: none !important;
+    overflow: visible !important;
+    padding: 16px 14px 10px 14px !important;
+  }
+
+  /* Question options mobile tap-friendly */
+  .option-btn {
+    padding: 14px !important;
+    margin-bottom: 4px !important;
+  }
+
+  /* 5. Question Palette: Theek question ke neeche aayega aur 120 tak bina overlap scroll hoga */
+  body:not(.digital-omr-active) .palette-sidebar {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    background: var(--bg-cbt-card) !important;
+    border-top: 1px solid var(--border-cbt) !important;
+    border-left: none !important;
+    padding: 16px 14px 20px 14px !important;
+    overflow: visible !important;
+  }
+
+  body:not(.digital-omr-active) .palette-number-grid {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 8px !important;
+    max-height: 290px !important; /* Ek compact scrollable window jisme 1-120 smoothly scroll ho */
+    overflow-y: auto !important;
+    padding: 4px 4px 20px 4px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .palette-bubble {
+    height: 38px !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* 6. Navigation Buttons: Screen ke bottom me chipke rahenge taaki aaram se next kiya ja sake */
+  .q-action-footer {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: var(--bg-cbt-card) !important;
+    border-top: 1px solid var(--border-cbt) !important;
+    padding: 10px 14px !important;
+    z-index: 99 !important;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.4) !important;
   }
 }
