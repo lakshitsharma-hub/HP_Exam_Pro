@@ -720,67 +720,87 @@ body {
 .btn-modal-cancel { background: transparent; border: 1px solid var(--border-cbt); color: #cbd5e1; padding: 8px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 .btn-modal-confirm { background: #22c55e; border: none; color: #0b1120; padding: 8px 16px; border-radius: 6px; font-weight: 800; cursor: pointer; }
 
-/* ==================== PHONE PALETTE & 120TH SCROLL FIX ==================== */
+/* ==================== ORIGINAL MOBILE BOTTOM PALETTE ==================== */
 @media (max-width: 768px) {
   .exam-body-grid {
-    grid-template-columns: 1fr !important;
-    position: relative;
-  }
-
-  /* Question Area: Safe bottom margin taaki 120th question aur buttons katein na */
-  .question-viewport {
-    padding: 14px 14px 110px 14px !important;
-    overflow-y: auto;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    height: calc(100vh - 56px - 64px) !important; /* Header aur Footer ke beech full scroll */
+    padding-bottom: 30px !important;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Palette as Slide-in Drawer on Mobile */
+  /* Question Viewport: options & objection */
+  .question-viewport {
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-cbt);
+    padding: 14px 14px 18px 14px !important;
+    overflow: visible !important;
+    flex: none !important;
+  }
+
+  /* Palette: Seedha question ke neeche continuous render hoga */
   .palette-sidebar {
-    position: fixed;
-    top: 52px;
-    right: -100%;
-    width: 290px;
-    height: calc(100vh - 52px);
-    background: #0f172a;
-    border-left: 2px solid rgba(56, 189, 248, 0.4);
-    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.7);
-    z-index: 4999;
-    transition: right 0.3s ease-in-out;
     display: flex !important;
-    padding-bottom: 70px;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    background: var(--bg-cbt-card) !important;
+    border-left: none !important;
+    box-shadow: none !important;
+    padding: 16px 14px !important;
+    overflow: visible !important;
   }
 
-  .palette-sidebar.drawer-open {
+  .palette-number-grid {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important; /* 6 Columns jaisa screenshot me hai */
+    gap: 8px !important;
+    max-height: 220px !important;
+    overflow-y: auto !important;
+    padding-right: 2px;
+  }
+
+  .palette-bubble {
+    height: 40px !important;
+    font-size: 0.85rem !important;
+    border-radius: 6px !important;
+  }
+
+  /* Fixed Bottom Nav Actions Bar */
+  .q-action-footer {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
     right: 0 !important;
+    height: 60px !important;
+    background: #0f172a !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 8px 12px !important;
+    z-index: 1000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
   }
 
-  /* Floating Trigger Button for Palette on Phone */
-  .mobile-palette-toggle-btn {
-    position: fixed;
-    right: 14px;
-    bottom: 72px;
-    background: #0284c7;
-    color: #ffffff;
-    border: none;
-    border-radius: 30px;
-    padding: 8px 14px;
-    font-size: 0.8rem;
-    font-weight: 800;
-    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    z-index: 4500;
-    cursor: pointer;
+  .footer-left-actions {
+    display: flex !important;
+    gap: 6px !important;
   }
 
+  .footer-right-nav {
+    display: flex !important;
+    gap: 6px !important;
+  }
+
+  .btn-nav-outline, .btn-nav-secondary, .btn-nav-primary {
+    padding: 8px 12px !important;
+    font-size: 0.76rem !important;
+  }
+
+  /* Header compact rules */
   .font-resizer-box, .test-sub-meta {
-    display: none;
-  }
-}
-
-@media (min-width: 769px) {
-  .mobile-palette-toggle-btn {
     display: none !important;
   }
 }
