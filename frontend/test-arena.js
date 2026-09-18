@@ -393,12 +393,23 @@ function renderPalette() {
   const grid = document.getElementById("paletteGrid");
   if (!grid) return;
   grid.innerHTML = "";
+
   examQuestions.forEach((q, i) => {
     const bubble = document.createElement("div");
     bubble.id = `palette-bubble-${i}`;
     bubble.className = "palette-bubble";
     bubble.innerText = i + 1;
-    bubble.onclick = () => loadQuestion(i);
+
+    bubble.onclick = () => {
+      loadQuestion(i);
+
+      // Mobile screens par bubble select hote hi palette drawer auto-close karein
+      const palette = document.querySelector(".palette-sidebar");
+      if (palette && window.innerWidth <= 768) {
+        palette.classList.remove("drawer-open");
+      }
+    };
+
     grid.appendChild(bubble);
   });
 }
