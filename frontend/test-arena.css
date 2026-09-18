@@ -30,6 +30,22 @@
   user-select: none;
 }
 
+/* ==================== SLEEK CUSTOM SCROLLBAR ==================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.65);
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: var(--bg-cbt-base);
@@ -212,6 +228,30 @@ body {
   gap: 4px;
 }
 
+/* 🟢 HEADER SUBMIT TEST BUTTON FIX */
+.btn-end-test,
+#btnHeaderSubmit,
+.btn-header-submit,
+#submitTestBtn {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  border: none !important;
+  padding: 6px 14px !important;
+  border-radius: 6px !important;
+  font-size: 0.82rem !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+}
+
+.btn-end-test:hover,
+#btnHeaderSubmit:hover {
+  background: #b91c1c !important;
+  transform: translateY(-1px);
+}
+
 /* ==================== 3. CBT VIEWPORT ==================== */
 .exam-body-grid {
   flex: 1;
@@ -291,20 +331,30 @@ body {
   flex-shrink: 0;
 }
 
-.objection-trigger-box {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: rgba(245, 158, 11, 0.12) !important;
-  border: 1px solid rgba(245, 158, 11, 0.4) !important;
-  border-radius: 6px;
+/* 🟢 AAPATTI / OBJECTION TRIGGER BOX FIX */
+.objection-trigger-box,
+[onclick*="openQueryModal"] {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 6px 12px !important;
+  background: rgba(245, 158, 11, 0.15) !important;
+  border: 1px solid #f59e0b !important;
+  border-radius: 6px !important;
   color: #fbbf24 !important;
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 10px;
-  width: fit-content;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  margin-top: 10px !important;
+  width: fit-content !important;
+  transition: all 0.2s ease !important;
+}
+
+.objection-trigger-box:hover,
+[onclick*="openQueryModal"]:hover {
+  background: rgba(245, 158, 11, 0.28) !important;
+  border-color: #d97706 !important;
+  transform: translateY(-1px);
 }
 
 .q-action-footer {
@@ -378,7 +428,7 @@ body {
 .palette-bubble.state-unanswered { background: #ef4444; color: #fff; border-color: #ef4444; }
 .palette-bubble.state-review { background: #facc15; color: #000; border-color: #facc15; }
 
-/* ==================== 4. DIGITAL OMR VIEW (STRICT MOBILE & DESKTOP) ==================== */
+/* ==================== 4. DIGITAL OMR VIEW ==================== */
 #tabletViewContainer {
   height: 100vh !important;
   width: 100vw !important;
@@ -415,13 +465,13 @@ body {
   position: relative !important;
 }
 
-/* Questions Paper Scroll */
 .tablet-paper-pane {
   flex: 1 1 auto !important;
   overflow-y: auto !important;
   background: #f8fafc !important;
   color: #0f172a !important;
   padding: 14px !important;
+  padding-bottom: 80px !important;
   -webkit-overflow-scrolling: touch !important;
 }
 
@@ -436,7 +486,6 @@ body {
 
 .tablet-paper-banner h3 { font-size: 0.95rem; font-weight: 900; color: #0f172a; }
 
-/* Questions Layout: Mobile = 1 Col, Laptop/Tab = 2 Cols */
 #tabQuestionsFeed {
   display: flex;
   flex-direction: column;
@@ -500,7 +549,6 @@ body {
 
 .opt-tag { font-weight: 800; color: #0284c7; }
 
-/* Splitter / Resizer (Mobile Touch Ready) */
 #tabSplitResizer {
   height: 16px !important;
   background: #0f172a !important;
@@ -522,7 +570,6 @@ body {
   border-radius: 4px;
 }
 
-/* OMR Section */
 #tabOmrPane {
   height: 240px;
   min-height: 130px !important;
@@ -558,11 +605,11 @@ body {
   cursor: pointer;
 }
 
-/* OMR Scroll Grid */
+/* 🟢 120th QUESTION BOTTOM PADDING ACCESSIBILITY FIX */
 .tab-omr-scroll-grid {
   flex: 1 !important;
   overflow-y: auto !important;
-  padding: 8px 12px 20px 12px !important;
+  padding: 8px 12px 110px 12px !important; /* Extra bottom buffer for mobile Chrome */
   -webkit-overflow-scrolling: touch !important;
 }
 
@@ -681,7 +728,6 @@ body {
 .btn-modal-cancel { background: transparent; border: 1px solid var(--border-cbt); color: #cbd5e1; padding: 8px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 .btn-modal-confirm { background: #22c55e; border: none; color: #0b1120; padding: 8px 16px; border-radius: 6px; font-weight: 800; cursor: pointer; }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .exam-header {
     display: flex !important;
@@ -692,7 +738,6 @@ body {
   .exam-header::-webkit-scrollbar { display: none !important; }
   .exam-header > * { flex-shrink: 0 !important; }
 
-  /* Normal CBT Mode on Mobile */
   body:not(.digital-omr-active) .exam-body-grid {
     display: flex !important;
     flex-direction: column !important;
