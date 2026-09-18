@@ -296,7 +296,7 @@ async function fetchQuestionsFromBackend() {
   }
 }
 
-// ==================== TRANSLATION ENGINE ====================
+// Translation Engine
 async function autoTranslate(text) {
   if (!text || currentLanguage === 'hi') return text;
   try {
@@ -474,7 +474,7 @@ function updatePaletteStatus() {
   if (countNotVis) countNotVis.innerText = notVisited;
 }
 
-// ==================== 4. DIGITAL OMR / TABLET FUNCTIONS ====================
+// Digital OMR / Tablet Mode Renderers
 function renderTabletPaperFeed() {
   const feed = document.getElementById("tabQuestionsFeed");
   if (!feed) return;
@@ -508,7 +508,6 @@ function renderTabletPaperFeed() {
   });
 }
 
-// OMR Render: Laptop/Tablet = 1-60 Left & 61-120 Right | Phone = Continuous Single
 function renderTabletOmrBubbles() {
   const container = document.querySelector(".tab-omr-scroll-grid");
   if (!container) return;
@@ -626,7 +625,6 @@ function toggleTabletReview(qIndex) {
   saveTestState();
 }
 
-// Safe Splitter for Phone & Laptop
 function initTabletSplitter() {
   const resizer = document.getElementById("tabSplitResizer");
   const omrPane = document.getElementById("tabOmrPane");
@@ -687,7 +685,7 @@ function initTabletSplitter() {
   window.addEventListener("touchcancel", onEnd);
 }
 
-// ==================== QUERY / OBJECTION ENGINE ====================
+// Objection Modal
 function openQueryModal() {
   let modal = document.getElementById("queryModal");
   if (!modal) return;
@@ -722,7 +720,7 @@ async function submitQuestionQuery() {
   }
 }
 
-// Timer & Submit
+// Timer & Final Submission
 function startTimer() {
   clearInterval(timerInterval);
   timerInterval = setInterval(() => {
