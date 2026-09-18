@@ -1,23 +1,11 @@
-// ==================== THEME CONTROLLER ====================
-function initExamTheme() {
-  const savedTheme = localStorage.getItem("hp_exam_theme") || "dark";
-  document.body.setAttribute("data-theme", savedTheme);
-  const btn = document.getElementById("themeToggleBtn");
-  if (btn) {
-    btn.innerHTML = savedTheme === "light" ? "🌙 Dark" : "☀️ Light";
-  }
-}
+// ==================== CONFIGURATION & HYBRID SWITCH ====================
+// In future agar Patwari ke liye bhi hybrid mode enable karna ho, toh bas 'patwari: true' karein!
+const ENABLE_HYBRID_MODES = {
+  joa_it: true,
+  patwari: false,
+  hp_police: false
+};
 
-function toggleExamTheme() {
-  const current = document.body.getAttribute("data-theme") || "dark";
-  const newTheme = current === "dark" ? "light" : "dark";
-  document.body.setAttribute("data-theme", newTheme);
-  localStorage.setItem("hp_exam_theme", newTheme);
-  const btn = document.getElementById("themeToggleBtn");
-  if (btn) {
-    btn.innerHTML = newTheme === "light" ? "🌙 Dark" : "☀️ Light";
-  }
-}
 const API_BASE_URL = "https://hp-exam-pro-dixk.onrender.com";
 
 let rawQuestionsData = [];
@@ -26,11 +14,29 @@ let currentIndex = 0;
 let currentFontScale = 1.15;
 let currentExamType = "joa_it";
 let currentLanguage = "hi";
+let activeExamMode = "cbt"; // 'cbt' ya 'tablet'
 let timerInterval = null;
 let timeLeft = 5400;
 let currentUserId = localStorage.getItem("current_user_id") || "test-user-123";
 
-// ==================== ANTI-REPEAT QUESTION TRACKING ====================
+// ==================== THEME CONTROLLER ====================
+function initExamTheme() {
+  const savedTheme = localStorage.getItem("hp_exam_theme") || "dark";
+  document.body.setAttribute("data-theme", savedTheme);
+  const btn = document.getElementById("themeToggleBtn");
+  if (btn) btn.innerHTML = savedTheme === "light" ? "🌙 Dark" : "☀️ Light";
+}
+
+function toggleExamTheme() {
+  const current = document.body.getAttribute("data-theme") || "dark";
+  const newTheme = current === "dark" ? "light" : "dark";
+  document.body.setAttribute("data-theme", newTheme);
+  localStorage.setItem("hp_exam_theme", newTheme);
+  const btn = document.getElementById("themeToggleBtn");
+  if (btn) btn.innerHTML = newTheme === "light" ? "🌙 Dark" : "☀️ Light";
+}
+
+// ==================== ANTI-REPEAT & SESSION RECOVERY ====================
 function getAttemptedHistoryKey() {
   return `hp_attempted_qids_${currentExamType}_${currentUserId}`;
 }
@@ -48,23 +54,14 @@ function recordAttemptedQuestions(questions) {
   try {
     const currentList = getAttemptedQuestionIds();
     const newIds = questions.map(q => q.id).filter(Boolean);
-    
-    // Merge unique IDs
     const merged = Array.from(new Set([...currentList, ...newIds]));
-    
-    // Memory limit: Max 500 IDs store rakhein taaki storage overflow na ho
-    if (merged.length > 500) {
-      merged.splice(0, merged.length - 500);
-    }
-    
+    if (merged.length > 500) merged.splice(0, merged.length - 500);
     localStorage.setItem(getAttemptedHistoryKey(), JSON.stringify(merged));
   } catch (e) {
-    console.warn("Could not save attempted question history:", e);
+    console.warn("History save error:", e);
   }
 }
-// =======================================================================
 
-// ==================== STATE PERSISTENCE HELPERS ====================
 function getTestSessionKey() {
   return `hp_test_state_${currentExamType}_${currentUserId}`;
 }
@@ -73,11 +70,12 @@ function saveTestState() {
   if (!examQuestions || examQuestions.length === 0) return;
   try {
     const state = {
-      rawQuestionsData: rawQuestionsData,
-      examQuestions: examQuestions,
-      currentIndex: currentIndex,
-      timeLeft: timeLeft,
-      currentLanguage: currentLanguage,
+      rawQuestionsData,
+      examQuestions,
+      currentIndex,
+      timeLeft,
+      currentLanguage,
+      activeExamMode,
       timestamp: Date.now()
     };
     localStorage.setItem(getTestSessionKey(), JSON.stringify(state));
@@ -89,10 +87,62 @@ function saveTestState() {
 function clearTestState() {
   localStorage.removeItem(getTestSessionKey());
 }
-// ====================================================================
 
+// ==================== HYBRID MODE & INSTRUCTION HANDLER ====================
+function pickExamMode(mode) {
+  activeExamMode = mode;
+  document.getElementById("cardModeCbt").classList.toggle("active", mode === "cbt");
+  document.getElementById("cardModeTablet").classList.toggle("active", mode === "tablet");
+
+  const list = document.getElementById("instructionItemsList");
+  if (mode === "tablet") {
+    list.innerHTML = `
+      <li><strong>2-Second Hold Rule:</strong> A simple tap will NOT fill the bubble. You must <strong>press and hold for 1.5 to 2 seconds</strong> until the bubble is fully marked.</li>
+      <li><strong>Change Response:</strong> To change an answer, press and hold on any other bubble for 1.5 seconds.</li>
+      <li><strong>Mark for Review:</strong> Tap the Question Number (e.g., 1, 2, 3...) to tag or untag the question for review (Yellow highlight).</li>
+      <li><strong>Split Screen Adjustment:</strong> Use the central blue divider bar to resize the Question Paper and OMR Sheet according to your screen preference.</li>
+      <li><strong>Calculator Restrictions:</strong> Digital calculators are strictly restricted in accordance with state commission guidelines.</li>
+    `;
+  } else {
+    list.innerHTML = `
+      <li><strong>Answering Method:</strong> Select your desired option by clicking on it directly.</li>
+      <li><strong>Navigation:</strong> Click <em>"Save & Next"</em> to register your response and proceed to the next question.</li>
+      <li><strong>Electronic Gadgets / Calculator:</strong> Use of electronic calculators or smart digital devices is strictly prohibited during the test.</li>
+      <li><strong>Auto Submission:</strong> The exam will automatically lock and submit once the countdown timer reaches 00:00.</li>
+    `;
+  }
+}
+
+function confirmModeAndLaunchTest() {
+  const chk = document.getElementById("acceptInstructionsChk");
+  if (!chk.checked) {
+    alert("Please accept the examination instructions before proceeding.");
+    return;
+  }
+
+  document.getElementById("modeSelectModal").style.display = "none";
+  document.body.setAttribute("data-view", activeExamMode);
+
+  if (activeExamMode === "tablet") {
+    document.getElementById("cbtViewContainer").style.display = "none";
+    document.getElementById("tabletViewContainer").style.display = "flex";
+    renderTabletPaperFeed();
+    renderTabletOmrBubbles();
+    initTabletSplitter();
+  } else {
+    document.getElementById("cbtViewContainer").style.display = "flex";
+    document.getElementById("tabletViewContainer").style.display = "none";
+    renderPalette();
+    loadQuestion(currentIndex);
+  }
+
+  saveTestState();
+  startTimer();
+}
+
+// ==================== INITIALIZATION ====================
 document.addEventListener("DOMContentLoaded", () => {
-  initExamTheme(); // <--- Yeh line yahan aayegi
+  initExamTheme();
 
   const urlParams = new URLSearchParams(window.location.search);
   let examParam = urlParams.get('exam');
@@ -112,22 +162,36 @@ document.addEventListener("DOMContentLoaded", () => {
   
   const titleEl = document.getElementById("activeExamTitle");
   if (titleEl) titleEl.innerText = titleMap[currentExamType] || "HP Full Mock Test";
+
+  const tabTitleBanner = document.getElementById("tabPaperBannerTitle");
+  if (tabTitleBanner) tabTitleBanner.innerText = (titleMap[currentExamType] || "HP FULL MOCK TEST").toUpperCase();
   
   const marksTag = document.getElementById("qMarksTag");
   if (marksTag && currentExamType === 'hp_police') {
     marksTag.innerText = "+1.00 / -0.25 Negative Marking";
   }
 
+  const candName = localStorage.getItem("current_user_name") || "Candidate";
+  const tabCandEl = document.getElementById("tabCandidateId");
+  if (tabCandEl) tabCandEl.innerText = `ID: ${candName.toUpperCase()}`;
+
+  const isHybridEnabled = Boolean(ENABLE_HYBRID_MODES[currentExamType]);
+  if (!isHybridEnabled) {
+    document.getElementById("modeSelectModal").style.display = "none";
+    activeExamMode = "cbt";
+  }
+
   fetchQuestionsFromBackend();
 });
 
+// ==================== QUESTION FETCHING ====================
 async function fetchQuestionsFromBackend() {
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const isReattempt = urlParams.get('reattempt') === 'true';
     const savedSnapshot = sessionStorage.getItem('hp_reattempt_snapshot');
 
-    // 1. Session Resume Check on Page Reload
+    // Session Restore
     if (!isReattempt) {
       const savedSession = localStorage.getItem(getTestSessionKey());
       if (savedSession) {
@@ -136,15 +200,29 @@ async function fetchQuestionsFromBackend() {
           const isRecent = (Date.now() - parsed.timestamp) < (3 * 60 * 60 * 1000);
 
           if (isRecent && parsed.timeLeft > 0 && parsed.examQuestions && parsed.examQuestions.length > 0) {
-            console.log("⚡ Resuming active session...");
             rawQuestionsData = parsed.rawQuestionsData || [];
             examQuestions = parsed.examQuestions || [];
             currentIndex = parsed.currentIndex || 0;
             timeLeft = parsed.timeLeft;
             currentLanguage = parsed.currentLanguage || "hi";
+            activeExamMode = parsed.activeExamMode || "cbt";
 
-            renderPalette();
-            await loadQuestion(currentIndex);
+            document.getElementById("modeSelectModal").style.display = "none";
+            document.body.setAttribute("data-view", activeExamMode);
+
+            if (activeExamMode === "tablet") {
+              document.getElementById("cbtViewContainer").style.display = "none";
+              document.getElementById("tabletViewContainer").style.display = "flex";
+              renderTabletPaperFeed();
+              renderTabletOmrBubbles();
+              initTabletSplitter();
+            } else {
+              document.getElementById("cbtViewContainer").style.display = "flex";
+              document.getElementById("tabletViewContainer").style.display = "none";
+              renderPalette();
+              await loadQuestion(currentIndex);
+            }
+
             startTimer();
             return;
           }
@@ -155,16 +233,13 @@ async function fetchQuestionsFromBackend() {
     }
 
     let data = null;
-
     if (isReattempt && savedSnapshot) {
       data = JSON.parse(savedSnapshot);
       sessionStorage.removeItem('hp_reattempt_snapshot');
       clearTestState();
     } else {
-      // Excluded past IDs pass kar rahe hain backend ko
       const attemptedIds = getAttemptedQuestionIds();
       const excludeParam = attemptedIds.length > 0 ? `&exclude_ids=${attemptedIds.join(',')}` : '';
-
       const response = await fetch(`${API_BASE_URL}/api/questions/${currentExamType}?user_id=${currentUserId}&t=${Date.now()}${excludeParam}`);
       
       if (response.status === 403) {
@@ -173,17 +248,13 @@ async function fetchQuestionsFromBackend() {
         window.location.href = "pro.html";
         return;
       }
-
       data = await response.json();
     }
 
     if (data && data.length > 0) {
-      // Client-side fallback anti-repeat prioritization (agar backend ne full pool bhej diya ho)
       const pastSeenIds = new Set(getAttemptedQuestionIds());
       const unseen = data.filter(q => !pastSeenIds.has(q.id));
       const seen = data.filter(q => pastSeenIds.has(q.id));
-      
-      // Pehle fresh questions aayenge, pool khatam hone par hi purane mix honge
       rawQuestionsData = [...unseen, ...seen];
 
       examQuestions = rawQuestionsData.map((q) => ({
@@ -199,15 +270,14 @@ async function fetchQuestionsFromBackend() {
         state: "not-visited"
       }));
 
-      // Current batch ke IDs ko history me record karein
       recordAttemptedQuestions(examQuestions);
-
-      renderPalette();
-      await loadQuestion(0);
-      
       timeLeft = currentExamType === 'hp_police' ? 7200 : 5400;
-      saveTestState();
-      startTimer();
+
+      if (!ENABLE_HYBRID_MODES[currentExamType]) {
+        renderPalette();
+        await loadQuestion(0);
+        startTimer();
+      }
     } else {
       alert("Questions could not be loaded. Please try again.");
       window.location.href = "index.html";
@@ -218,7 +288,183 @@ async function fetchQuestionsFromBackend() {
   }
 }
 
-// Auto-Translation Utility via Public Free API
+// ==================== TABLET MODE LOGIC ====================
+function renderTabletPaperFeed() {
+  const feed = document.getElementById("tabQuestionsFeed");
+  if (!feed) return;
+  feed.innerHTML = "";
+
+  examQuestions.forEach((q, idx) => {
+    const qNum = idx + 1;
+    const row = document.createElement("div");
+    row.className = "tab-question-row";
+    row.id = `tab_paper_q_${qNum}`;
+
+    row.innerHTML = `
+      <div class="tab-q-col en">
+        <div class="tab-q-text">Q${qNum}. ${q.text_hi}</div>
+        <div class="tab-opts-table">
+          <div>(A) ${q.opt1_hi}</div><div>(B) ${q.opt2_hi}</div>
+          <div>(C) ${q.opt3_hi}</div><div>(D) ${q.opt4_hi}</div>
+        </div>
+      </div>
+      <div class="tab-q-col hi">
+        <div class="tab-q-text">प्र${qNum}. ${q.text_hi}</div>
+        <div class="tab-opts-table">
+          <div>(A) ${q.opt1_hi}</div><div>(B) ${q.opt2_hi}</div>
+          <div>(C) ${q.opt3_hi}</div><div>(D) ${q.opt4_hi}</div>
+        </div>
+      </div>
+    `;
+    feed.appendChild(row);
+  });
+}
+
+function renderTabletOmrBubbles() {
+  const colLeft = document.getElementById("tabOmrColLeft");
+  const colRight = document.getElementById("tabOmrColRight");
+  if (!colLeft || !colRight) return;
+  
+  colLeft.innerHTML = "";
+  colRight.innerHTML = "";
+
+  const total = examQuestions.length;
+  const half = Math.ceil(total / 2);
+
+  examQuestions.forEach((q, idx) => {
+    const qNum = idx + 1;
+    const row = document.createElement("div");
+    row.className = "tab-omr-row";
+    row.id = `tab_omr_row_${qNum}`;
+
+    const isReviewed = q.state === "review";
+    const selectedKey = q.userSelected;
+
+    row.innerHTML = `
+      <span class="tab-omr-num ${isReviewed ? 'review-marked' : ''}" onclick="toggleTabletReview(${idx})" title="Tap to Toggle Review">${qNum}</span>
+      <div class="tab-bubbles-wrap" data-qindex="${idx}">
+        <div class="tab-bubble ${selectedKey === 'opt1' ? 'filled' : ''}" data-opt="opt1">A</div>
+        <div class="tab-bubble ${selectedKey === 'opt2' ? 'filled' : ''}" data-opt="opt2">B</div>
+        <div class="tab-bubble ${selectedKey === 'opt3' ? 'filled' : ''}" data-opt="opt3">C</div>
+        <div class="tab-bubble ${selectedKey === 'opt4' ? 'filled' : ''}" data-opt="opt4">D</div>
+      </div>
+    `;
+
+    if (idx < half) colLeft.appendChild(row);
+    else colRight.appendChild(row);
+  });
+
+  bindTabletBubblePressEvents();
+  updateTabletCounts();
+}
+
+function bindTabletBubblePressEvents() {
+  let holdTimer = null;
+  let currentTargetBubble = null;
+
+  document.querySelectorAll(".tab-bubble").forEach(bubble => {
+    const onStart = (e) => {
+      e.preventDefault();
+      currentTargetBubble = bubble;
+      bubble.classList.add("pressing");
+
+      holdTimer = setTimeout(() => {
+        const wrap = bubble.closest(".tab-bubbles-wrap");
+        const qIndex = parseInt(wrap.getAttribute("data-qindex"));
+        const optKey = bubble.getAttribute("data-opt");
+
+        wrap.querySelectorAll(".tab-bubble").forEach(b => b.classList.remove("filled"));
+        bubble.classList.remove("pressing");
+        bubble.classList.add("filled");
+
+        examQuestions[qIndex].userSelected = optKey;
+        if (examQuestions[qIndex].state !== "review") {
+          examQuestions[qIndex].state = "answered";
+        }
+
+        saveTestState();
+        updateTabletCounts();
+      }, 1500); // 1.5 Second Official Hold Rule
+    };
+
+    const onEnd = () => {
+      if (holdTimer) clearTimeout(holdTimer);
+      if (currentTargetBubble) {
+        currentTargetBubble.classList.remove("pressing");
+        currentTargetBubble = null;
+      }
+    };
+
+    bubble.addEventListener("pointerdown", onStart);
+    bubble.addEventListener("pointerup", onEnd);
+    bubble.addEventListener("pointerleave", onEnd);
+    bubble.addEventListener("pointercancel", onEnd);
+  });
+}
+
+function toggleTabletReview(qIndex) {
+  const q = examQuestions[qIndex];
+  const qNum = qIndex + 1;
+  const row = document.getElementById(`tab_omr_row_${qNum}`);
+  if (!row) return;
+
+  const numSpan = row.querySelector(".tab-omr-num");
+
+  if (q.state === "review") {
+    q.state = q.userSelected ? "answered" : "unanswered";
+    numSpan.classList.remove("review-marked");
+  } else {
+    q.state = "review";
+    numSpan.classList.add("review-marked");
+  }
+
+  saveTestState();
+  updateTabletCounts();
+}
+
+function updateTabletCounts() {
+  let answered = 0, review = 0;
+  examQuestions.forEach(q => {
+    if (q.userSelected) answered++;
+    if (q.state === "review") review++;
+  });
+
+  const total = examQuestions.length;
+  const unanswered = total - answered;
+
+  const ansEl = document.getElementById("tabCountAnswered");
+  const unansEl = document.getElementById("tabCountUnanswered");
+  const revEl = document.getElementById("tabCountReview");
+
+  if (ansEl) ansEl.innerText = answered;
+  if (unansEl) unansEl.innerText = unanswered;
+  if (revEl) revEl.innerText = review;
+}
+
+function initTabletSplitter() {
+  const resizer = document.getElementById("tabSplitResizer");
+  const omrPane = document.getElementById("tabOmrPane");
+  if (!resizer || !omrPane) return;
+  
+  let isDragging = false;
+
+  resizer.addEventListener("pointerdown", () => { isDragging = true; });
+  window.addEventListener("pointermove", (e) => {
+    if (!isDragging) return;
+    const windowH = window.innerHeight;
+    const newOmrH = windowH - e.clientY;
+    if (newOmrH >= 130 && newOmrH <= (windowH - 140)) {
+      omrPane.style.height = `${newOmrH}px`;
+    }
+  });
+  window.addEventListener("pointerup", () => { isDragging = false; });
+}
+
+function handleTabletCalc() {
+  alert("Notice: Electronic calculators are strictly restricted for this examination.");
+}
+
+// ==================== STANDARD CBT QUESTION RENDERER ====================
 async function autoTranslate(text) {
   if (!text || currentLanguage === 'hi') return text;
   try {
@@ -226,7 +472,6 @@ async function autoTranslate(text) {
     const data = await res.json();
     return data.responseData ? data.responseData.translatedText : text;
   } catch (error) {
-    console.error("Translation error:", error);
     return text;
   }
 }
@@ -241,9 +486,7 @@ async function loadQuestion(index) {
   currentIndex = index;
   const q = examQuestions[index];
 
-  if (q.state === "not-visited") {
-    q.state = "unanswered";
-  }
+  if (q.state === "not-visited") q.state = "unanswered";
 
   document.getElementById("qCurrentIndex").innerText = `Question ${index + 1} of ${examQuestions.length}`;
 
@@ -258,10 +501,7 @@ async function loadQuestion(index) {
     };
   }
 
-  const displayText = currentLanguage === 'en' && q.translated_en
-    ? q.translated_en.text
-    : q.text_hi;
-
+  const displayText = currentLanguage === 'en' && q.translated_en ? q.translated_en.text : q.text_hi;
   const displayOptions = currentLanguage === 'en' && q.translated_en
     ? [q.translated_en.opt1, q.translated_en.opt2, q.translated_en.opt3, q.translated_en.opt4].filter(Boolean)
     : [q.opt1_hi, q.opt2_hi, q.opt3_hi, q.opt4_hi].filter(Boolean);
@@ -286,7 +526,7 @@ async function loadQuestion(index) {
 
     const textSpan = document.createElement("span");
     textSpan.className = "opt-text";
-    textSpan.textContent = String(opt); // Safe plain-text render
+    textSpan.textContent = String(opt);
 
     btn.appendChild(prefixSpan);
     btn.appendChild(textSpan);
@@ -306,6 +546,7 @@ async function loadQuestion(index) {
   updatePaletteStatus();
   saveTestState();
 }
+
 function selectOption(optionKey) {
   examQuestions[currentIndex].userSelected = optionKey;
   examQuestions[currentIndex].state = "answered";
@@ -321,29 +562,23 @@ function clearSelection() {
 }
 
 function saveAndNext() {
-  if (currentIndex < examQuestions.length - 1) {
-    loadQuestion(currentIndex + 1);
-  }
+  if (currentIndex < examQuestions.length - 1) loadQuestion(currentIndex + 1);
 }
 
 function prevQuestion() {
-  if (currentIndex > 0) {
-    loadQuestion(currentIndex - 1);
-  }
+  if (currentIndex > 0) loadQuestion(currentIndex - 1);
 }
 
 function markForReviewAndNext() {
   examQuestions[currentIndex].state = "review";
   saveTestState();
-  if (currentIndex < examQuestions.length - 1) {
-    loadQuestion(currentIndex + 1);
-  } else {
-    updatePaletteStatus();
-  }
+  if (currentIndex < examQuestions.length - 1) loadQuestion(currentIndex + 1);
+  else updatePaletteStatus();
 }
 
 function renderPalette() {
   const grid = document.getElementById("paletteGrid");
+  if (!grid) return;
   grid.innerHTML = "";
   examQuestions.forEach((q, i) => {
     const bubble = document.createElement("div");
@@ -379,12 +614,18 @@ function updatePaletteStatus() {
     }
   });
 
-  document.getElementById("countAnswered").innerText = answered;
-  document.getElementById("countUnanswered").innerText = unanswered;
-  document.getElementById("countReview").innerText = review;
-  document.getElementById("countNotVisited").innerText = notVisited;
+  const countAns = document.getElementById("countAnswered");
+  const countUnans = document.getElementById("countUnanswered");
+  const countRev = document.getElementById("countReview");
+  const countNotVis = document.getElementById("countNotVisited");
+
+  if (countAns) countAns.innerText = answered;
+  if (countUnans) countUnans.innerText = unanswered;
+  if (countRev) countRev.innerText = review;
+  if (countNotVis) countNotVis.innerText = notVisited;
 }
 
+// ==================== TIMER & SUBMISSION ENGINE ====================
 function startTimer() {
   clearInterval(timerInterval);
   timerInterval = setInterval(() => {
@@ -395,16 +636,15 @@ function startTimer() {
     }
     timeLeft--;
 
-    if (timeLeft % 5 === 0) {
-      saveTestState();
-    }
+    if (timeLeft % 5 === 0) saveTestState();
 
     const mins = Math.floor(timeLeft / 60);
     const secs = timeLeft % 60;
-    const timerEl = document.getElementById("timeRemaining");
-    if (timerEl) {
-      timerEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
+    const formatted = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+    document.querySelectorAll(".shared-timer-display").forEach(el => {
+      el.innerText = formatted;
+    });
   }, 1000);
 }
 
@@ -414,9 +654,12 @@ function adjustFontSize(delta) {
 }
 
 function openSubmitModal() {
-  const answered = examQuestions.filter(q => q.state === "answered").length;
-  const review = examQuestions.filter(q => q.state === "review").length;
-  const unanswered = examQuestions.length - answered - review;
+  let answered = 0, review = 0;
+  examQuestions.forEach(q => {
+    if (q.userSelected) answered++;
+    if (q.state === "review") review++;
+  });
+  const unanswered = examQuestions.length - answered;
 
   document.getElementById("modTotal").innerText = examQuestions.length;
   document.getElementById("modAnswered").innerText = answered;
@@ -442,14 +685,11 @@ async function finalSubmitAndExit() {
   examQuestions.forEach(q => {
     const chosen = q.userSelected;
     let correctKey = q.ans;
-
     if (['1', '2', '3', '4', 1, 2, 3, 4].includes(correctKey)) {
       correctKey = 'opt' + correctKey;
     }
 
-    if (chosen) {
-      userResponsesMap[String(q.id)] = chosen;
-    }
+    if (chosen) userResponsesMap[String(q.id)] = chosen;
 
     if (chosen === correctKey) {
       correctCount++;
@@ -478,7 +718,7 @@ async function finalSubmitAndExit() {
     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
   }
 
-  const userName = localStorage.getItem("current_user_name") || "Student";
+  const userName = localStorage.getItem("current_user_name") || "Candidate";
   const questionsSnapshotPayload = rawQuestionsData.length > 0 ? rawQuestionsData : examQuestions;
 
   try {
@@ -519,7 +759,6 @@ function toggleSolutionsReview() {
 
     const chosen = q.userSelected;
     const isCorrect = chosen === correctKey;
-
     const raw = rawQuestionsData[idx] || {};
     const explanation = raw.explanation || "";
 
