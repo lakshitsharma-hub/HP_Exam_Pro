@@ -720,51 +720,67 @@ body {
 .btn-modal-cancel { background: transparent; border: 1px solid var(--border-cbt); color: #cbd5e1; padding: 8px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 .btn-modal-confirm { background: #22c55e; border: none; color: #0b1120; padding: 8px 16px; border-radius: 6px; font-weight: 800; cursor: pointer; }
 
-/* ==================== 5. MOBILE SCREEN FIXES ==================== */
+/* ==================== PHONE PALETTE & 120TH SCROLL FIX ==================== */
 @media (max-width: 768px) {
-  .exam-header {
-    padding: 0 10px;
-    height: auto;
-    min-height: 50px;
-    flex-wrap: wrap;
-    padding-top: 6px;
-    padding-bottom: 6px;
+  .exam-body-grid {
+    grid-template-columns: 1fr !important;
+    position: relative;
   }
+
+  /* Question Area: Safe bottom margin taaki 120th question aur buttons katein na */
+  .question-viewport {
+    padding: 14px 14px 110px 14px !important;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Palette as Slide-in Drawer on Mobile */
+  .palette-sidebar {
+    position: fixed;
+    top: 52px;
+    right: -100%;
+    width: 290px;
+    height: calc(100vh - 52px);
+    background: #0f172a;
+    border-left: 2px solid rgba(56, 189, 248, 0.4);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.7);
+    z-index: 4999;
+    transition: right 0.3s ease-in-out;
+    display: flex !important;
+    padding-bottom: 70px;
+  }
+
+  .palette-sidebar.drawer-open {
+    right: 0 !important;
+  }
+
+  /* Floating Trigger Button for Palette on Phone */
+  .mobile-palette-toggle-btn {
+    position: fixed;
+    right: 14px;
+    bottom: 72px;
+    background: #0284c7;
+    color: #ffffff;
+    border: none;
+    border-radius: 30px;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 4500;
+    cursor: pointer;
+  }
+
   .font-resizer-box, .test-sub-meta {
     display: none;
   }
-  .brand-badge {
-    font-size: 0.68rem;
-    padding: 2px 6px;
-  }
-  .test-title-group h2 {
-    font-size: 0.82rem;
-  }
-  .exam-header-right {
-    gap: 5px;
-  }
-  .lang-select, .theme-switch-btn {
-    padding: 4px 6px;
-    font-size: 0.7rem;
-  }
-  .cbt-timer-box {
-    font-size: 0.78rem;
-    padding: 4px 6px;
-  }
-  .btn-end-test {
-    padding: 5px 8px;
-    font-size: 0.75rem;
-  }
-  .exam-body-grid {
-    grid-template-columns: 1fr;
-  }
-  .palette-sidebar {
-    display: none;
-  }
-  .question-viewport {
-    padding: 14px;
-  }
-  .tablet-omr-pane {
-    height: 230px;
+}
+
+@media (min-width: 769px) {
+  .mobile-palette-toggle-btn {
+    display: none !important;
   }
 }
