@@ -27,6 +27,14 @@ body {
   overflow: hidden;
 }
 
+.view-wrapper {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* CBT Header */
 .exam-header {
   height: 65px;
   background: var(--panel-bg);
@@ -315,28 +323,12 @@ body {
   transition: all 0.15s;
 }
 
-.palette-bubble.current {
-  outline: 2px solid var(--accent-cbt);
-}
+.palette-bubble.current { outline: 2px solid var(--accent-cbt); }
+.palette-bubble.state-answered { background: var(--answered-color) !important; color: #0b1120 !important; border-color: var(--answered-color); }
+.palette-bubble.state-unanswered { background: var(--unanswered-color) !important; color: #ffffff !important; border-color: var(--unanswered-color); }
+.palette-bubble.state-review { background: var(--review-color) !important; color: #0b1120 !important; border-color: var(--review-color); }
 
-.palette-bubble.state-answered {
-  background: var(--answered-color) !important;
-  color: #0b1120 !important;
-  border-color: var(--answered-color);
-}
-
-.palette-bubble.state-unanswered {
-  background: var(--unanswered-color) !important;
-  color: #ffffff !important;
-  border-color: var(--unanswered-color);
-}
-
-.palette-bubble.state-review {
-  background: var(--review-color) !important;
-  color: #0b1120 !important;
-  border-color: var(--review-color);
-}
-
+/* Submit & Objections Modals */
 .submit-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -427,194 +419,7 @@ body {
   gap: 6px;
 }
 
-/* =========================================================
-   CUSTOM SLEEK SCROLLBARS (HOMEPAGE SYNC)
-   ========================================================= */
-
-/* Firefox Support */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(56, 189, 248, 0.25) transparent;
-}
-
-/* Chrome, Edge, Safari Support */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
-  transition: background 0.2s ease;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-cbt, #38bdf8);
-}
-
-/* Question Viewport & Palette Sidebar Clean Spacing */
-.question-viewport, 
-.palette-sidebar {
-  scrollbar-gutter: stable;
-}
-
-/* =========================================================
-   MOBILE & TABLET RESPONSIVE FIX (TEST ARENA)
-   ========================================================= */
-
-@media (max-width: 860px) {
-  /* 1. Body & Screen Unlock */
-  body {
-    height: auto !important;
-    min-height: 100vh;
-    overflow-y: auto !important;
-  }
-
-  /* 2. Compact Header */
-  .exam-header {
-    height: auto !important;
-    padding: 10px 14px !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-  }
-
-  .test-title-group h2 {
-    font-size: 0.88rem !important;
-  }
-
-  .test-sub-meta {
-    display: none !important; /* Mobile space optimization */
-  }
-
-  .exam-header-right {
-    width: 100% !important;
-    justify-content: space-between !important;
-    gap: 6px !important;
-  }
-
-  .font-resizer-box {
-    display: none !important;
-  }
-
-  .lang-switch-box {
-    padding: 2px 6px !important;
-  }
-
-  .cbt-timer-box {
-    padding: 4px 10px !important;
-  }
-
-  .t-val {
-    font-size: 0.95rem !important;
-  }
-
-  .btn-end-test {
-    padding: 6px 12px !important;
-    font-size: 0.78rem !important;
-  }
-
-  /* 3. Grid to Single Column Flow */
-  .exam-body-grid {
-    grid-template-columns: 1fr !important;
-    height: auto !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-
-  .question-viewport {
-    padding: 16px 14px 110px 14px !important; /* Bottom fixed bar ke liye space */
-    border-right: none !important;
-    overflow: visible !important;
-    width: 100% !important;
-  }
-
-  .q-text-card {
-    font-size: 1rem !important;
-    line-height: 1.5 !important;
-    margin-bottom: 18px !important;
-  }
-
-  .option-btn {
-    padding: 12px 14px !important;
-    font-size: 0.88rem !important;
-  }
-
-  /* 4. Bottom Sticky Fixed Action Footer */
-  .q-action-footer {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    background: #0f172a !important;
-    border-top: 1px solid var(--border-cbt) !important;
-    padding: 10px 14px !important;
-    z-index: 1000 !important;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.6) !important;
-    display: flex !important;
-    justify-content: space-between !important;
-    gap: 8px !important;
-  }
-
-  .footer-left-actions {
-    display: flex !important;
-    gap: 6px !important;
-  }
-
-  .footer-left-actions .btn-nav-outline {
-    padding: 8px 10px !important;
-    font-size: 0.75rem !important;
-  }
-
-  .footer-right-nav {
-    display: flex !important;
-    gap: 6px !important;
-    flex: 1 !important;
-    justify-content: flex-end !important;
-  }
-
-  .btn-nav-secondary, 
-  .btn-nav-primary {
-    padding: 8px 14px !important;
-    font-size: 0.8rem !important;
-  }
-
-
-
-  /* 6. Scorecard & Query Modals */
-  .submit-modal-card {
-    padding: 20px 16px !important;
-    width: 95% !important;
-  }
-}
-/* 5. Mobile Palette Sidebar Flow - BIGGER TOUCH-FRIENDLY BOXES */
-  .palette-sidebar {
-    border-top: 1px solid var(--border-cbt) !important;
-    padding: 16px 14px 130px 14px !important; /* Bottom fixed bar ke liye space */
-    background: var(--panel-bg) !important;
-    overflow: visible !important;
-  }
-
-  .palette-number-grid {
-    display: grid !important;
-    grid-template-columns: repeat(5, 1fr) !important; /* 5 columns for larger boxes */
-    gap: 10px !important;
-    max-height: 280px !important;
-    overflow-y: auto !important;
-    padding: 4px 6px 20px 2px !important;
-  }
-
-  .palette-bubble {
-    font-size: 0.95rem !important; /* Bada and clear text */
-    font-weight: 700 !important;
-    min-height: 48px !important;   /* Large touch target */
-    border-radius: 10px !important;
-  }
-/* Language Selector Container */
+/* Lang Switch */
 .lang-switch-box {
   display: inline-flex;
   align-items: center;
@@ -625,17 +430,12 @@ body {
   border-radius: 8px;
 }
 
-/* Globe Icon & Label */
 .lang-label {
   color: #38bdf8;
   font-size: 13px;
   font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
 }
 
-/* Styled Select Dropdown */
 .lang-select {
   background: #0f172a;
   color: #f8fafc;
@@ -646,23 +446,7 @@ body {
   font-weight: 500;
   outline: none;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
-
-.lang-select:hover,
-.lang-select:focus {
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
-}
-
-.lang-select option {
-  background: #0f172a;
-  color: #ffffff;
-}
-
-/* =========================================================
-   LIGHT / TCS EXAM THEME (CLASSIC CBT INTERFACE)
-   ========================================================= */
 
 .theme-switch-btn {
   background: rgba(30, 41, 59, 0.7);
@@ -673,133 +457,544 @@ body {
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
-  display: inline-flex;
+}
+
+/* =========================================================
+   NEW: HYBRID MODE SELECTION MODAL
+   ========================================================= */
+.mode-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 17, 32, 0.88);
+  backdrop-filter: blur(10px);
+  display: flex;
   align-items: center;
-  gap: 4px;
-  transition: all 0.2s ease;
+  justify-content: center;
+  z-index: 5000;
+  padding: 16px;
 }
 
-.theme-switch-btn:hover {
+.mode-modal-card {
+  background: #0f172a;
+  border: 1.5px solid rgba(56, 189, 248, 0.3);
+  border-radius: 20px;
+  max-width: 640px;
+  width: 100%;
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  color: #f8fafc;
+}
+
+.mode-badge {
+  background: #38bdf8;
+  color: #0b1120;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.mode-modal-header h2 {
+  font-size: 1.25rem;
+  margin-bottom: 4px;
+}
+
+.mode-modal-header p {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin-bottom: 18px;
+}
+
+.mode-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.mode-option-card {
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 16px;
+  background: rgba(30, 41, 59, 0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.mode-option-card input[type="radio"] {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.mode-option-card.active {
   border-color: #38bdf8;
-  background: rgba(56, 189, 248, 0.15);
+  background: rgba(56, 189, 248, 0.12);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.2);
 }
 
-/* --- When Light Mode is Active --- */
-body[data-theme="light"] {
-  --bg-cbt: #f1f5f9;
-  --panel-bg: #ffffff;
-  --border-cbt: #cbd5e1;
-  --text-cbt-main: #0f172a;
-  --text-cbt-muted: #64748b;
-  --accent-cbt: #0284c7;
-  background: #f1f5f9;
-  color: #0f172a;
+.mode-icon {
+  font-size: 26px;
+  margin-bottom: 8px;
 }
 
-body[data-theme="light"] .exam-header {
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+.mode-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+  color: #f8fafc;
 }
 
-body[data-theme="light"] .font-resizer-box,
-body[data-theme="light"] .cbt-timer-box,
-body[data-theme="light"] .lang-switch-box,
-body[data-theme="light"] .theme-switch-btn {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  color: #0f172a;
+.mode-desc {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  line-height: 1.4;
+  margin-bottom: 10px;
 }
 
-body[data-theme="light"] .font-btn {
-  background: #e2e8f0;
-  color: #0f172a;
+.mode-tag {
+  margin-top: auto;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  width: fit-content;
 }
 
-body[data-theme="light"] .lang-select {
-  background: #ffffff;
-  color: #0f172a;
-  border-color: #cbd5e1;
-}
-
-body[data-theme="light"] .lang-select option {
-  background: #ffffff;
-  color: #0f172a;
-}
-
-body[data-theme="light"] .t-val {
-  color: #16a34a;
-}
-
-/* Question Section Light Mode */
-body[data-theme="light"] .question-viewport {
-  background: #ffffff;
-  border-right: 1px solid #e2e8f0;
-}
-
-body[data-theme="light"] .q-text-card {
-  color: #0f172a;
-}
-
-body[data-theme="light"] .option-btn {
-  background: #f8fafc;
-  border: 1.5px solid #cbd5e1;
-  color: #1e293b;
-}
-
-body[data-theme="light"] .option-btn:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
-}
-
-body[data-theme="light"] .option-btn .opt-prefix {
-  background: #e2e8f0;
-  color: #0f172a;
-}
-
-body[data-theme="light"] .option-btn.selected-green {
-  background: #f0fdf4 !important;
-  border-color: #22c55e !important;
-  box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
-}
-
-body[data-theme="light"] .option-btn.selected-green .opt-prefix {
-  background: #22c55e;
+.mode-tag.highlight {
+  background: #d946ef;
   color: #ffffff;
 }
 
-body[data-theme="light"] .btn-nav-outline {
-  border-color: #cbd5e1;
+.instructions-accordion {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+}
+
+.inst-head {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #fbbf24;
+  margin-bottom: 6px;
+}
+
+.inst-list {
+  padding-left: 18px;
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.inst-list li {
+  margin-bottom: 4px;
+}
+
+.mode-confirm-action {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.terms-chk {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.btn-start-test {
+  background: #22c55e;
+  color: #0b1120;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.btn-start-test:hover {
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   NEW: OFFICIAL TABLET DIGITAL OMR THEME (PINK & TEAL)
+   ========================================================= */
+.tablet-header {
+  height: 52px;
+  background: #009688;
+  color: #ffffff;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid #00796b;
+}
+
+.tab-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tab-set-badge {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.tab-sub-info {
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.tab-timer-pill {
+  background: #ff5722;
+  color: #ffffff;
+  padding: 5px 18px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.tab-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tab-candidate-id {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tab-avatar-box {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #00796b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+/* Split Area */
+.tablet-split-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.tablet-paper-pane {
+  flex: 1;
+  overflow-y: auto;
+  background: #ffffff;
+  color: #1e293b;
+  padding: 18px 24px;
+}
+
+.tablet-paper-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1.5px solid #cbd5e1;
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+}
+
+.tablet-paper-banner h3 {
+  font-size: 13px;
+  color: #334155;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.tab-calc-btn {
+  background: #e0f2fe;
+  border: 1px solid #0284c7;
+  color: #0284c7;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Dual Column Feed */
+.tab-question-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px dashed #e2e8f0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.tab-q-col.en {
+  border-right: 1px solid #f1f5f9;
+  padding-right: 10px;
+}
+
+.tab-q-col.hi {
+  padding-left: 6px;
+}
+
+.tab-q-text {
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.tab-opts-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 10px;
+  font-size: 12.5px;
+  color: #334155;
+}
+
+/* Draggable Blue Resizer */
+.tab-resizer {
+  height: 12px;
+  background: #2563eb;
+  cursor: row-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  z-index: 20;
+}
+
+.tab-resizer-dots {
+  background: #1d4ed8;
+  border-radius: 10px;
+  padding: 0 10px;
+  height: 7px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.tab-resizer-dots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+/* Bottom Pink OMR Pane */
+.tablet-omr-pane {
+  height: 290px;
+  min-height: 140px;
+  max-height: 80vh;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #cbd5e1;
+}
+
+.tab-omr-topbar {
+  background: #fdf2f8;
+  border-bottom: 1.5px solid #fbcfe8;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tab-omr-title-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.tab-omr-title {
+  color: #d946ef;
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.tab-legend-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  font-weight: 600;
   color: #475569;
 }
 
-body[data-theme="light"] .btn-nav-secondary {
-  background: #e2e8f0;
-  border-color: #cbd5e1;
-  color: #0f172a;
+.tab-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-/* Palette Sidebar Light Mode */
-body[data-theme="light"] .palette-sidebar {
-  background: #f8fafc;
+.omr-legend-bubble {
+  display: inline-block;
+  border-radius: 50%;
 }
 
-body[data-theme="light"] .palette-bubble {
+.omr-legend-bubble.not-att {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #d946ef;
+}
+
+.omr-legend-bubble.att {
+  width: 12px;
+  height: 12px;
+  background: #1e1b4b;
+}
+
+.omr-legend-bubble.review {
+  width: 10px;
+  height: 10px;
+  background: #eab308;
+  border-radius: 2px;
+}
+
+.tab-btn-submit {
+  background: #94a3b8;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+}
+
+.tab-btn-submit:hover {
+  background: #64748b;
+}
+
+/* 2-Column OMR Bubbles Grid */
+.tab-omr-scroll-grid {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 20px;
   background: #ffffff;
-  border-color: #cbd5e1;
-  color: #334155;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-body[data-theme="light"] .palette-bubble.current {
-  outline: 2px solid #0284c7;
+.tab-omr-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-/* Mobile Sticky Bar Light Mode */
+.tab-omr-row {
+  display: flex;
+  align-items: center;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: #fdf4ff;
+}
+
+.tab-omr-row:nth-child(even) {
+  background: #fae8ff;
+}
+
+.tab-omr-num {
+  width: 32px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #701a75;
+  text-align: center;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.tab-omr-num.review-marked {
+  background: #eab308 !important;
+  color: #ffffff !important;
+}
+
+.tab-bubbles-wrap {
+  display: flex;
+  gap: 8px;
+  margin-left: 10px;
+}
+
+.tab-bubble {
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  border: 1.5px solid #d946ef;
+  background: #ffffff;
+  color: #701a75;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.tab-bubble.pressing::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #d946ef;
+  opacity: 0.45;
+  animation: fillPress 1.5s linear forwards;
+}
+
+@keyframes fillPress {
+  from { transform: scale(0); }
+  to { transform: scale(1.2); }
+}
+
+.tab-bubble.filled {
+  background: #1e1b4b !important;
+  border-color: #1e1b4b !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 6px rgba(30, 27, 75, 0.4);
+}
+
 @media (max-width: 860px) {
-  body[data-theme="light"] .q-action-footer {
-    background: #ffffff !important;
-    border-top: 1px solid #cbd5e1 !important;
-    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.08) !important;
+  .mode-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .tab-question-row {
+    grid-template-columns: 1fr;
+  }
+  .tab-q-col.en {
+    border-right: none;
+    border-bottom: 1px dashed #cbd5e1;
+    padding-bottom: 8px;
+  }
+  .tab-omr-scroll-grid {
+    grid-template-columns: 1fr;
   }
 }
