@@ -721,7 +721,7 @@ body {
 .btn-modal-confirm { background: #22c55e; border: none; color: #0b1120; padding: 8px 16px; border-radius: 6px; font-weight: 800; cursor: pointer; }
 
 @media (max-width: 768px) {
-  /* 1. Header Cluster Fix: Single-line Horizontal Swipe Bar */
+  /* 1. Header Cluster: Ek line mein smooth swipe hone wala bar */
   .exam-header,
   .cbt-header-bar,
   header {
@@ -732,42 +732,59 @@ body {
     align-items: center !important;
     gap: 10px !important;
     padding: 8px 12px !important;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
   }
 
   .exam-header::-webkit-scrollbar,
   .cbt-header-bar::-webkit-scrollbar,
   header::-webkit-scrollbar {
-    display: none; /* Chrome, Safari */
+    display: none !important;
   }
 
-  /* Header ke buttons aur items chipakne se bachane ke liye */
   .exam-header > *,
   .cbt-header-bar > *,
   header > * {
     flex-shrink: 0 !important;
   }
 
-  /* 2. Digital OMR Blank Screen Fix */
-  /* Har OMR wrapper ko full width, visible aur scrollable rakhein */
-  .digital-omr-container,
-  #digitalOmrRoot,
-  #digitalOmrSection,
-  #omrModal,
-  .omr-sheet-wrapper,
-  .omr-body,
-  .omr-grid-container {
-    display: block !important;
+  /* 2. Digital OMR / Tablet Mode Blank Screen Fix */
+  body.digital-omr-active #cbtViewContainer {
+    display: none !important;
+  }
+
+  body.digital-omr-active #tabletViewContainer,
+  body.digital-omr-active .tablet-view-container,
+  body.digital-omr-active .tab-view-container {
+    display: flex !important;
+    flex-direction: column !important;
     visibility: visible !important;
     opacity: 1 !important;
     height: auto !important;
     min-height: 100vh !important;
     overflow-y: auto !important;
+  }
+
+  body.digital-omr-active .tab-questions-feed,
+  body.digital-omr-active #tabQuestionsFeed {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body.digital-omr-active #tabOmrPane,
+  body.digital-omr-active .tab-omr-pane {
+    display: block !important;
+    width: 100% !important;
+    position: relative !important;
+    height: auto !important;
+    max-height: 45vh !important;
+    overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* 3. CBT Question + Bottom Palette Viewport Safety */
+  /* 3. Normal CBT Mode (Bottom Palette) */
   body:not(.digital-omr-active) .exam-body-grid {
     display: flex !important;
     flex-direction: column !important;
@@ -779,7 +796,7 @@ body {
 
   body:not(.digital-omr-active) .question-viewport {
     border-right: none !important;
-    padding: 14px 14px 18px 14px !important;
+    padding: 14px !important;
     overflow: visible !important;
     flex: none !important;
   }
@@ -791,7 +808,6 @@ body {
     height: auto !important;
     background: var(--bg-cbt-card, #ffffff) !important;
     border-left: none !important;
-    box-shadow: none !important;
     padding: 16px 14px 30px 14px !important;
     overflow: visible !important;
   }
@@ -804,21 +820,5 @@ body {
     overflow-y: auto !important;
     padding-bottom: 25px !important;
     -webkit-overflow-scrolling: touch;
-  }
-
-  /* Bottom Action Bar */
-  .q-action-footer {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: 60px !important;
-    background: #0f172a !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-    padding: 8px 12px !important;
-    z-index: 1000 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
   }
 }
