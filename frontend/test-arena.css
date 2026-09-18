@@ -732,7 +732,7 @@ body {
 
 /* Modern Pill-Handle Split Resizer */
 .tab-resizer {
-  height: 16px;
+  height: 22px;
   background: #0f172a;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   border-bottom: 2px solid #be123c;
@@ -742,6 +742,9 @@ body {
   justify-content: center;
   flex-shrink: 0;
   transition: background 0.2s ease;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .tab-resizer:hover {
