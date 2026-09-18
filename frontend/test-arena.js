@@ -497,26 +497,38 @@ function updatePaletteStatus() {
   if (countNotVis) countNotVis.innerText = notVisited;
 }
 
-// Tablet Mode
+// 1. Paper Feed Render (Fallback to parent container if tabQuestionsFeed not found)
 function renderTabletPaperFeed() {
-  const feed = document.getElementById("tabQuestionsFeed");
+  const feed = document.getElementById("tabQuestionsFeed") || document.querySelector(".tablet-paper-pane");
   if (!feed) return;
-  feed.innerHTML = "";
+  
+  // Title banner ko preserve karte hue clear karna
+  const banner = document.querySelector(".tablet-paper-banner");
+  feed.innerHTML = banner ? banner.outerHTML : '';
+
+  if (!examQuestions || examQuestions.length === 0) {
+    feed.innerHTML += '<p style="padding: 20px; color: #64748b;">Questions load ho rahe hain, kripya intezar karein...</p>';
+    return;
+  }
 
   examQuestions.forEach((q, idx) => {
     const qNum = idx + 1;
     const row = document.createElement("div");
     row.className = "tab-question-row";
     row.id = `tab_paper_q_${qNum}`;
+    row.style.cssText = "padding: 12px 0; border-bottom: 1px dashed #cbd5e1; color: #0f172a;";
 
     row.innerHTML = `
       <div class="tab-q-single">
-        <div class="tab-q-text"><span class="q-badge">Q${qNum}</span> ${q.text_hi}</div>
-        <div class="tab-opts-grid">
-          <div class="opt-cell"><span class="opt-tag">(A)</span> ${q.opt1_hi}</div>
-          <div class="opt-cell"><span class="opt-tag">(B)</span> ${q.opt2_hi}</div>
-          <div class="opt-cell"><span class="opt-tag">(C)</span> ${q.opt3_hi}</div>
-          <div class="opt-cell"><span class="opt-tag">(D)</span> ${q.opt4_hi}</div>
+        <div class="tab-q-text" style="font-weight: 700; margin-bottom: 8px;">
+          <span style="background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-right: 6px;">Q${qNum}</span>
+          ${q.text_hi || "Question text unavailable"}
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px;">
+          <div><b>(A)</b> ${q.opt1_hi || ''}</div>
+          <div><b>(B)</b> ${q.opt2_hi || ''}</div>
+          <div><b>(C)</b> ${q.opt3_hi || ''}</div>
+          <div><b>(D)</b> ${q.opt4_hi || ''}</div>
         </div>
       </div>
     `;
@@ -524,20 +536,19 @@ function renderTabletPaperFeed() {
   });
 }
 
+// 2. OMR Bubbles Render (Container Safe Fallback)
 function renderTabletOmrBubbles() {
   const container = document.querySelector(".tab-omr-scroll-grid");
   const colLeft = document.getElementById("tabOmrColLeft");
   const colRight = document.getElementById("tabOmrColRight");
   if (!container) return;
 
-  const isLargeScreen = window.innerWidth >= 900;
   const total = examQuestions.length;
   const half = Math.ceil(total / 2);
 
-  if (isLargeScreen && colLeft && colRight) {
+  if (colLeft && colRight) {
     colLeft.innerHTML = "";
     colRight.innerHTML = "";
-
     examQuestions.forEach((q, idx) => {
       const row = createOmrRowNode(q, idx);
       if (idx < half) colLeft.appendChild(row);
