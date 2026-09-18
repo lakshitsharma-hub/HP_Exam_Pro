@@ -9,13 +9,13 @@
 </head>
 <body data-theme="dark" data-view="cbt">
 
-  <!-- ================= 0. HYBRID MODE & INSTRUCTION MODAL ================= -->
+  <!-- ================= 0. HYBRID MODE & INSTRUCTIONS MODAL ================= -->
   <div class="mode-modal-backdrop" id="modeSelectModal">
     <div class="mode-modal-card">
       <div class="mode-modal-header">
         <span class="mode-badge">NEW PATTERN SIMULATION</span>
-        <h2>Choose Exam Interface Mode</h2>
-        <p>Aap is mock test ko official CBT screen ya Digital OMR Tablet format mein de sakte hain.</p>
+        <h2>Select Examination Interface</h2>
+        <p>Choose your preferred interface format: Standard Desktop CBT or Digital Tablet OMR simulation.</p>
       </div>
 
       <div class="mode-cards-grid">
@@ -25,7 +25,7 @@
           <div class="mode-card-body">
             <div class="mode-icon">💻</div>
             <div class="mode-title">Standard CBT Mode</div>
-            <div class="mode-desc">Single question view, click-to-select options, side question palette navigation.</div>
+            <div class="mode-desc">Single question view with click-to-select options and side question palette navigation.</div>
             <div class="mode-tag">Classic Online Pattern</div>
           </div>
         </label>
@@ -36,25 +36,27 @@
           <div class="mode-card-body">
             <div class="mode-icon">📱</div>
             <div class="mode-title">Digital OMR Tablet Mode</div>
-            <div class="mode-desc">Split-screen question paper with 2-column pink OMR grid & resizer handle.</div>
+            <div class="mode-desc">Split-screen paper sheet with draggable resizer and double-column pink digital OMR sheet.</div>
             <div class="mode-tag highlight">Official HP TBT Pattern</div>
           </div>
         </label>
       </div>
 
-      <!-- Instructions Box -->
+      <!-- Instructions Box in English -->
       <div class="instructions-accordion" id="instructionsBox">
-        <div class="inst-head">⚠️ Crucial Exam Instructions:</div>
+        <div class="inst-head">⚠️ Crucial Exam Instructions & Guidelines:</div>
         <ul class="inst-list" id="instructionItemsList">
-          <li><strong>CBT Mode:</strong> Single click par option select hoga. "Save & Next" se aage badhein.</li>
-          <li><strong>Timer:</strong> Test start hote hi reverse countdown trigger ho jayega.</li>
+          <li><strong>Answering Method:</strong> Select your desired option by clicking on it directly.</li>
+          <li><strong>Navigation:</strong> Click <em>"Save & Next"</em> to register your response and proceed to the next question.</li>
+          <li><strong>Electronic Gadgets / Calculator:</strong> Use of electronic calculators or smart digital devices is strictly prohibited during the test.</li>
+          <li><strong>Auto Submission:</strong> The exam will automatically lock and submit once the countdown timer reaches 00:00.</li>
         </ul>
       </div>
 
       <div class="mode-confirm-action">
         <label class="terms-chk">
           <input type="checkbox" id="acceptInstructionsChk" checked>
-          <span>Maine saare nirdesh (instructions) dhyanpurvak padh liye hain aur main samajhta/samajhti hoon.</span>
+          <span>I have carefully read and understood all the examination rules, navigation guidelines, and negative marking criteria.</span>
         </label>
         <button class="btn-start-test" onclick="confirmModeAndLaunchTest()">Accept & Start Examination 🚀</button>
       </div>
@@ -63,7 +65,6 @@
 
   <!-- ================= 1. STANDARD CBT VIEW ================= -->
   <div id="cbtViewContainer" class="view-wrapper">
-    <!-- CBT Top Header -->
     <header class="exam-header">
       <div class="exam-header-left">
         <div class="brand-badge">HP Exam Pro</div>
@@ -104,7 +105,6 @@
       </div>
     </header>
 
-    <!-- CBT Body Grid -->
     <main class="exam-body-grid">
       <section class="question-viewport">
         <div class="q-meta-strip">
@@ -154,11 +154,10 @@
 
   <!-- ================= 2. DIGITAL OMR TABLET VIEW ================= -->
   <div id="tabletViewContainer" class="view-wrapper" style="display: none;">
-    <!-- Tablet Teal Header -->
     <header class="tablet-header">
       <div class="tab-header-left">
         <span class="tab-set-badge" id="tabSetBadge">SET A</span>
-        <span class="tab-sub-info">Paper 1 &nbsp;|&nbsp; 🔋 100 %</span>
+        <span class="tab-sub-info">Paper 1 &nbsp;|&nbsp; 🔋 78%</span>
       </div>
 
       <div class="tab-timer-pill">
@@ -171,27 +170,27 @@
       </div>
     </header>
 
-    <!-- Split Screen Workarea -->
     <div class="tablet-split-area">
-      <!-- Upper Section: Complete Question Paper View -->
+      <!-- Upper Section: Paper Feed with Restricted Calculator -->
       <section class="tablet-paper-pane" id="tabPaperPane">
         <div class="tablet-paper-banner">
           <h3 id="tabPaperBannerTitle">HP JOA IT - PAPER I EXAMINATION</h3>
-          <button class="tab-calc-btn" onclick="handleTabletCalc()">🧮 Calculator</button>
+          <!-- Restricted Calculator Button (Disabled & Blocked) -->
+          <button class="tab-calc-btn" onclick="handleTabletCalc()" title="Calculator restricted for state examinations" style="opacity: 0.6; cursor: not-allowed; text-decoration: line-through; border-color: #cbd5e1; color: #64748b; background: #f1f5f9;">
+            🚫 🧮 Calc (Restricted)
+          </button>
         </div>
-        <div id="tabQuestionsFeed" class="tab-questions-feed">
-          <!-- Rendered dynamically (Dual Hindi/English columns) -->
-        </div>
+        <div id="tabQuestionsFeed" class="tab-questions-feed"></div>
       </section>
 
-      <!-- Middle Draggable Blue Resizer -->
+      <!-- Middle Resizer -->
       <div id="tabSplitResizer" class="tab-resizer">
         <div class="tab-resizer-dots">
           <span></span><span></span><span></span>
         </div>
       </div>
 
-      <!-- Lower Section: Pink/Lavender Digital OMR Grid -->
+      <!-- Lower Section: Pink Digital OMR -->
       <section class="tablet-omr-pane" id="tabOmrPane">
         <div class="tab-omr-topbar">
           <div class="tab-omr-title-group">
@@ -213,7 +212,7 @@
     </div>
   </div>
 
-  <!-- Submit Test Confirmation Modal -->
+  <!-- Summary Modal -->
   <div class="submit-modal-backdrop" id="submitModal">
     <div class="submit-modal-card">
       <h3>📋 Final Exam Summary</h3>
@@ -245,7 +244,7 @@
     </div>
   </div>
 
-  <!-- Scorecard Result Modal -->
+  <!-- Result Scorecard Modal -->
   <div class="submit-modal-backdrop" id="scorecardModal" style="display: none; z-index: 3000;">
     <div class="submit-modal-card" style="text-align: center; max-width: 500px; padding: 30px 24px;">
       <div style="font-size: 50px; margin-bottom: 10px;">🎉</div>
@@ -285,7 +284,7 @@
     </div>
   </div>
 
-  <!-- Question Objection Modal -->
+  <!-- Objection Modal -->
   <div class="submit-modal-backdrop" id="queryModal">
     <div class="submit-modal-card">
       <h3>⚠️ आपत्ति / Doubt दर्ज करें</h3>
