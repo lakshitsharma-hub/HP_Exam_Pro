@@ -403,17 +403,16 @@ function renderPalette() {
     bubble.onclick = () => {
       loadQuestion(i);
 
-      // Mobile screens par bubble select hote hi palette drawer auto-close karein
-      const palette = document.querySelector(".palette-sidebar");
-      if (palette && window.innerWidth <= 768) {
-        palette.classList.remove("drawer-open");
+      // Mobile par bubble click karte hi screen wapas top question par smoothly scroll ho jaye
+      const container = document.querySelector(".exam-body-grid") || window;
+      if (container.scrollTo) {
+        container.scrollTo({ top: 0, behavior: "smooth" });
       }
     };
 
     grid.appendChild(bubble);
   });
 }
-
 function updatePaletteStatus() {
   let answered = 0, unanswered = 0, review = 0, notVisited = 0;
 
