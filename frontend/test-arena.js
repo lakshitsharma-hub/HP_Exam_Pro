@@ -301,18 +301,16 @@ function renderTabletPaperFeed() {
     row.id = `tab_paper_q_${qNum}`;
 
     row.innerHTML = `
-      <div class="tab-q-col en">
-        <div class="tab-q-text">Q${qNum}. ${q.text_hi}</div>
-        <div class="tab-opts-table">
-          <div>(A) ${q.opt1_hi}</div><div>(B) ${q.opt2_hi}</div>
-          <div>(C) ${q.opt3_hi}</div><div>(D) ${q.opt4_hi}</div>
+      <div class="tab-q-single">
+        <div class="tab-q-text">
+          <span class="q-badge">Q${qNum}</span> 
+          <span>${q.text_hi}</span>
         </div>
-      </div>
-      <div class="tab-q-col hi">
-        <div class="tab-q-text">प्र${qNum}. ${q.text_hi}</div>
-        <div class="tab-opts-table">
-          <div>(A) ${q.opt1_hi}</div><div>(B) ${q.opt2_hi}</div>
-          <div>(C) ${q.opt3_hi}</div><div>(D) ${q.opt4_hi}</div>
+        <div class="tab-opts-grid">
+          <div class="opt-cell"><span class="opt-tag">(A)</span> ${q.opt1_hi}</div>
+          <div class="opt-cell"><span class="opt-tag">(B)</span> ${q.opt2_hi}</div>
+          <div class="opt-cell"><span class="opt-tag">(C)</span> ${q.opt3_hi}</div>
+          <div class="opt-cell"><span class="opt-tag">(D)</span> ${q.opt4_hi}</div>
         </div>
       </div>
     `;
