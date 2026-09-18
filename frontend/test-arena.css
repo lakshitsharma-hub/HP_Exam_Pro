@@ -1,10 +1,10 @@
 /* =========================================================
    HP EXAM PRO - TEST ARENA COMPLETE STYLESHEET
    Features:
-   - Mobile & Laptop Safe Modal (No Screen Overflow)
-   - Single Professional Question View (No Duplicates)
-   - Modern Pill-Handle Split Resizer
-   - Pink Digital OMR Tablet Interface
+   - Side-by-Side Questions (Q1 & Q2, Q3 & Q4 on Tablets/Laptops)
+   - Dual-Column OMR Sheet (1-60 & 61-120)
+   - Real-time Radial Fill Animation on 1.5s Hold
+   - Mobile Touch-Safe Split Resizer with Smooth Drag
    ========================================================= */
 
 :root {
@@ -49,7 +49,7 @@ body {
 }
 
 /* =========================================================
-   1. INSTRUCTION / MODE MODAL (RESPONSIVE & SCROLL-SAFE)
+   1. INSTRUCTION / MODE MODAL
    ========================================================= */
 .mode-modal-backdrop {
   position: fixed;
@@ -168,11 +168,6 @@ body {
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.08);
   color: #cbd5e1;
-}
-
-.mode-tag.highlight {
-  background: rgba(244, 63, 94, 0.2);
-  color: #fb7185;
 }
 
 .instructions-accordion {
@@ -486,21 +481,6 @@ body {
   color: #fff;
 }
 
-.question-query-strip {
-  margin-top: 12px;
-}
-
-.btn-report-query {
-  background: transparent;
-  border: none;
-  color: #f59e0b;
-  font-size: 0.74rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
 /* Palette */
 .palette-sidebar {
   background: var(--bg-cbt-card);
@@ -569,10 +549,10 @@ body {
 .palette-bubble.state-review { background: #facc15; color: #000; border-color: #facc15; }
 
 /* =========================================================
-   3. DIGITAL OMR TABLET VIEW (SINGLE PAPER & MODERN RESIZER)
+   3. DIGITAL OMR TABLET VIEW
    ========================================================= */
 .tablet-header {
-  height: 46px;
+  height: 48px;
   background: #0f172a;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
@@ -624,17 +604,6 @@ body {
   color: #cbd5e1;
 }
 
-.tab-avatar-box {
-  width: 24px;
-  height: 24px;
-  background: #1e293b;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-}
-
 .tablet-split-area {
   flex: 1;
   display: flex;
@@ -643,13 +612,13 @@ body {
   position: relative;
 }
 
-/* Single Paper Questions Feed */
+/* Question Feed: Phone = 1 Col, Tablet/Laptop = 2 Cols */
 .tablet-paper-pane {
   flex: 1;
   overflow-y: auto;
-  background: #ffffff;
+  background: #f8fafc;
   color: #0f172a;
-  padding: 16px 20px;
+  padding: 16px;
 }
 
 .tablet-paper-banner {
@@ -667,30 +636,36 @@ body {
   letter-spacing: 0.5px;
 }
 
-.tab-calc-btn {
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 4px;
+#tabQuestionsFeed {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  #tabQuestionsFeed {
+    grid-template-columns: 1fr 1fr; /* Q1 & Q2 aamne saamne, fir Q3 & Q4 */
+    gap: 16px;
+  }
 }
 
 .tab-question-row {
-  display: block;
-  padding: 14px 18px;
-  border-bottom: 1px solid #e2e8f0;
-  font-size: 0.92rem;
-  line-height: 1.5;
   background: #ffffff;
-}
-
-.tab-question-row:nth-child(even) {
-  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .tab-q-text {
   font-weight: 700;
   color: #0f172a;
   margin-bottom: 10px;
+  font-size: 0.92rem;
+  line-height: 1.45;
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -699,26 +674,25 @@ body {
 .q-badge {
   background: #0284c7;
   color: #ffffff;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  padding: 2px 7px;
+  padding: 2px 6px;
   border-radius: 4px;
   flex-shrink: 0;
 }
 
 .tab-opts-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  padding-left: 4px;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 .opt-cell {
-  background: #ffffff;
+  background: #f8fafc;
   border: 1px solid #cbd5e1;
-  padding: 8px 12px;
+  padding: 7px 10px;
   border-radius: 6px;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   color: #334155;
   display: flex;
   align-items: center;
@@ -730,9 +704,9 @@ body {
   color: #0284c7;
 }
 
-/* Modern Pill-Handle Split Resizer */
+/* Touch-Safe Split Resizer */
 .tab-resizer {
-  height: 22px;
+  height: 20px;
   background: #0f172a;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   border-bottom: 2px solid #be123c;
@@ -771,11 +745,11 @@ body {
   border-radius: 50%;
 }
 
-/* OMR Section */
+/* OMR Section: Dual-Column (1-60 & 61-120) */
 .tablet-omr-pane {
-  height: 240px;
-  background: #fdf2f8;
-  border-top: 2px solid #f43f5e;
+  height: 250px;
+  background: #fff1f2;
+  border-top: 2px solid #e11d48;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -787,7 +761,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 6px 14px;
-  background: #fff;
+  background: #ffffff;
   border-bottom: 1px solid #fbcfe8;
 }
 
@@ -797,37 +771,13 @@ body {
   color: #be123c;
 }
 
-.tab-legend-group {
-  display: inline-flex;
-  gap: 12px;
-  margin-left: 14px;
-  font-size: 0.7rem;
-  color: #475569;
-}
-
-.tab-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.omr-legend-bubble {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 1.5px solid #64748b;
-}
-
-.omr-legend-bubble.att { background: #0f172a; border-color: #0f172a; }
-.omr-legend-bubble.review { background: #facc15; border-color: #ca8a04; }
-
 .tab-btn-submit {
   background: #be123c;
   border: none;
   color: #fff;
   font-weight: 800;
   font-size: 0.75rem;
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 4px;
   cursor: pointer;
 }
@@ -836,9 +786,22 @@ body {
   flex: 1;
   overflow-y: auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  padding: 10px 14px;
-  gap: 14px;
+  grid-template-columns: 1fr;
+  padding: 8px 12px;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .tab-omr-scroll-grid {
+    grid-template-columns: 1fr 1fr; /* Col 1: 1-60 | Col 2: 61-120 */
+    column-gap: 24px;
+  }
+}
+
+.tab-omr-col {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .tab-omr-row {
@@ -846,75 +809,80 @@ body {
   align-items: center;
   justify-content: space-between;
   background: #ffffff;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 6px;
-  border: 1px solid #fce7f3;
-  margin-bottom: 6px;
+  border: 1px solid #fecdd3;
 }
 
 .tab-omr-num {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 800;
   color: #475569;
-  width: 24px;
-  cursor: pointer;
-}
-
-.tab-omr-num.review-marked {
-  background: #fef08a;
-  color: #854d0e;
-  border-radius: 3px;
-  padding: 1px 3px;
+  width: 28px;
 }
 
 .tab-bubbles-wrap {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
 
+/* Bubble Design with Radial Fill on 1.5s Hold */
 .tab-bubble {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  border: 1.5px solid #64748b;
+  border: 1.8px solid #475569;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  color: #475569;
+  color: #334155;
+  background: #ffffff;
   cursor: pointer;
   position: relative;
-  transition: transform 0.1s ease;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.tab-bubble::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #be123c;
+  transform: scale(0);
+  opacity: 0.25;
+  transition: transform 1.5s cubic-bezier(0.1, 0.7, 0.1, 1), opacity 1.5s ease;
+  pointer-events: none;
 }
 
 .tab-bubble.pressing {
   transform: scale(1.18);
-  border-color: #0f172a;
+  border-color: #be123c;
 }
 
-.tab-bubble.pressing::after {
-  content: "";
-  position: absolute;
-  inset: -3px;
-  border-radius: 50%;
-  border: 2px solid #be123c;
-  animation: tabBubbleHold 1.5s linear forwards;
-}
-
-@keyframes tabBubbleHold {
-  from { clip-path: polygon(50% 50%, 50% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%); }
-  to { clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%); }
+.tab-bubble.pressing::before {
+  transform: scale(1);
+  opacity: 0.85;
 }
 
 .tab-bubble.filled {
   background: #0f172a !important;
   color: #ffffff !important;
   border-color: #0f172a !important;
+  transform: scale(1) !important;
+}
+
+.tab-bubble.filled::before {
+  display: none !important;
 }
 
 /* =========================================================
-   4. MODALS (SUBMIT / SCORECARD / OBJECTION)
+   4. MODALS (SUBMIT / SCORECARD)
    ========================================================= */
 .submit-modal-backdrop {
   position: fixed;
@@ -993,82 +961,12 @@ body {
 }
 
 /* =========================================================
-   5. RESPONSIVE MOBILE & TABLET MEDIA QUERIES
+   5. MOBILE ADJUSTMENTS
    ========================================================= */
 @media (max-width: 768px) {
-  /* Modal Screen Safe on Phones */
-  .mode-modal-backdrop {
-    padding: 8px;
-    align-items: flex-start;
-  }
-
-  .mode-modal-card {
-    padding: 16px 14px;
-    max-height: 96vh;
-    border-radius: 12px;
-  }
-
-  .mode-cards-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .mode-option-card {
-    padding: 10px 12px;
-  }
-
-  .instructions-accordion {
-    max-height: 130px;
-    padding: 8px 10px;
-  }
-
-  .inst-list {
-    font-size: 0.7rem;
-  }
-
-  .btn-start-test {
-    font-size: 0.85rem;
-    padding: 9px;
-  }
-
-  /* CBT Layout Mobile */
-  .exam-body-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .palette-sidebar {
-    display: none;
-  }
-
-  .exam-header {
-    height: 52px;
-    padding: 0 10px;
-  }
-
-  .font-resizer-box, .test-sub-meta {
-    display: none;
-  }
-
-  /* Tablet OMR Layout Mobile */
-  .tab-question-row {
-    padding: 12px 10px;
-  }
-
-  .tab-opts-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .tab-legend-group {
-    display: none;
-  }
-
-  .tab-omr-scroll-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .tablet-omr-pane {
-    height: 220px;
-  }
+  .exam-body-grid { grid-template-columns: 1fr; }
+  .palette-sidebar { display: none; }
+  .font-resizer-box, .test-sub-meta { display: none; }
+  .mode-cards-grid { grid-template-columns: 1fr; }
+  .tablet-omr-pane { height: 230px; }
 }
