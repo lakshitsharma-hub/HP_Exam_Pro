@@ -102,7 +102,7 @@ function pickExamMode(mode) {
         <li><strong>1.5-Second Hold Rule:</strong> A simple tap will NOT fill the bubble. You must <strong>press and hold for 1.5 seconds</strong>.</li>
         <li><strong>Change Response:</strong> Press and hold on any other bubble for 1.5 seconds to change.</li>
         <li><strong>Mark for Review:</strong> Tap the Question Number (1, 2, 3...) to tag or untag review.</li>
-        <li><strong>Screen Adapt:</strong> Tablets/Laptops split into side-by-side questions and 2-column OMR; Phones stay single stream.</li>
+        <li><strong>Screen Adapt:</strong> Tablets/Laptops split into side-by-side questions and 2-column OMR (1-60 & 61-120); Phones stay single continuous column.</li>
       `;
     } else {
       list.innerHTML = `
@@ -125,11 +125,15 @@ function confirmModeAndLaunchTest() {
   if (modal) modal.style.display = "none";
   document.body.setAttribute("data-view", activeExamMode);
 
+  launchActiveModeView();
+  startTimer();
+}
+
+function launchActiveModeView() {
   const cbtView = document.getElementById("cbtViewContainer");
   const tabView = document.getElementById("tabletViewContainer");
 
   if (activeExamMode === "tablet") {
-    // 🟢 Digital OMR Mode Active: Class lagayein taaki blank screen na ho
     document.body.classList.add("digital-omr-active");
     if (cbtView) cbtView.style.display = "none";
     if (tabView) {
@@ -141,7 +145,6 @@ function confirmModeAndLaunchTest() {
     renderTabletOmrBubbles();
     initTabletSplitter();
   } else {
-    // 🔵 CBT Mode Active: Class hatayein
     document.body.classList.remove("digital-omr-active");
     if (cbtView) cbtView.style.display = "flex";
     if (tabView) tabView.style.display = "none";
@@ -150,7 +153,6 @@ function confirmModeAndLaunchTest() {
   }
 
   saveTestState();
-  startTimer();
 }
 
 // Initialization
@@ -179,10 +181,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const tabTitleBanner = document.getElementById("tabPaperBannerTitle");
   if (tabTitleBanner) tabTitleBanner.innerText = (titleMap[currentExamType] || "HP FULL MOCK TEST").toUpperCase();
 
-  // Objection Click Binding
   bindObjectionButton();
 
-  // Language Dropdown Event Listener
   const langSelect = document.getElementById("langSelect");
   if (langSelect) {
     langSelect.value = currentLanguage;
@@ -214,20 +214,18 @@ function bindObjectionButton() {
 // Fetch Questions
 async function fetchQuestionsFromBackend() {
   try {
-    // 1. Refresh hone par Active Session check karein aur Alert poochein
     const sessionKey = typeof getTestSessionKey === 'function' ? getTestSessionKey() : `test_session_${currentExamType}`;
     const savedSession = localStorage.getItem(sessionKey);
 
     if (savedSession) {
       try {
         const parsed = JSON.parse(savedSession);
-        const isRecent = (Date.now() - parsed.timestamp) < (3 * 60 * 60 * 1000); // 3 ghante tak valid
+        const isRecent = (Date.now() - parsed.timestamp) < (3 * 60 * 60 * 1000);
 
         if (isRecent && parsed.timeLeft > 0 && parsed.examQuestions && parsed.examQuestions.length > 0) {
           const shouldResume = confirm("⚠️ Test Interrupted!\n\nAapka active test session mila hai. Kya aap test wahin se CONTINUE karna chahte hain jahan chhoda tha?");
 
           if (shouldResume) {
-            console.log("⚡ Resuming active session as confirmed by candidate...");
             rawQuestionsData = parsed.rawQuestionsData || [];
             examQuestions = parsed.examQuestions || [];
             currentIndex = parsed.currentIndex || 0;
@@ -235,38 +233,15 @@ async function fetchQuestionsFromBackend() {
             currentLanguage = parsed.currentLanguage || "hi";
             activeExamMode = parsed.activeExamMode || "cbt";
 
-            // Mode select modal agar open ho toh band karein
             const modal = document.getElementById("modeSelectModal");
             if (modal) modal.style.display = "none";
             document.body.setAttribute("data-view", activeExamMode);
 
-            if (activeExamMode === "tablet") {
-              document.body.classList.add("digital-omr-active");
-              const cbtView = document.getElementById("cbtViewContainer");
-              const tabView = document.getElementById("tabletViewContainer");
-              if (cbtView) cbtView.style.display = "none";
-              if (tabView) tabView.style.display = "flex";
-              renderTabletPaperFeed();
-              renderTabletOmrBubbles();
-              initTabletSplitter();
-            } else {
-              document.body.classList.remove("digital-omr-active");
-              const cbtView = document.getElementById("cbtViewContainer");
-              const tabView = document.getElementById("tabletViewContainer");
-              if (cbtView) cbtView.style.display = "flex";
-              if (tabView) tabView.style.display = "none";
-              renderPalette();
-              await loadQuestion(currentIndex);
-            }
-
+            launchActiveModeView();
             startTimer();
-            return; // Yahin se resume, naya API call nahi hoga
+            return;
           } else {
-            if (typeof clearTestState === 'function') {
-              clearTestState();
-            } else {
-              localStorage.removeItem(sessionKey);
-            }
+            clearTestState();
           }
         }
       } catch (e) {
@@ -274,7 +249,6 @@ async function fetchQuestionsFromBackend() {
       }
     }
 
-    // 2. Normal API Call
     const attemptedIds = getAttemptedQuestionIds();
     const excludeParam = attemptedIds.length > 0 ? `&exclude_ids=${attemptedIds.join(',')}` : '';
     const response = await fetch(`${API_BASE_URL}/api/questions/${currentExamType}?user_id=${currentUserId}&t=${Date.now()}${excludeParam}`);
@@ -307,38 +281,21 @@ async function fetchQuestionsFromBackend() {
       recordAttemptedQuestions(examQuestions);
       timeLeft = currentExamType === 'hp_police' ? 7200 : 5400;
 
-      // Agar Mode Select Modal band ho chuka ho tabhi render aur timer start karein
       const modal = document.getElementById("modeSelectModal");
       const isModalVisible = modal && modal.style.display !== "none";
 
       if (!isModalVisible) {
-        if (activeExamMode === "tablet") {
-          document.body.classList.add("digital-omr-active");
-          renderTabletPaperFeed();
-          renderTabletOmrBubbles();
-          initTabletSplitter();
-        } else {
-          document.body.classList.remove("digital-omr-active");
-          renderPalette();
-          loadQuestion(0);
-        }
+        launchActiveModeView();
         startTimer();
       } else {
-        // Agar user pehle se Confirm button daba chuka hai aur screen khul chuki hai
-        if (activeExamMode === "tablet") {
-          renderTabletPaperFeed();
-          renderTabletOmrBubbles();
-          initTabletSplitter();
-        } else {
-          renderPalette();
-          loadQuestion(0);
-        }
+        launchActiveModeView();
       }
     }
   } catch (error) {
     console.error("Error loading questions:", error);
   }
 }
+
 // ==================== TRANSLATION ENGINE ====================
 async function autoTranslate(text) {
   if (!text || currentLanguage === 'hi') return text;
@@ -370,10 +327,8 @@ async function loadQuestion(index) {
   const qTxtEl = document.getElementById("questionText");
   const container = document.getElementById("optionsContainer");
 
-  // Translation Check
   if (currentLanguage === 'en' && !q.translated_en) {
     if (qTxtEl) qTxtEl.innerText = "⏳ Translating question to English...";
-    
     try {
       const [tText, tOpt1, tOpt2, tOpt3, tOpt4] = await Promise.all([
         autoTranslate(q.text_hi),
@@ -382,14 +337,7 @@ async function loadQuestion(index) {
         autoTranslate(q.opt3_hi),
         autoTranslate(q.opt4_hi)
       ]);
-
-      q.translated_en = {
-        text: tText,
-        opt1: tOpt1,
-        opt2: tOpt2,
-        opt3: tOpt3,
-        opt4: tOpt4
-      };
+      q.translated_en = { text: tText, opt1: tOpt1, opt2: tOpt2, opt3: tOpt3, opt4: tOpt4 };
     } catch (err) {
       console.warn("Translation failed, falling back to Hindi:", err);
     }
@@ -422,7 +370,6 @@ async function loadQuestion(index) {
     });
   }
 
-  // Next / Submit Button state
   const nextBtn = document.getElementById("nextBtn");
   if (nextBtn) {
     if (currentIndex === examQuestions.length - 1) {
@@ -436,12 +383,6 @@ async function loadQuestion(index) {
 
   const prevBtn = document.getElementById("prevBtn");
   if (prevBtn) prevBtn.disabled = (currentIndex === 0);
-
-  // Phone screen par question load hote hi palette drawer auto-close ho jaye
-  const palette = document.querySelector(".palette-sidebar");
-  if (palette && window.innerWidth <= 768) {
-    palette.classList.remove("drawer-open");
-  }
 
   updatePaletteStatus();
   saveTestState();
@@ -490,17 +431,14 @@ function renderPalette() {
 
     bubble.onclick = () => {
       loadQuestion(i);
-
-      // Mobile par bubble click karte hi screen wapas top question par smoothly scroll ho jaye
       const container = document.querySelector(".exam-body-grid") || window;
-      if (container.scrollTo) {
-        container.scrollTo({ top: 0, behavior: "smooth" });
-      }
+      if (container.scrollTo) container.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     grid.appendChild(bubble);
   });
 }
+
 function updatePaletteStatus() {
   let answered = 0, unanswered = 0, review = 0, notVisited = 0;
 
@@ -536,12 +474,10 @@ function updatePaletteStatus() {
   if (countNotVis) countNotVis.innerText = notVisited;
 }
 
-// 1. Paper Feed Render (Fallback to parent container if tabQuestionsFeed not found)
+// ==================== 4. DIGITAL OMR / TABLET FUNCTIONS ====================
 function renderTabletPaperFeed() {
-  const feed = document.getElementById("tabQuestionsFeed") || document.querySelector(".tablet-paper-pane");
+  const feed = document.getElementById("tabQuestionsFeed");
   if (!feed) return;
-
-  // Sirf questions wale container ko reset karein (Double banner aane se bachata hai)
   feed.innerHTML = "";
 
   if (!examQuestions || examQuestions.length === 0) {
@@ -571,26 +507,43 @@ function renderTabletPaperFeed() {
     feed.appendChild(row);
   });
 }
-// 2. OMR Bubbles Render (Container Safe Fallback)
+
+// OMR Render: Laptop/Tablet = 1-60 Left & 61-120 Right | Phone = Continuous Single
 function renderTabletOmrBubbles() {
   const container = document.querySelector(".tab-omr-scroll-grid");
-  const colLeft = document.getElementById("tabOmrColLeft");
-  const colRight = document.getElementById("tabOmrColRight");
   if (!container) return;
+  container.innerHTML = "";
 
   const total = examQuestions.length;
   const half = Math.ceil(total / 2);
+  const isLargeScreen = window.innerWidth >= 900;
 
-  if (colLeft && colRight) {
-    colLeft.innerHTML = "";
-    colRight.innerHTML = "";
+  if (isLargeScreen && total > 1) {
+    container.style.display = "flex";
+    container.style.flexDirection = "row";
+    container.style.gap = "24px";
+
+    const col1 = document.createElement("div");
+    col1.className = "tab-omr-col";
+    col1.id = "tabOmrColLeft";
+
+    const col2 = document.createElement("div");
+    col2.className = "tab-omr-col";
+    col2.id = "tabOmrColRight";
+
     examQuestions.forEach((q, idx) => {
       const row = createOmrRowNode(q, idx);
-      if (idx < half) colLeft.appendChild(row);
-      else colRight.appendChild(row);
+      if (idx < half) col1.appendChild(row);
+      else col2.appendChild(row);
     });
+
+    container.appendChild(col1);
+    container.appendChild(col2);
   } else {
-    container.innerHTML = "";
+    container.style.display = "flex";
+    container.style.flexDirection = "column";
+    container.style.gap = "6px";
+
     examQuestions.forEach((q, idx) => {
       container.appendChild(createOmrRowNode(q, idx));
     });
@@ -673,82 +626,71 @@ function toggleTabletReview(qIndex) {
   saveTestState();
 }
 
-// 3. Mobile Touch-Friendly Splitter (Pointer + Touch Events)
+// Safe Splitter for Phone & Laptop
 function initTabletSplitter() {
   const resizer = document.getElementById("tabSplitResizer");
   const omrPane = document.getElementById("tabOmrPane");
   if (!resizer || !omrPane) return;
 
   let isDragging = false;
+  let startY = 0;
+  let startHeight = 0;
 
-  const startDrag = (e) => {
+  const onStart = (clientY) => {
     isDragging = true;
+    startY = clientY;
+    startHeight = omrPane.getBoundingClientRect().height;
     document.body.style.userSelect = "none";
   };
 
-  const doDrag = (e) => {
+  const onMove = (clientY) => {
     if (!isDragging) return;
-    
-    // Touch ya Mouse clientY capture karein
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    if (!clientY) return;
+    const deltaY = startY - clientY;
+    const newHeight = startHeight + deltaY;
+    const maxH = window.innerHeight * 0.75;
+    const minH = 120;
 
-    if (e.cancelable) e.preventDefault(); // Mobile page scroll ko rokein drag ke dauran
-
-    const windowH = window.innerHeight;
-    const newOmrH = windowH - clientY;
-
-    if (newOmrH >= 100 && newOmrH <= (windowH - 100)) {
-      omrPane.style.height = `${newOmrH}px`;
+    if (newHeight >= minH && newHeight <= maxH) {
+      omrPane.style.height = `${newHeight}px`;
     }
   };
 
-  const endDrag = () => {
+  const onEnd = () => {
     if (!isDragging) return;
     isDragging = false;
     document.body.style.userSelect = "";
   };
 
-  // Laptop / Mouse
-  resizer.addEventListener("mousedown", startDrag);
-  window.addEventListener("mousemove", doDrag);
-  window.addEventListener("mouseup", endDrag);
+  // Mouse (Laptop)
+  resizer.onmousedown = (e) => {
+    onStart(e.clientY);
+    const mm = (ev) => onMove(ev.clientY);
+    const mu = () => {
+      onEnd();
+      window.removeEventListener("mousemove", mm);
+      window.removeEventListener("mouseup", mu);
+    };
+    window.addEventListener("mousemove", mm);
+    window.addEventListener("mouseup", mu);
+  };
 
-  // Phone / Touch
-  resizer.addEventListener("touchstart", startDrag, { passive: false });
-  window.addEventListener("touchmove", doDrag, { passive: false });
-  window.addEventListener("touchend", endDrag);
-  window.addEventListener("touchcancel", endDrag);
+  // Touch (Mobile)
+  resizer.addEventListener("touchstart", (e) => {
+    if (e.touches && e.touches.length === 1) onStart(e.touches[0].clientY);
+  }, { passive: true });
+
+  window.addEventListener("touchmove", (e) => {
+    if (isDragging && e.touches && e.touches.length === 1) onMove(e.touches[0].clientY);
+  }, { passive: true });
+
+  window.addEventListener("touchend", onEnd);
+  window.addEventListener("touchcancel", onEnd);
 }
+
 // ==================== QUERY / OBJECTION ENGINE ====================
 function openQueryModal() {
   let modal = document.getElementById("queryModal");
-  if (!modal) {
-    // Dynamic fallback modal agar HTML mein tag missing ho
-    const modalHtml = `
-      <div id="queryModal" class="query-modal-backdrop" style="display: flex;">
-        <div class="query-modal-card">
-          <h3 style="margin-top:0; color:#fbbf24;">⚠️ प्रश्न पर आपत्ति दर्ज करें</h3>
-          <p style="font-size:0.8rem; color:#94a3b8;">Question ID: #${examQuestions[currentIndex]?.id || (currentIndex+1)}</p>
-          <label style="font-size:0.75rem; color:#cbd5e1;">समस्या का प्रकार चुनें:</label>
-          <select id="queryIssueType">
-            <option value="Incorrect Question">प्रश्न गलत या अधूरा है (Incorrect Question)</option>
-            <option value="Wrong Options">दिए गए विकल्प गलत हैं (Wrong Options)</option>
-            <option value="Translation Error">हिंदी/अंग्रेजी अनुवाद में त्रुटि (Translation Error)</option>
-            <option value="Other">अन्य समस्या (Other)</option>
-          </select>
-          <label style="font-size:0.75rem; color:#cbd5e1; display:block; margin-top:10px;">विवरण लिखें (Optional):</label>
-          <textarea id="queryComment" rows="3" placeholder="अपनी आपत्ति का विवरण दर्ज करें..."></textarea>
-          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
-            <button onclick="closeQueryModal()" style="background:transparent; border:1px solid var(--border-cbt); color:#cbd5e1; padding:6px 12px; border-radius:6px; cursor:pointer;">रद्द करें</button>
-            <button onclick="submitQuestionQuery()" style="background:#f59e0b; border:none; color:#0b1120; font-weight:700; padding:6px 14px; border-radius:6px; cursor:pointer;">आपत्ति सबमिट करें</button>
-          </div>
-        </div>
-      </div>
-    `;
-    document.body.insertAdjacentHTML("beforeend", modalHtml);
-    return;
-  }
+  if (!modal) return;
   modal.style.display = "flex";
 }
 
@@ -772,7 +714,7 @@ async function submitQuestionQuery() {
         issue_text: `${issueType}: ${comment}`
       })
     });
-    alert("✓ आपकी आपत्ति दर्ज कर ली गई है। धन्यवाद!");
+    alert("✓ आपकी आपत्ति दर्ज कर ली गई है।");
     closeQueryModal();
   } catch (e) {
     alert("Objection recorded locally.");
@@ -799,11 +741,6 @@ function startTimer() {
       el.innerText = formatted;
     });
   }, 1000);
-}
-
-function adjustFontSize(delta) {
-  currentFontScale = Math.max(0.9, Math.min(1.4, currentFontScale + delta * 0.1));
-  document.documentElement.style.setProperty("--q-font-size", `${currentFontScale}rem`);
 }
 
 function openSubmitModal() {
@@ -867,7 +804,6 @@ async function finalSubmitAndExit() {
   const totalAttempted = correctCount + wrongCount;
   const accuracy = totalAttempted > 0 ? Math.round((correctCount / totalAttempted) * 100) : 0;
 
-  // Render Custom Scorecard Modal
   const scScore = document.getElementById("resFinalScore");
   const scCorr = document.getElementById("resCorrectCount");
   const scWrong = document.getElementById("resWrongCount");
@@ -878,18 +814,13 @@ async function finalSubmitAndExit() {
   if (scWrong) scWrong.innerText = wrongCount;
   if (scAcc) scAcc.innerText = accuracy + "%";
 
-  // Scorecard modal show karein
   const scModal = document.getElementById("scorecardModal");
-  if (scModal) {
-    scModal.style.display = "flex";
-  }
+  if (scModal) scModal.style.display = "flex";
 
-  // Celebration Confetti
   if (window.confetti && finalScore > 0) {
     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
   }
 
-  // Backend Database Sync
   const userName = localStorage.getItem("current_user_name") || "Candidate";
   const questionsSnapshotPayload = rawQuestionsData.length > 0 ? rawQuestionsData : examQuestions;
 
@@ -912,48 +843,3 @@ async function finalSubmitAndExit() {
     console.error("Score submission error:", err);
   }
 }
-
-function toggleSolutionsReview() {
-  const container = document.getElementById("solutionsReviewContainer");
-  if (!container) return;
-
-  if (container.style.display === "block") {
-    container.style.display = "none";
-    return;
-  }
-
-  container.style.display = "block";
-  container.innerHTML = "";
-
-  examQuestions.forEach((q, idx) => {
-    let correctKey = q.ans;
-    if (['1', '2', '3', '4', 1, 2, 3, 4].includes(correctKey)) correctKey = 'opt' + correctKey;
-
-    const chosen = q.userSelected;
-    const isCorrect = chosen === correctKey;
-    const raw = rawQuestionsData[idx] || {};
-    const explanation = raw.explanation || "";
-
-    const div = document.createElement("div");
-    div.style.cssText = `
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid ${isCorrect ? 'rgba(34, 197, 94, 0.4)' : (chosen ? 'rgba(239, 68, 68, 0.4)' : 'rgba(255,255,255,0.08)')};
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 8px;
-      font-size: 0.8rem;
-    `;
-
-    div.innerHTML = `
-      <p style="margin: 0 0 6px 0; font-weight: 700; color: #f8fafc;">Q${idx + 1}: ${q.text_hi}</p>
-      <p style="margin: 2px 0; color: ${isCorrect ? '#4ade80' : '#f87171'};">
-        <strong>Your Choice:</strong> ${chosen ? chosen.toUpperCase() : 'Unattempted'} ${isCorrect ? '✅' : '❌'}
-      </p>
-      ${!isCorrect ? `<p style="margin: 2px 0; color: #4ade80;"><strong>Correct:</strong> ${String(correctKey).toUpperCase()}</p>` : ''}
-      ${explanation ? `<p style="margin: 6px 0 0 0; color: #94a3b8; font-size: 0.75rem;">💡 ${explanation}</p>` : ''}
-    `;
-    container.appendChild(div);
-  });
-}
-
-// ==================== MOBILE PALETTE TOGGLE ENGINE ====================
