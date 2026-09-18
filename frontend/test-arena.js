@@ -714,16 +714,118 @@ async function finalSubmitAndExit() {
 
   let correctCount = 0;
   let wrongCount = 0;
+  const userResponsesMap = {};
 
   examQuestions.forEach(q => {
     const chosen = q.userSelected;
     let correctKey = q.ans;
-    if (['1', '2', '3', '4', 1, 2, 3, 4].includes(correctKey)) correctKey = 'opt' + correctKey;
-    if (chosen === correctKey) correctCount++;
-    else if (chosen) wrongCount++;
+    if (['1', '2', '3', '4', 1, 2, 3, 4].includes(correctKey)) {
+      correctKey = 'opt' + correctKey;
+    }
+
+    if (chosen) userResponsesMap[String(q.id)] = chosen;
+
+    if (chosen === correctKey) {
+      correctCount++;
+    } else if (chosen) {
+      wrongCount++;
+    }
   });
 
-  const finalScore = Math.max(0, correctCount - (currentExamType === 'hp_police' ? wrongCount * 0.25 : 0));
-  alert(`Exam Finished!\nYour Score: ${finalScore}\nCorrect: ${correctCount}\nWrong: ${wrongCount}`);
-  window.location.href = "index.html";
+  let finalScore = correctCount;
+  if (currentExamType === 'hp_police') {
+    finalScore = correctCount - (wrongCount * 0.25);
+  }
+  finalScore = Math.max(0, parseFloat(finalScore.toFixed(2)));
+
+  const totalAttempted = correctCount + wrongCount;
+  const accuracy = totalAttempted > 0 ? Math.round((correctCount / totalAttempted) * 100) : 0;
+
+  // Render Custom Scorecard Modal
+  const scScore = document.getElementById("resFinalScore");
+  const scCorr = document.getElementById("resCorrectCount");
+  const scWrong = document.getElementById("resWrongCount");
+  const scAcc = document.getElementById("resAccuracy");
+
+  if (scScore) scScore.innerText = finalScore;
+  if (scCorr) scCorr.innerText = correctCount;
+  if (scWrong) scWrong.innerText = wrongCount;
+  if (scAcc) scAcc.innerText = accuracy + "%";
+
+  // Scorecard modal show karein
+  const scModal = document.getElementById("scorecardModal");
+  if (scModal) {
+    scModal.style.display = "flex";
+  }
+
+  // Celebration Confetti
+  if (window.confetti && finalScore > 0) {
+    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+  }
+
+  // Backend Database Sync
+  const userName = localStorage.getItem("current_user_name") || "Candidate";
+  const questionsSnapshotPayload = rawQuestionsData.length > 0 ? rawQuestionsData : examQuestions;
+
+  try {
+    await fetch(`${API_BASE_URL}/api/submit-score`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: currentUserId,
+        display_name: userName,
+        exam_type: currentExamType,
+        score: finalScore,
+        correct_answers: correctCount,
+        wrong_answers: wrongCount,
+        questions_snapshot: questionsSnapshotPayload,
+        user_responses: userResponsesMap
+      })
+    });
+  } catch (err) {
+    console.error("Score submission error:", err);
+  }
+}
+
+function toggleSolutionsReview() {
+  const container = document.getElementById("solutionsReviewContainer");
+  if (!container) return;
+
+  if (container.style.display === "block") {
+    container.style.display = "none";
+    return;
+  }
+
+  container.style.display = "block";
+  container.innerHTML = "";
+
+  examQuestions.forEach((q, idx) => {
+    let correctKey = q.ans;
+    if (['1', '2', '3', '4', 1, 2, 3, 4].includes(correctKey)) correctKey = 'opt' + correctKey;
+
+    const chosen = q.userSelected;
+    const isCorrect = chosen === correctKey;
+    const raw = rawQuestionsData[idx] || {};
+    const explanation = raw.explanation || "";
+
+    const div = document.createElement("div");
+    div.style.cssText = `
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid ${isCorrect ? 'rgba(34, 197, 94, 0.4)' : (chosen ? 'rgba(239, 68, 68, 0.4)' : 'rgba(255,255,255,0.08)')};
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+    `;
+
+    div.innerHTML = `
+      <p style="margin: 0 0 6px 0; font-weight: 700; color: #f8fafc;">Q${idx + 1}: ${q.text_hi}</p>
+      <p style="margin: 2px 0; color: ${isCorrect ? '#4ade80' : '#f87171'};">
+        <strong>Your Choice:</strong> ${chosen ? chosen.toUpperCase() : 'Unattempted'} ${isCorrect ? '✅' : '❌'}
+      </p>
+      ${!isCorrect ? `<p style="margin: 2px 0; color: #4ade80;"><strong>Correct:</strong> ${String(correctKey).toUpperCase()}</p>` : ''}
+      ${explanation ? `<p style="margin: 6px 0 0 0; color: #94a3b8; font-size: 0.75rem;">💡 ${explanation}</p>` : ''}
+    `;
+    container.appendChild(div);
+  });
 }
