@@ -3,33 +3,43 @@ import random
 import asyncio
 from supabase import create_client
 
-# ==================== CONFIGURATION (GitHub Secrets से डेटा उठाना) ====================
+# ==================== CONFIGURATION (GitHub Secrets se data uthana) ====================
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 CHANNEL_USERNAME = os.environ.get("TELEGRAM_CHANNEL")
-GROUP_USERNAME = os.environ.get("TELEGRAM_GROUP")  # 🟢 NAYA: Main Group ID ke liye
+GROUP_USERNAME = os.environ.get("TELEGRAM_GROUP")
 # ===================================================================================
 
 async def send_daily_quiz():
-    # चेक करना कि कोई की मिसिंग तो नहीं है (ग्रुप को भी चेक करेंगे)
     if not all([SUPABASE_URL, SUPABASE_KEY, TELEGRAM_BOT_TOKEN, CHANNEL_USERNAME, GROUP_USERNAME]):
-        print("❌ एरर: कुछ क्रेडेंशियल्स (Secrets) मिसिंग हैं भाई! कृपया गिटहब सेटिंग्स चेक करें।")
+        print("❌ Error: Kuch credentials missing hain! Kripya GitHub Settings check karein.")
         return
 
-    # 1. Supabase क्लाइंट कनेक्ट करना
+    # 1. Supabase client connect karna
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
     
     try:
-        print("🔍 डेटाबेस से सभी एक्टिव IDs की लिस्ट निकाल रहे हैं...")
-        id_response = supabase.table("questions").select("id").execute()
+        # 🟢 ANTI-REPEAT STEP 1: Sirf wahi sawal lo jo abhi tak Telegram par post NAHI hue hain
+        print("🔍 Un-posted sawalon ki list nikaal rahe hain...")
+        id_response = supabase.table("questions").select("id").eq("posted_to_telegram", False).execute()
         
-        if not id_response.data:
-            print("❌ एरर: डेटाबेस में कोई सवाल नहीं मिला!")
-            return
+        available_ids = [row['id'] for row in id_response.data] if id_response.data else []
+        
+        # 🟢 ANTI-REPEAT STEP 2: Agar saare questions ek baar post ho chuke hain, toh cycle auto-reset karein
+        if not available_ids:
+            print("🔄 Saare questions ek baar post ho chuke hain! Cycle reset kar rahe hain...")
+            supabase.table("questions").update({"posted_to_telegram": False}).neq("id", 0).execute()
             
-        available_ids = [row['id'] for row in id_response.data]
-        print(f"📊 कुल {len(available_ids)} सवाल एक्टिव मिले।")
+            # Wapas fetch karein fresh cycle ke liye
+            id_response = supabase.table("questions").select("id").eq("posted_to_telegram", False).execute()
+            available_ids = [row['id'] for row in id_response.data] if id_response.data else []
+
+        if not available_ids:
+            print("❌ Error: Database mein koi sawal nahi mila!")
+            return
+
+        print(f"📊 Kul {len(available_ids)} un-posted sawal available hain.")
         
         q = None
         options = []
@@ -37,7 +47,7 @@ async def send_daily_quiz():
         
         while len(available_ids) > 0:
             random_id = random.choice(available_ids)
-            print(f"🎯 लॉटरी में चुनी गई ID: {random_id}")
+            print(f"🎯 Lottery mein chuni gayi ID: {random_id}")
 
             response = supabase.table("questions").select("*").eq("id", random_id).execute()
             
@@ -50,7 +60,7 @@ async def send_daily_quiz():
                 opt4 = potential_q.get('opt4')
                 
                 if not (opt1 and opt2 and opt3 and opt4):
-                    print(f"⚠️ ID {random_id} के कुछ ऑप्शन्स खाली (missing) हैं भाई, इसे छोड़ रहे हैं...")
+                    print(f"⚠️️ ID {random_id} ke kuch options missing hain, isse chhod kar next dekh rahe hain...")
                     available_ids.remove(random_id)
                     continue
                 
@@ -64,7 +74,7 @@ async def send_daily_quiz():
                     if correct_idx < 0 or correct_idx > 3:
                         raise ValueError
                 except (ValueError, TypeError, KeyError):
-                    print(f"⚠️ ID {random_id} का correct_option इनवैलिड है, इसे छोड़ रहे हैं...")
+                    print(f"⚠️ ID {random_id} ka correct_option invalid hai, isse chhod rahe hain...")
                     available_ids.remove(random_id)
                     continue
                 
@@ -72,20 +82,19 @@ async def send_daily_quiz():
                 options = [opt1, opt2, opt3, opt4]
                 break
             else:
-                print(f"⚠️ ID {random_id} डेटाबेस में मिसिंग/डिलीटेड है भाई, दूसरी ID ट्राई कर रहे हैं...")
                 available_ids.remove(random_id)
 
         if not q:
-            print("❌ एरर: पूरे डेटाबेस में एक भी ऐसा सवाल नहीं मिला जो टेलीग्राम के रूल्स को पास कर सके!")
+            print("❌ Error: Telegram rules pass karne wala koi sawal nahi mila!")
             return
 
         question_text = f"📝 Question of the Day:\n\n{q['question_text']}"
         if len(question_text) > 300:
             question_text = question_text[:297] + "..."
 
-        explanation = q.get('explanation', 'HP Exam Pro पर अपनी तैयारी जारी रखें!')
+        explanation = q.get('explanation', 'HP Exam Pro par apni taiyari jaari rakhein!')
         if not explanation:
-            explanation = 'HP Exam Pro पर अपनी तैयारी जारी रखें!'
+            explanation = 'HP Exam Pro par apni taiyari jaari rakhein!'
         if len(explanation) > 200:
             explanation = explanation[:197] + "..."
 
@@ -99,14 +108,14 @@ async def send_daily_quiz():
             "🌐 <b><a href='https://hp-exam-pro.vercel.app'>👉 Join HP Exam Pro Now</a></b>"
         )
 
-        # 🟢 ENGINE 1: MAIN GROUP (Non-Anonymous Tracking)
-        print("🚀 मेन ग्रुप पर Non-Anonymous क्विज़ भेज रहे हैं...")
+        # 🟢 ENGINE 1: MAIN GROUP
+        print("🚀 Main Group par Non-Anonymous quiz bhej rahe hain...")
         try:
             await bot.send_poll(
                 chat_id=GROUP_USERNAME,
                 question=question_text,
                 options=options,
-                is_anonymous=False,  # यहाँ फॉल्स ताकि आप वोटर्स देख सकें
+                is_anonymous=False,
                 type="quiz",
                 correct_option_id=correct_idx,
                 explanation=explanation
@@ -118,16 +127,16 @@ async def send_daily_quiz():
                 disable_web_page_preview=False
             )
         except Exception as e:
-            print(f"⚠️ ग्रुप में एरर: {e}")
+            print(f"⚠️ Group mein error: {e}")
 
-        # 🟢 ENGINE 2: CHANNEL (Anonymous + Comment Forwarding)
-        print("🚀 चैनल पर Anonymous क्विज़ भेज रहे हैं...")
+        # 🟢 ENGINE 2: CHANNEL
+        print("🚀 Channel par Anonymous quiz bhej rahe hain...")
         try:
             await bot.send_poll(
                 chat_id=CHANNEL_USERNAME,
                 question=question_text,
                 options=options,
-                is_anonymous=True,  # यहाँ ट्रू ताकि चैनल ब्लॉक ना करे
+                is_anonymous=True,
                 type="quiz",
                 correct_option_id=correct_idx,
                 explanation=explanation
@@ -139,12 +148,14 @@ async def send_daily_quiz():
                 disable_web_page_preview=False
             )
         except Exception as e:
-            print(f"⚠️ चैनल में एरर: {e}")
+            print(f"⚠️ Channel mein error: {e}")
         
-        print("🎉 आज का क्विज़ सफलतापूर्वक दोनों जगह (ग्रुप और चैनल) लाइव हो गया है!")
+        # 🟢 ANTI-REPEAT STEP 3: Successful post hone par database mein True mark karein
+        supabase.table("questions").update({"posted_to_telegram": True}).eq("id", q['id']).execute()
+        print(f"✅ Question ID #{q['id']} ko Telegram Posted mark kar diya gaya hai. Ab yeh repeat nahi hoga!")
 
     except Exception as e:
-        print(f"❌ बड़ा एरर आया भाई: {e}")
+        print(f"❌ Bada error aaya: {e}")
 
 if __name__ == "__main__":
     asyncio.run(send_daily_quiz())
