@@ -8,11 +8,10 @@ import random
 import re
 import feedparser
 from supabase import create_client, Client
-from datetime import datetime
+from datetime import datetime, timedelta
 import razorpay
 import requests
 from .mailer import send_email, get_welcome_html, get_pro_html, get_inactive_html
-from datetime import datetime, timedelta
 import json
 from bs4 import BeautifulSoup
 
@@ -23,7 +22,6 @@ RAZORPAY_KEY_ID = "rzp_test_Sq35OFh2B20luk"
 RAZORPAY_KEY_SECRET = "BqWJNRU2T7ONPQMCSBrp7g33"
 
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
-
 
 # --- SUPABASE DATABASE CONFIGURATION ----
 SUPABASE_URL = "https://jitkmfqxojfppnpoxeff.supabase.co"
@@ -63,7 +61,6 @@ class ChatRequest(BaseModel):
 @app.get("/api/news")
 async def get_hp_news():
     try:
-        # Supabase se latest Current Affairs ke 5 sawal aur unka 2-3 line ka explanation uthayega
         res = (
             supabase.table("questions")
             .select("question_text, explanation")
@@ -78,7 +75,6 @@ async def get_hp_news():
             for item in res.data:
                 q = item.get("question_text", "")
                 exp = item.get("explanation", "")
-                # Agar explanation hai toh question + 2-3 line detail dono dikhayega
                 if exp:
                     formatted_news.append(f"{q} — {exp}")
                 else:
@@ -88,7 +84,6 @@ async def get_hp_news():
     except Exception as e:
         print(f"Error fetching news from DB: {e}")
 
-    # Fallback default agar DB mein koi news na ho
     return {
         "news": [
             "जापान क्रेडिट रेटिंग एजेंसी (JCR) ने भारत की सॉवरेन क्रेडिट रेटिंग को अपग्रेड करके 'A-' कर दिया है।",
@@ -122,10 +117,7 @@ async def admin_dashboard(x_admin_password: str = Header(None)):
     return {"admin_status": "Authenticated", "server_health": "Optimal"}
 
 
-# --- 3. DYNAMIC QUIZ ENGINE (WITH 30:40:30 CASCADE DIFFICULTY) ---
-
-# --- 3. DYNAMIC QUIZ ENGINE (WITH ZERO-REPEAT LIFETIME ENGINE) ---
-
+# --- 3. DYNAMIC QUIZ ENGINE (WITH LIFETIME ZERO-REPEAT & POLICE 10TH LEVEL CALIBRATION) ---
 @app.get("/api/questions/{exam_type}")
 async def get_exam_questions(exam_type: str, user_id: str = None):
     try:
@@ -141,10 +133,8 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
             is_pro = user_row.get("is_pro", False)
             custom_limit = user_row.get("custom_limit")
 
-            # Determine limit: admin override if present, else standard default 15
             max_allowed = custom_limit if custom_limit is not None else 15
 
-            # Fetch user's previous test results to calculate quota and seen questions
             tests_resp = (
                 supabase.table("test_results")
                 .select("id, questions_snapshot")
@@ -154,14 +144,12 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
             past_tests = tests_resp.data or []
             total_attempted = len(past_tests)
 
-            # Restrict access once quota ceiling is reached
             if total_attempted >= max_allowed:
                 raise HTTPException(
                     status_code=403,
                     detail=f"Test Limit Reached: You have completed all {max_allowed} mock tests allocated to your account."
                 )
 
-            # Aspirant ke lifetime dekhe hue questions extract karein
             for t in past_tests:
                 snapshot = t.get("questions_snapshot") or []
                 for item in snapshot:
@@ -199,12 +187,18 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
                     if (q.get("difficulty") or "").lower() not in ["tough", "hard", "medium"]
                 ]
 
-            # 🛡️ UNSEEN FIRST PRIORITY FILTER
-            # Pehle un questions ko alag karo jo user ne aaj tak nahi dekhe
-            unseen_available = [q for q in available if q.get("id") not in seen_question_ids]
+            # 🟢 HP POLICE FILTER: Maths aur English 10th level standard par lock (No Tough/Advanced questions)
+            if exam_type == 'hp_police' and subject_name in ['maths', 'english']:
+                police_filtered = [
+                    q for q in available 
+                    if (q.get("difficulty") or "").lower() not in ["tough", "hard"]
+                ]
+                # Agar easy/medium questions required count se zyada ya barabar hain toh tough sawal poori tarah block honge
+                if len(police_filtered) >= count:
+                    available = police_filtered
 
-            # Agar unseen questions kaafi hain toh unhe use karo, 
-            # agar kam pad rahe hain ya exhaust ho chuke hain toh available pool se randomize karke fill karo
+            # 🛡️ UNSEEN FIRST PRIORITY FILTER
+            unseen_available = [q for q in available if q.get("id") not in seen_question_ids]
             working_pool = unseen_available if len(unseen_available) >= count else available
 
             # Segregate working pool by difficulty levels
@@ -212,10 +206,15 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
             medium_pool = [q for q in working_pool if (q.get("difficulty") or "").lower() == "medium"]
             easy_pool = [q for q in working_pool if (q.get("difficulty") or "").lower() not in ["tough", "hard", "medium"]]
 
-            # Target proportions (30:40:30 cascade)
-            target_tough = int(round(count * 0.30))
-            target_medium = int(round(count * 0.40))
-            target_easy = count - (target_tough + target_medium)
+            # 🟢 Target proportions (HP Police Maths/English me Tough Quota 0, baaki jagah 30:40:30)
+            if exam_type == 'hp_police' and subject_name in ['maths', 'english']:
+                target_tough = 0
+                target_medium = int(round(count * 0.50))
+                target_easy = count - target_medium
+            else:
+                target_tough = int(round(count * 0.30))
+                target_medium = int(round(count * 0.40))
+                target_easy = count - (target_tough + target_medium)
 
             selected_from_subject = []
 
@@ -238,7 +237,7 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
             sampled_easy = random.sample(easy_pool, take_easy) if take_easy > 0 else []
             selected_from_subject.extend(sampled_easy)
 
-            # 4. Universal Fallback (Agar working pool se count kam pada, toh remaining available se bharo)
+            # 4. Universal Fallback
             if len(selected_from_subject) < count:
                 chosen_ids_here = {q["id"] for q in selected_from_subject}
                 remaining = [q for q in available if q["id"] not in chosen_ids_here]
@@ -247,7 +246,6 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
                 if take_extra > 0:
                     selected_from_subject.extend(random.sample(remaining, take_extra))
 
-            # Mark selected IDs globally for this test session
             for q in selected_from_subject:
                 selected_ids.add(q["id"])
 
@@ -306,7 +304,8 @@ async def get_exam_questions(exam_type: str, user_id: str = None):
 async def create_payment_order(payload: dict):
     try:
         user_id = payload.get("user_id")
-        if not user_id: raise HTTPException(status_code=400, detail="User ID required!")
+        if not user_id: 
+            raise HTTPException(status_code=400, detail="User ID required!")
 
         config_resp = supabase.table("app_config").select("value").eq("key", "pro_price").execute()
         
@@ -339,7 +338,7 @@ async def verify_payment_signature(payload: dict):
         
         razorpay_client.utility.verify_payment_signature(params_dict)
         supabase.table("profiles").update({"is_pro": True}).eq("id", user_id).execute()
-        # ✉️ Pro Access Email Trigger
+        
         u_res = supabase.table("profiles").select("display_name, email").eq("id", user_id).execute()
         if u_res.data:
             u_name = u_res.data[0].get("display_name", "Student")
@@ -352,11 +351,10 @@ async def verify_payment_signature(payload: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- 4. SCORE SUBMISSION ENDPOINT (WITH EXACT COLUMN NAMES) ---
+# --- 4. SCORE SUBMISSION ENDPOINT (WITH EXACT COLUMN NAMES & STREAK TRACKING) ---
 @app.post("/api/submit-score")
 async def submit_score(data: ScoreSubmission):
     try:
-        # 1. Insert test result record
         response = supabase.table("test_results").insert({
             "user_id": data.user_id,
             "display_name": data.display_name,
@@ -368,11 +366,9 @@ async def submit_score(data: ScoreSubmission):
             "user_responses": data.user_responses
         }).execute()
 
-        # 2. Dynamic Streak Update Engine
         new_streak = 1
         if data.user_id and data.user_id != "test-user-123":
             try:
-                # Fetch profile with exact column names: current_streak, last_test_date
                 profile_resp = supabase.table("profiles").select("current_streak, last_test_date").eq("id", data.user_id).execute()
                 
                 if profile_resp.data and len(profile_resp.data) > 0:
@@ -384,19 +380,15 @@ async def submit_score(data: ScoreSubmission):
 
                     if last_test_str:
                         try:
-                            # Clean ISO timestamp
                             cleaned_ts = last_test_str.split(".")[0].replace("Z", "").replace("+00:00", "")
                             last_test_date = datetime.fromisoformat(cleaned_ts).date()
                             diff_days = (today - last_test_date).days
 
                             if diff_days == 0:
-                                # Same day test -> streak maintain rahegi
                                 new_streak = max(current_streak, 1)
                             elif diff_days == 1:
-                                # Consecutive day -> streak + 1
                                 new_streak = current_streak + 1
                             else:
-                                # Gap > 1 day -> streak reset to 1
                                 new_streak = 1
                         except Exception as parse_err:
                             print(f"Date parse fallback: {parse_err}")
@@ -404,7 +396,6 @@ async def submit_score(data: ScoreSubmission):
                     else:
                         new_streak = 1
 
-                    # Update Database Profile using last_test_date
                     supabase.table("profiles").update({
                         "current_streak": new_streak,
                         "last_test_date": datetime.utcnow().isoformat()
@@ -424,7 +415,7 @@ async def submit_score(data: ScoreSubmission):
 @app.post("/api/query/raise")
 async def raise_question_query(data: QueryRaiseInput):
     try:
-        response = supabase.table("query_raises").insert([
+        supabase.table("query_raises").insert([
             {
                 "user_id": data.user_id,
                 "question_id": data.question_id,
@@ -436,7 +427,7 @@ async def raise_question_query(data: QueryRaiseInput):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# 1. Welcome Mail Trigger (Jab user signup kare)
+# 1. Welcome Mail Trigger
 @app.post("/api/user/welcome-mail")
 async def welcome_mail_trigger(payload: dict):
     email = payload.get("email")
@@ -454,12 +445,11 @@ async def welcome_mail_trigger(payload: dict):
             return {"status": "error", "message": str(e)}
     return {"status": "skipped", "message": "No email provided"}
     
-# 2. Inactive Users Automated Check (Synced with profiles.email & last_active)
+# 2. Inactive Users Automated Reminder
 @app.get("/api/cron/inactive-reminder")
 async def trigger_inactive_emails():
     cutoff = (datetime.utcnow() - timedelta(days=15)).isoformat()
     
-    # Ab 'email' column directly available hai
     res = supabase.table("profiles").select("id, email, display_name, last_active").lte("last_active", cutoff).execute()
     
     users = res.data or []
@@ -531,11 +521,9 @@ async def get_analytics(user_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.get("/api/daily-question")
 async def get_daily_question():
     try:
-        # Sabse latest Current Affairs question database se nikaalega
         response = (
             supabase.table("questions")
             .select("*")
@@ -548,7 +536,6 @@ async def get_daily_question():
         if response.data and len(response.data) > 0:
             return {"status": "success", "question": response.data[0]}
             
-        # Fallback agar CA question na mile
         fallback_resp = supabase.table("questions").select("*").limit(20).execute()
         if fallback_resp.data:
             return {"status": "success", "question": random.choice(fallback_resp.data)}
@@ -557,8 +544,7 @@ async def get_daily_question():
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-
-# --- FREE PRO / SUPPORT TELEGRAM DISPATCHER --
+# --- FREE PRO / SUPPORT TELEGRAM DISPATCHER ---
 class SupportClaimInput(BaseModel):
     name: str
     email: str
@@ -589,7 +575,6 @@ async def claim_free_pro_access(data: SupportClaimInput):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 # =====================================================================
 # --- AUTOMATED DAILY CURRENT AFFAIRS SCRAPER & INGESTION (HINDI) ---
 # =====================================================================
@@ -603,53 +588,38 @@ def scrape_civilstap_latest():
     session = requests.Session()
     latest_url = None
 
-    # Step 1: Category Listing se saare article links collect karo
     listing_url = "https://civilstap.com/news-category/prelims-current-affairs/"
     try:
         res = session.get(listing_url, headers=headers, timeout=15)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
-            
-            # Category page ke main content area ke links dhoondho
             candidate_links = []
             for a in soup.find_all("a", href=True):
                 href = a['href'].split("#")[0].rstrip('/')
-                # Check karo agar link current affairs news article ka hai
                 if "/current-affairs-news/" in href and href != listing_url.rstrip('/'):
                     if href not in candidate_links:
                         candidate_links.append(href)
 
-            # Debug ke liye top 3 links print karo
-            print(f"DEBUG: Found {len(candidate_links)} article candidates: {candidate_links[:3]}")
-
             if candidate_links:
-                # Top candidate jo listing mein sabse pehla actual post hai
                 latest_url = candidate_links[0]
                 
     except Exception as e:
         print(f"DEBUG: Listing parse failed: {e}")
 
-    # Fallback: Agar listing fail ho toh RSS feed se direct entry
     if not latest_url:
         try:
-            import feedparser
             feed = feedparser.parse("https://civilstap.com/feed/")
             for entry in feed.entries:
                 link = entry.get("link", "").split("#")[0].rstrip('/')
                 if "current-affairs" in link:
                     latest_url = link
-                    print(f"DEBUG: Picked via RSS Feed: {latest_url}")
                     break
         except Exception as e:
             print(f"DEBUG: RSS fallback failed: {e}")
 
     if not latest_url:
-        print("DEBUG: Koi bhi article URL nahi mila.")
         return None
 
-    print(f"DEBUG: Final Target URL to scrape: {latest_url}")
-
-    # Step 2: Article Page Content Extract karo
     try:
         art_res = session.get(latest_url, headers=headers, timeout=15)
         if art_res.status_code != 200:
@@ -665,14 +635,12 @@ def scrape_civilstap_latest():
         if "Ask your Query" in raw_text:
             raw_text = raw_text.split("Ask your Query")[0]
 
-        print(f"DEBUG: Extracted Content Length: {len(raw_text)} chars")
         return raw_text[:3800]
     except Exception as e:
         print(f"DEBUG: Content extraction failed: {e}")
         return None
 
 def generate_hindi_ca_mcqs(context_text: str):
-    """Safe AI invocation using Groq & Gemini with verified working model identifiers"""
     prompt = f"""
     Aap Himachal Pradesh Competitive Exams (HPRCA / HPPSC) ke senior paper setter hain.
     Diye gaye Current Affairs content ke aadhar par EXACTLY 5 high-yield MCQs banayein.
@@ -709,7 +677,6 @@ def generate_hindi_ca_mcqs(context_text: str):
     groq_key = os.getenv("GROQ_API_KEY")
     gemini_key = os.getenv("GEMINI_API_KEY")
 
-    # 1. Groq (Active Supported Models)
     if groq_key:
         for model_id in ["llama-3.3-70b-specdec", "llama3-70b-8192", "llama3-8b-8192"]:
             try:
@@ -726,14 +693,10 @@ def generate_hindi_ca_mcqs(context_text: str):
                 res_json = r.json()
                 if "choices" in res_json:
                     raw_output = res_json["choices"][0]["message"]["content"]
-                    print(f"DEBUG: Groq success using model: {model_id}")
                     break
-                else:
-                    print(f"DEBUG Groq ({model_id}) returned error: {res_json}")
             except Exception as err:
                 print(f"DEBUG Groq Network Error ({model_id}): {err}")
 
-    # 2. Gemini Fallback
     if not raw_output and gemini_key:
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
@@ -746,16 +709,11 @@ def generate_hindi_ca_mcqs(context_text: str):
             res_json = r.json()
             if "candidates" in res_json:
                 raw_output = res_json["candidates"][0]["content"]["parts"][0]["text"]
-                print("DEBUG: Gemini success using gemini-1.5-flash")
-            else:
-                print(f"DEBUG Gemini API returned error: {res_json}")
         except Exception as err:
             print(f"DEBUG Gemini Network Error: {err}")
 
-    # 3. Native App Engine Fallback (Safe invocation)
     if not raw_output:
         try:
-            print("DEBUG: Using native AIEngine fallback...")
             res = engine.get_response(prompt)
             raw_output = res[0] if isinstance(res, (tuple, list)) else res
         except Exception as err:
@@ -764,7 +722,6 @@ def generate_hindi_ca_mcqs(context_text: str):
     if not raw_output:
         return None
 
-    # Clean JSON format
     cleaned = raw_output.strip()
     if "```json" in cleaned:
         cleaned = cleaned.split("```json")[1].split("```")[0].strip()
@@ -774,11 +731,11 @@ def generate_hindi_ca_mcqs(context_text: str):
     try:
         return json.loads(cleaned)
     except Exception as e:
-        print(f"DEBUG JSON Parse Exception: {e}\nRaw Output was:\n{raw_output[:300]}")
+        print(f"DEBUG JSON Parse Exception: {e}")
         return None
+
 @app.get("/api/admin/sync-daily-ca")
 async def trigger_daily_ca_sync():
-    """Direct URL trigger route"""
     context = scrape_civilstap_latest()
     if not context:
         raise HTTPException(status_code=500, detail="CivilsTap se latest news fetch nahi ho saki.")
@@ -787,7 +744,7 @@ async def trigger_daily_ca_sync():
     if not mcqs:
         raise HTTPException(status_code=500, detail="AI se questions generate nahi ho sake.")
 
-    res = supabase.table("questions").insert(mcqs).execute()
+    supabase.table("questions").insert(mcqs).execute()
 
     return {
         "status": "success",
@@ -797,16 +754,12 @@ async def trigger_daily_ca_sync():
 
 @app.get("/api/debug/mail-test")
 async def debug_mail_test(target_email: str):
-    import os
-    import requests
-    
     key = os.getenv("BREVO_API_KEY")
     sender = os.getenv("SENDER_EMAIL", "hpexamproai@gmail.com")
     
     if not key:
         return {"status": "error", "message": "BREVO_API_KEY Render Environment Variables mein missing hai!"}
     
-    # Brevo API Payload
     url = "https://api.brevo.com/v3/smtp/email"
     headers = {
         "api-key": key.strip(),
@@ -831,8 +784,7 @@ async def debug_mail_test(target_email: str):
     except Exception as e:
         return {"status": "network_exception", "error": str(e)}
 
-
-# --- ENHANCED SIMULATION DEBUG ENDPOINT (SUBJECT-WISE BREAKDOWN) ---
+# --- SIMULATION DEBUG ENDPOINT (WITH POLICE 10TH LEVEL CALIBRATION) ---
 @app.get("/api/debug/test-simulation")
 async def debug_simulation(exam_type: str = "patwari", total_runs: int = 15):
     try:
@@ -918,6 +870,15 @@ async def debug_simulation(exam_type: str = "patwari", total_runs: int = 15):
                         if (q.get("difficulty") or "").lower() not in ["tough", "hard", "medium"]
                     ]
 
+                # Simulation me bhi Police ke Maths & English ko 10th level lock rakhein
+                if exam_type == 'hp_police' and subject_name in ['maths', 'english']:
+                    police_sim_filter = [
+                        q for q in available
+                        if (q.get("difficulty") or "").lower() not in ["tough", "hard"]
+                    ]
+                    if len(police_sim_filter) >= count:
+                        available = police_sim_filter
+
                 unseen_available = [q for q in available if q.get("id") not in simulated_seen_ids]
                 working_pool = unseen_available if len(unseen_available) >= count else available
 
@@ -925,9 +886,14 @@ async def debug_simulation(exam_type: str = "patwari", total_runs: int = 15):
                 medium_pool = [q for q in working_pool if (q.get("difficulty") or "").lower() == "medium"]
                 easy_pool = [q for q in working_pool if (q.get("difficulty") or "").lower() not in ["tough", "hard", "medium"]]
 
-                target_tough = int(round(count * 0.30))
-                target_medium = int(round(count * 0.40))
-                target_easy = count - (target_tough + target_medium)
+                if exam_type == 'hp_police' and subject_name in ['maths', 'english']:
+                    target_tough = 0
+                    target_medium = int(round(count * 0.50))
+                    target_easy = count - target_medium
+                else:
+                    target_tough = int(round(count * 0.30))
+                    target_medium = int(round(count * 0.40))
+                    target_easy = count - (target_tough + target_medium)
 
                 selected = []
                 t_take = min(len(tough_pool), target_tough)
@@ -950,7 +916,6 @@ async def debug_simulation(exam_type: str = "patwari", total_runs: int = 15):
                     if len(rem) > 0:
                         selected.extend(random.sample(rem, min(len(rem), needed)))
 
-                # Track subject counts and repeated questions for this subject
                 rep_count_here = sum(1 for q in selected if q["id"] in simulated_seen_ids)
                 subject_counts[label] = len(selected)
                 if rep_count_here > 0:
@@ -967,8 +932,8 @@ async def debug_simulation(exam_type: str = "patwari", total_runs: int = 15):
                 "test_number": run_idx,
                 "total_questions": len(q_ids_this_test),
                 "total_repeated": len(repeated_ids),
-                "subject_distribution": subject_counts,       # 👈 Kis subject ke kitne sawal aaye
-                "repeated_breakdown": repeated_by_subject     # 👈 Kaunse subject me kitne repeat hue
+                "subject_distribution": subject_counts,
+                "repeated_breakdown": repeated_by_subject
             })
 
             simulated_seen_ids.update(q_ids_this_test)
